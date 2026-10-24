@@ -21,7 +21,11 @@ const LEVELS = {
   'aws-clf': { name: 'AWS CLF', title: 'AWS Cloud Practitioner', hashEnv: 'PASS_AWS_CLF', org: 'AWS Certified Cloud Practitioner CLF-C02', foot: '考試資訊以 AWS 認證官網公告為準', labels: ['第一部分', '第二部分'], subjects: ['雲端概念與安全合規（Domain 1–2）', '雲端技術服務與計費（Domain 3–4）'] },
   'aws-saa': { name: 'AWS SAA', title: 'AWS Solutions Architect Associate', hashEnv: 'PASS_AWS_SAA', org: 'AWS Certified Solutions Architect – Associate SAA-C03', foot: '考試資訊以 AWS 認證官網公告為準', labels: ['第一部分', '第二部分'], subjects: ['安全與韌性架構（Domain 1–2）', '高效能與成本最佳化架構（Domain 3–4）'] },
   'py-basic': { name: 'Python 入門', title: 'Python 入門', hashEnv: 'PASS_PY_BASIC', org: 'Python 程式設計・零基礎入門', foot: '語法以 Python 3.12 與官方文件為準', labels: ['基礎篇', '進階篇'], subjects: ['語法基礎與流程控制', '資料結構、函式與程式組織'] },
-  'py-practice': { name: 'Python 實戰', title: 'Python 實戰：自動化與資料分析', hashEnv: 'PASS_PY_PRACTICE', org: 'Python 程式設計・自動化與資料分析', foot: '套件用法以各套件官方文件為準；爬蟲與 API 請遵守網站規範與個資法', labels: ['自動化篇', '分析篇'], subjects: ['辦公自動化與網路資料', '資料分析、AI 與作品集'] }
+  'py-practice': { name: 'Python 實戰', title: 'Python 實戰：自動化與資料分析', hashEnv: 'PASS_PY_PRACTICE', org: 'Python 程式設計・自動化與資料分析', foot: '套件用法以各套件官方文件為準；爬蟲與 API 請遵守網站規範與個資法', labels: ['自動化篇', '分析篇'], subjects: ['辦公自動化與網路資料', '資料分析、AI 與作品集'] },
+  'ai-apps': { name: 'AI 應用實作', title: 'AI 應用實作：提示工程、RAG 與代理流程', hashEnv: 'PASS_AI_APPS', org: 'AI 應用實作・提示工程 × RAG × AI 代理', foot: 'API 用法以各家官方文件為準；處理個資請遵守個資法與公司政策', labels: ['基礎篇', '進階篇'], subjects: ['提示工程與 API 應用', 'RAG、工具呼叫與代理流程'] },
+  git: { name: 'Git', title: 'Git 版本控制：從入門到團隊協作', hashEnv: 'PASS_GIT', org: '開發必備技能・Git × GitHub', foot: '指令以 Git 2.40 以上版本與官方文件為準', labels: ['個人篇', '協作篇'], subjects: ['基本操作、還原與分支', '遠端、GitHub 與團隊實務'] },
+  devops: { name: 'DevOps', title: 'DevOps 入門：Docker、CI/CD 與雲端部署', hashEnv: 'PASS_DEVOPS', org: 'DevOps 入門・容器 × 自動化 × 維運', foot: '指令與設定以各工具官方文件為準', labels: ['容器篇', '部署篇'], subjects: ['Docker 與容器化', 'CI/CD、雲端與維運'] },
+  network: { name: '網路基礎', title: '網路基礎：從 OSI 到子網路與路由', hashEnv: 'PASS_NETWORK', org: '網路基礎・CCNA 與網路架設技術士核心觀念', foot: '非 Cisco 或勞動部官方課程；考試範圍以官方公告為準', labels: ['原理篇', '實務篇'], subjects: ['網路模型與 IP 定址', '交換、路由、服務與排錯'] }
 };
 const IPAS = { org: 'iPAS 資訊安全工程師能力鑑定', foot: '考試資訊以 iPAS 經濟部產業人才能力鑑定官網公告為準', labels: ['科目一', '科目二'] };
 for (const [k, v] of Object.entries(LEVELS)) {

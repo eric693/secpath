@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>SecPath 學堂 · iPAS 資安、AI、Security+、AWS 與 Python 課程</title>
+  <title>SecPath 學堂 · 資安、AI、雲端、程式設計與 IT 課程</title>
   <meta name="description" content="iPAS 資訊安全工程師、iPAS AI 應用規劃師（初級、中級）、CompTIA Security+ 與 AWS 雲端證照（Cloud Practitioner、Solutions Architect Associate）備考課程，以及 Python 程式設計入門與實戰：完整講義、教學影片、題庫、模擬考與實務練習。">
   <meta name="theme-color" content="#f7f7f5">
   <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
@@ -15,7 +15,7 @@
 <body class="plain">
   <header class="plain-head">
     <a class="brand" href="/"><span class="brand-name">SecPath</span><span class="brand-sub">資安學堂</span></a>
-    <nav class="plain-nav"><a href="#levels">資安課程</a><a href="#ai">AI 課程</a><a href="#cloud">雲端課程</a><a href="#python">程式設計</a><a href="#practice">實作課程</a><a href="#method">學習方式</a><a href="#exam">考試資訊</a></nav>
+    <nav class="plain-nav"><a href="#levels">資安課程</a><a href="#ai">AI 課程</a><a href="#cloud">雲端課程</a><a href="#python">程式設計</a><a href="#it">IT 與 DevOps</a><a href="#practice">實作課程</a><a href="#method">學習方式</a><a href="#exam">考試資訊</a></nav>
   </header>
 
   <main class="landing">
@@ -226,11 +226,97 @@
       </article>
     </section>
 
+    <section id="it" class="landing-section">
+      <h2>IT 基礎與 DevOps</h2>
+      <p class="muted">不對應單一證照，從網路、版本控制到容器與自動化部署，補齊網管、雲端、後端與 SRE 職缺最常要求的基礎技能。建議學習順序：網路基礎 → Git → DevOps。</p>
+    </section>
+    <section class="levels">
+      <article class="level-card">
+        <div class="level-top">
+          <span class="level-no">NET</span>
+          <span class="tag">網路</span>
+        </div>
+        <h2>網路基礎：從 OSI 到子網路與路由</h2>
+        <p class="muted">網管、MIS、資安與雲端工程都必須懂網路。涵蓋 CCNA 與網路架設技術士的核心觀念。</p>
+        <table class="tbl">
+          <tr><th>部分</th><th>內容</th></tr>
+          <tr><td>原理篇</td><td>網路設備、OSI 與 TCP/IP、乙太網路、IPv4、子網路切割與 VLSM、IPv6</td></tr>
+          <tr><td>實務篇</td><td>VLAN、路由、TCP 與 UDP、DHCP／DNS／NAT、無線與網路安全、排錯與 Cisco 指令</td></tr>
+        </table>
+        <ul class="level-points">
+          <li>12 章講義，子網路計算題答案皆經程式驗算</li>
+          <li>二進位轉換、子網路計算、VLSM 規劃、OSI 分層配對</li>
+          <li>Cisco IOS 基本設定與 Packet Tracer 練習方向</li>
+        </ul>
+        <a class="btn lg" href="/network/">進入網路基礎</a>
+      </article>
+
+      <article class="level-card">
+        <div class="level-top">
+          <span class="level-no">GIT</span>
+          <span class="tag">版本控制</span>
+        </div>
+        <h2>Git 版本控制：從入門到團隊協作</h2>
+        <p class="muted">工程師、資料分析師、設計師都用得到的必備技能，從第一次提交學到團隊協作與事故救援。</p>
+        <table class="tbl">
+          <tr><th>部分</th><th>內容</th></tr>
+          <tr><td>個人篇</td><td>三個區域、提交、restore／reset／revert、分支與合併、處理衝突</td></tr>
+          <tr><td>協作篇</td><td>遠端與 SSH、Pull Request、rebase、stash 與 tag、分支策略、推了密碼怎麼辦</td></tr>
+        </table>
+        <ul class="level-points">
+          <li>10 章講義，37 題指令輸出題在真實 Git 中執行驗證</li>
+          <li>網頁版 Git 指令模擬器，即時觀察提交歷史與分支</li>
+          <li>Git 情境指令查詢與語意化版本計算</li>
+        </ul>
+        <a class="btn lg" href="/git/">進入 Git 課程</a>
+      </article>
+
+      <article class="level-card">
+        <div class="level-top">
+          <span class="level-no">OPS</span>
+          <span class="tag">容器與部署</span>
+        </div>
+        <h2>DevOps 入門：Docker、CI/CD 與雲端部署</h2>
+        <p class="muted">把程式從「我電腦上可以跑」變成自動測試、自動部署、出問題馬上知道。建議先完成 Git 與 Linux。</p>
+        <table class="tbl">
+          <tr><th>部分</th><th>內容</th></tr>
+          <tr><td>容器篇</td><td>DevOps 概念、Docker、Dockerfile 與層快取、Docker Compose、容器除錯</td></tr>
+          <tr><td>部署篇</td><td>GitHub Actions、部署策略、Kubernetes、Terraform、監控與 DevSecOps</td></tr>
+        </table>
+        <ul class="level-points">
+          <li>10 章講義，附 Dockerfile、Compose、Actions、K8s、Terraform 範例</li>
+          <li>Docker 層快取模擬、SLA 可用性換算</li>
+          <li>作品集：推送後自動測試、建置映像並部署</li>
+        </ul>
+        <a class="btn lg" href="/devops/">進入 DevOps 課程</a>
+      </article>
+    </section>
+
     <section id="practice" class="landing-section">
       <h2>AI 實作課程</h2>
       <p class="muted">不對應證照考試，以學會實際技能、完成可用成品為目標。</p>
     </section>
     <section class="levels">
+      <article class="level-card">
+        <div class="level-top">
+          <span class="level-no">AI 實作</span>
+          <span class="tag">AI 應用</span>
+        </div>
+        <h2>AI 應用實作：提示工程、RAG 與代理流程</h2>
+        <p class="muted">從會用 AI 聊天進階到能打造 AI 應用。銜接 iPAS AI 應用規劃師與 Python 實戰課程。</p>
+        <table class="tbl">
+          <tr><th>部分</th><th>內容</th></tr>
+          <tr><td>基礎篇</td><td>LLM 原理、提示工程基礎與進階、用 API 打造應用、結構化輸出與資料擷取</td></tr>
+          <tr><td>進階篇</td><td>RAG 原理與實作、評估檢索品質、工具呼叫、AI 代理流程、上線評估與治理</td></tr>
+        </table>
+        <ul class="level-points">
+          <li>10 章講義，RAG 檢索與評估範例可在網頁上執行</li>
+          <li>文件切塊視覺化、RAG 檢索模擬、LLM 費用估算</li>
+          <li>提示注入、資料外洩等資安風險與防護</li>
+        </ul>
+        <a class="btn lg" href="/ai-apps/">進入 AI 應用實作</a>
+      </article>
+
       <article class="level-card">
         <div class="level-top">
           <span class="level-no">實作</span>

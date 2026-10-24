@@ -37,7 +37,17 @@
     pyrun: { name: 'Python 練習場', desc: '在瀏覽器直接寫 Python 並執行，不需安裝。支援 input()、pandas 與 matplotlib，按 Ctrl＋Enter 也能執行。' },
     slice: { name: '切片視覺化', desc: '輸入起點、終點與間隔，看清楚 a[start:stop:step] 會取出哪些元素，包含負索引與倒序。' },
     trace: { name: '迴圈逐步追蹤', desc: '一步一步執行常見的迴圈範例，觀察每一輪變數的變化，理解累加、找最大值與計數的寫法。' },
-    pyerr: { name: '錯誤訊息查詢', desc: '輸入或點選錯誤名稱，查看代表的意思、常見原因與修正方式。' }
+    pyerr: { name: '錯誤訊息查詢', desc: '輸入或點選錯誤名稱，查看代表的意思、常見原因與修正方式。' },
+    chunk: { name: '文件切塊視覺化', desc: '調整切塊大小與重疊字數，觀察一份文件會被切成幾塊、重疊部分在哪裡，理解 RAG 的切塊（Chunking）取捨。' },
+    retrieve: { name: 'RAG 檢索模擬', desc: '輸入問題，用關鍵字向量與餘弦相似度從公司 FAQ 中找出最相關的段落，觀察檢索如何決定 AI 看到的內容。' },
+    llmcost: { name: 'LLM 費用估算', desc: '依每次輸入與輸出 token、每月請求數與模型單價，估算每月費用，並比較提示快取與批次處理能省多少。' },
+    dockercache: { name: 'Docker 層快取模擬', desc: '比較 Dockerfile 指令順序不同時，修改程式碼或套件清單後有哪些層會重新建置、要花多少時間。' },
+    gitcmd: { name: 'Git 情境指令查詢', desc: '依常見情境（改錯檔、要撤銷提交、合併衝突等）查詢該用的 Git 指令與注意事項。' },
+    semver: { name: '語意化版本計算', desc: '輸入目前版本與變更類型，算出下一個版本號，並判斷相依套件的版本範圍是否允許升級。' },
+    binary: { name: '二進位與 IP 轉換', desc: '輸入 IPv4 位址，逐段轉成二進位，判斷位址等級與私有位址，並換算前綴長度與子網路遮罩。' },
+    osi: { name: 'OSI 分層配對', desc: '隨機出現協定、設備或資料單位名稱，選出它屬於 OSI 的哪一層，熟悉各層的代表項目。' },
+    vlsm: { name: 'VLSM 子網路規劃', desc: '輸入可用網段與各部門需要的主機數，自動以 VLSM 由大到小分配子網路，列出網段、遮罩、可用範圍與浪費的位址。' },
+    gitgraph: { name: 'Git 指令模擬器', desc: '在瀏覽器輸入 git commit、branch、switch、merge、reset、revert 等指令，即時觀察提交歷史與分支指標的變化。' }
   };
   const fmtN = (x, d = 4) => Number.isFinite(x) ? (+x.toFixed(d)).toString() : '—';
 
@@ -159,6 +169,71 @@ print('平均：', round(sum(scores.values()) / len(scores), 1))</pre>
         <label class="field"><span>貼上錯誤訊息或輸入錯誤名稱</span><input class="input mono" id="peIn" placeholder="例如 TypeError: can only concatenate str (not &quot;int&quot;) to str" spellcheck="false"></label>
         <div class="tabs" id="pePick" style="margin-bottom:10px"></div>
         <div id="peOut"></div>`;
+      case 'chunk': return `
+        <label class="field"><span>文件內容</span><textarea class="input" id="ckText" rows="5">【請假規定】員工請特休假須於三日前在系統提出申請，經直屬主管核准。病假三日以內免附證明，超過三日須檢附醫療證明。婚假八日，須於結婚日前十日起三個月內請畢。喪假依親屬關係給予三至八日。【加班規定】平日加班前二小時加給三分之一以上，再延長二小時以內加給三分之二以上。加班須事先申請，未經核准之加班不予計算。【出差規定】國內出差住宿費每日上限二千元，交通以大眾運輸為原則，搭乘計程車須說明理由。</textarea></label>
+        <div class="grid g2" style="gap:10px">
+          <label class="field"><span>切塊大小 <b class="mono" id="ckSizeV">80</b> 字</span><input type="range" id="ckSize" min="30" max="200" step="10" value="80" style="width:100%"></label>
+          <label class="field"><span>重疊 <b class="mono" id="ckOverV">20</b> 字</span><input type="range" id="ckOver" min="0" max="60" step="5" value="20" style="width:100%"></label>
+        </div>
+        <div id="ckOut"></div>`;
+      case 'retrieve': return `
+        <label class="field"><span>你的問題</span><input class="input" id="rtQ" value="病假要附什麼證明？"></label>
+        <div class="tabs" id="rtPick" style="margin-bottom:10px"><button data-v="病假要附什麼證明？" type="button">病假證明</button><button data-v="出差可以搭計程車嗎" type="button">出差交通</button><button data-v="忘記密碼怎麼辦" type="button">忘記密碼</button><button data-v="年終獎金什麼時候發" type="button">資料庫沒有的問題</button></div>
+        <div id="rtOut"></div>`;
+      case 'llmcost': return `
+        <div class="tabs" id="lcModel" style="margin-bottom:10px"><button class="on" data-v="4,20" type="button">Opus 5.5</button><button data-v="2,10" type="button">Sonnet 5.5</button><button data-v="0.1,0.5" type="button">Haiku 5.5</button></div>
+        <div class="grid g2" style="gap:10px">
+          <label class="field"><span>輸入單價（US$／百萬 tokens）</span><input class="input num" type="number" id="lcIn" value="4" step="0.01" min="0"></label>
+          <label class="field"><span>輸出單價（US$／百萬 tokens）</span><input class="input num" type="number" id="lcOut" value="20" step="0.01" min="0"></label>
+          <label class="field"><span>每次輸入 tokens</span><input class="input num" type="number" id="lcTi" value="3000" min="0"></label>
+          <label class="field"><span>每次輸出 tokens</span><input class="input num" type="number" id="lcTo" value="500" min="0"></label>
+          <label class="field"><span>每月請求數</span><input class="input num" type="number" id="lcN" value="20000" min="0"></label>
+          <label class="field"><span>輸入中可快取的比例（%）</span><input class="input num" type="number" id="lcCache" value="60" min="0" max="100"></label>
+        </div>
+        <label class="field"><span>匯率（新台幣／美元）</span><input class="input num" type="number" id="lcFx" value="32" step="0.1" min="0"></label>
+        <p class="tiny muted" style="margin:0 0 8px">預設單價為 2026 年 10 月官方公布的標準價格，僅供估算；實際價格、快取與批次折扣以官網為準。快取讀取以標準輸入價的 10% 估算，未計入寫入快取的額外費用。</p>
+        <div id="lcOutBox"></div>`;
+      case 'dockercache': return `
+        <div class="tabs" id="dcOrder" style="margin-bottom:8px"><button class="on" data-v="good" type="button">好的順序：先裝套件再複製程式</button><button data-v="bad" type="button">不好的順序：先複製全部</button></div>
+        <div class="tabs" id="dcChange" style="margin-bottom:10px"><button class="on" data-v="code" type="button">只改了程式碼 app.py</button><button data-v="req" type="button">改了 requirements.txt</button><button data-v="base" type="button">換了基底映像版本</button></div>
+        <div id="dcOut"></div>`;
+      case 'gitcmd': return `
+        <label class="field"><span>搜尋情境</span><input class="input" id="gcQ" placeholder="例如：撤銷、衝突、分支、遠端"></label>
+        <div id="gcOut"></div>`;
+      case 'semver': return `
+        <div class="grid g2" style="gap:10px">
+          <label class="field"><span>目前版本</span><input class="input mono" id="svV" value="1.4.2"></label>
+          <label class="field"><span>相依範圍（npm 寫法）</span><input class="input mono" id="svR" value="^1.4.2"></label>
+        </div>
+        <div class="tabs" id="svType" style="margin-bottom:10px"><button class="on" data-v="patch" type="button">修正錯誤</button><button data-v="minor" type="button">新增功能（向下相容）</button><button data-v="major" type="button">破壞性變更</button></div>
+        <div id="svOut"></div>`;
+      case 'binary': return `
+        <div class="grid g2" style="gap:10px">
+          <label class="field"><span>IPv4 位址</span><input class="input mono" id="bnIp" value="192.168.10.37" spellcheck="false"></label>
+          <label class="field"><span>前綴長度 /n</span><input class="input num" type="number" id="bnPre" value="26" min="0" max="32"></label>
+        </div>
+        <div id="bnOut"></div>
+        <label class="field" style="margin-top:12px"><span>十進位 ↔ 二進位（0～255）</span><input class="input mono" id="bnDec" value="200" spellcheck="false"></label>
+        <div class="out" id="bnDecOut"></div>`;
+      case 'osi': return `
+        <div class="row small"><span>得分 <b class="num" id="osScore">0</b> / <b class="num" id="osTotal">0</b></span><span class="spacer"></span><button class="btn sm outline" id="osNext" type="button">換一題</button></div>
+        <div class="big-q" id="osQ"></div>
+        <div class="tabs" id="osOpts" style="justify-content:center"></div>
+        <p class="small center" id="osMsg" style="margin:12px 0 0;min-height:1.6em"></p>`;
+      case 'vlsm': return `
+        <label class="field"><span>可用網段</span><input class="input mono" id="vlNet" value="192.168.10.0/24" spellcheck="false"></label>
+        <label class="field"><span>各子網路需要的主機數（每行「名稱 數量」）</span><textarea class="input mono" id="vlReq" rows="5">業務部 50
+研發部 25
+會議室 10
+訪客 Wi-Fi 20
+路由器連線 2</textarea></label>
+        <div id="vlOut"></div>`;
+      case 'gitgraph': return `
+        <div class="tabs" id="ggPreset" style="margin-bottom:8px"><button data-v="ff" type="button">情境：快轉合併</button><button data-v="merge" type="button">情境：三方合併</button><button data-v="reset" type="button">情境：reset 與 revert</button><button data-v="clear" type="button">清空重來</button></div>
+        <div class="row" style="gap:6px;margin-bottom:8px"><input class="input mono" id="ggIn" placeholder='輸入指令，例如 git commit -m "新增登入頁"' spellcheck="false" autocomplete="off" style="flex:1;min-width:0"><button class="btn sm" id="ggRun" type="button">執行</button></div>
+        <pre class="out" id="ggLog" style="max-height:140px;overflow:auto"></pre>
+        <div id="ggOut" style="margin-top:10px"></div>
+        <p class="tiny muted" style="margin:6px 0 0">支援：git commit -m、git branch [名稱]、git branch -d、git switch [-c]、git checkout [-b]、git merge、git reset --hard HEAD~n、git revert HEAD、git tag、git log、git status。這是簡化的教學模擬，不處理檔案內容與衝突。</p>`;
       case 'caesar': return `
         <label class="field"><span>明文或密文（英文字母）</span><input class="input" id="cIn" value="ATTACK AT DAWN"></label>
         <label class="field"><span>位移量 <b id="cShiftV" class="mono">3</b></span><input type="range" id="cShift" min="1" max="25" value="3" style="width:100%"></label>
@@ -760,6 +835,286 @@ print('平均：', round(sum(scores.values()) / len(scores), 1))</pre>
       $('#peIn', root).addEventListener('input', e => { const m = /([A-Za-z]+(Error|Exception))/.exec(e.target.value); show(m ? m[1] : ''); });
       $('#peIn', root).addEventListener('keydown', e => e.stopPropagation());
       show('TypeError');
+    }
+    if (id === 'chunk') {
+      const run = () => {
+        const text = $('#ckText', root).value.replace(/\s+/g, ''), size = +$('#ckSize', root).value;
+        let over = +$('#ckOver', root).value; if (over >= size) over = size - 10;
+        $('#ckSizeV', root).textContent = size; $('#ckOverV', root).textContent = over;
+        const chunks = []; for (let i = 0; i < text.length; i += size - over) { chunks.push([i, Math.min(i + size, text.length)]); if (i + size >= text.length) break; }
+        $('#ckOut', root).innerHTML = `<p class="small" style="margin:6px 0">全文 <b class="num">${text.length}</b> 字，切成 <b class="num">${chunks.length}</b> 塊（深色字為與前一塊重疊的部分）</p>` +
+          chunks.map(([a, b], k) => { const ov = k ? Math.min(over, b - a) : 0; return `<div class="out" style="margin-bottom:6px"><span class="tiny muted">#${k + 1}　${a + 1}～${b} 字</span>\n<b style="color:var(--accent)">${esc(text.slice(a, a + ov))}</b>${esc(text.slice(a + ov, b))}</div>`; }).join('') +
+          `<p class="small muted" style="margin:6px 0 0">切太小：一塊裝不下完整規定，檢索到也看不懂；切太大：混進不相關內容、占用更多 token。重疊可以避免一句話剛好被切斷。實務上常依標題、段落切，再限制最大長度。</p>`;
+      };
+      root.addEventListener('input', run); run();
+    }
+    if (id === 'retrieve') {
+      const DOCS = [
+        ['請假規定', '病假三日以內免附證明，超過三日須檢附醫療證明。特休假須於三日前在系統提出申請。'],
+        ['出差規定', '國內出差住宿費每日上限二千元，交通以大眾運輸為原則，搭乘計程車須說明理由。'],
+        ['加班規定', '加班須事先申請，未經核准之加班不予計算，平日加班依勞基法加給工資。'],
+        ['帳號密碼', '忘記系統密碼請至登入頁點選忘記密碼，以公司信箱重設，或聯絡資訊部分機 1234。'],
+        ['報帳流程', '費用報銷請於支出後三十日內在系統上傳發票或收據，經主管與財務部核准後撥款。'],
+        ['資安規範', '禁止將公司資料上傳至未經核准的雲端服務，可疑郵件請轉寄資安信箱。']
+      ];
+      const grams = t => { t = t.replace(/[^一-鿿A-Za-z0-9]/g, ''); const g = []; for (let i = 0; i < t.length - 1; i++) g.push(t.slice(i, i + 2)); return g; };
+      const docG = DOCS.map(d => grams(d[0] + d[1]));
+      const df = {}; docG.forEach(g => new Set(g).forEach(x => df[x] = (df[x] || 0) + 1));
+      const vec = g => { const v = {}; g.forEach(x => v[x] = (v[x] || 0) + 1); for (const k in v) v[k] *= Math.log((DOCS.length + 1) / ((df[k] || 0) + 1)) + 1; return v; };
+      const cos = (a, b) => { let d = 0, na = 0, nb = 0; for (const k in a) { na += a[k] ** 2; if (b[k]) d += a[k] * b[k]; } for (const k in b) nb += b[k] ** 2; return na && nb ? d / Math.sqrt(na * nb) : 0; };
+      const dv = docG.map(vec);
+      const run = () => {
+        const qg = grams($('#rtQ', root).value), qv = vec(qg);
+        const ranked = DOCS.map((d, i) => ({ d, s: cos(qv, dv[i]), hit: [...new Set(qg)].filter(x => docG[i].includes(x)) })).sort((a, b) => b.s - a.s);
+        const top = ranked[0];
+        $('#rtOut', root).innerHTML = `<table class="tbl"><tr><th>排名</th><th>段落</th><th style="text-align:right">相似度</th></tr>${ranked.map((r, i) => `<tr style="${i < 2 && r.s > 0.05 ? 'background:var(--accent-soft)' : ''}"><td class="num">${i + 1}</td><td><b>${r.d[0]}</b><div class="tiny muted">${esc(r.d[1])}</div>${r.hit.length ? `<div class="tiny">命中詞：${r.hit.slice(0, 8).join('、')}</div>` : ''}</td><td class="num" style="text-align:right">${r.s.toFixed(3)}</td></tr>`).join('')}</table>
+          <div class="box ${top.s > 0.05 ? 'memo' : 'warn'}"><b class="t">${top.s > 0.05 ? '送給 AI 的參考資料' : '找不到相關段落'}</b>${top.s > 0.05 ? `排名前 2 的段落（底色標示）會連同問題一起送給模型，模型依據這些內容回答並註明出處。` : '相似度都很低，代表資料庫沒有答案。好的 RAG 系統應讓 AI 回答「資料中沒有相關資訊」，而不是自己編造。'}</div>
+          <p class="small muted" style="margin:6px 0 0">這裡用「兩字一組的關鍵字」計算相似度，只能比對字面。實務上會用嵌入模型（Embedding）把文字轉成向量，即使用詞不同（例如「生病請假」與「病假」）也能找到。</p>`;
+      };
+      tabsSelect(root, (tabs, v) => { $('#rtQ', root).value = v; run(); });
+      $('#rtQ', root).addEventListener('input', run);
+      $('#rtQ', root).addEventListener('keydown', e => e.stopPropagation());
+      run();
+    }
+    if (id === 'llmcost') {
+      const run = () => {
+        const pi = +$('#lcIn', root).value, po = +$('#lcOut', root).value, ti = +$('#lcTi', root).value, to = +$('#lcTo', root).value;
+        const n = +$('#lcN', root).value, cache = Math.min(100, Math.max(0, +$('#lcCache', root).value)) / 100, fx = +$('#lcFx', root).value;
+        const base = n * (ti * pi + to * po) / 1e6;
+        const cached = n * (ti * (1 - cache) * pi + ti * cache * pi * 0.1 + to * po) / 1e6;
+        const batch = base / 2;
+        const usd = x => 'US$ ' + x.toLocaleString(undefined, { maximumFractionDigits: 2 });
+        const twd = x => 'NT$ ' + Math.round(x * fx).toLocaleString();
+        $('#lcOutBox', root).innerHTML = `<table class="tbl"><tr><th>方案</th><th style="text-align:right">每月（美元）</th><th style="text-align:right">約新台幣</th></tr>
+          <tr><td>標準請求</td><td class="num" style="text-align:right">${usd(base)}</td><td class="num" style="text-align:right">${twd(base)}</td></tr>
+          <tr><td>使用提示快取<div class="tiny muted">重複的系統提示、文件放在前面並快取</div></td><td class="num" style="text-align:right">${usd(cached)}</td><td class="num" style="text-align:right">${twd(cached)}</td></tr>
+          <tr><td>批次處理 Batch API<div class="tiny muted">不需即時回應的大量工作</div></td><td class="num" style="text-align:right">${usd(batch)}</td><td class="num" style="text-align:right">${twd(batch)}</td></tr></table>
+          <p class="small muted" style="margin:8px 0 0">每次請求約 ${usd((ti * pi + to * po) / 1e6)}。輸出單價通常是輸入的數倍，限制回答長度、要求精簡格式也能明顯省錢。</p>`;
+      };
+      tabsSelect(root, (tabs, v) => { const [a, b] = v.split(','); $('#lcIn', root).value = a; $('#lcOut', root).value = b; run(); });
+      root.addEventListener('input', run); run();
+    }
+    if (id === 'dockercache') {
+      const D = {
+        good: [['FROM python:3.12-slim', 'base', 8], ['WORKDIR /app', '', 0.1], ['COPY requirements.txt .', 'req', 0.2], ['RUN pip install -r requirements.txt', '', 60], ['COPY . .', 'code', 0.5], ['CMD ["python", "app.py"]', '', 0.1]],
+        bad: [['FROM python:3.12-slim', 'base', 8], ['WORKDIR /app', '', 0.1], ['COPY . .', 'code req', 0.5], ['RUN pip install -r requirements.txt', '', 60], ['CMD ["python", "app.py"]', '', 0.1]]
+      };
+      let order = 'good', change = 'code';
+      const run = () => {
+        const L = D[order]; const first = L.findIndex(l => l[1].split(' ').includes(change));
+        let t = 0;
+        $('#dcOut', root).innerHTML = `<table class="tbl"><tr><th>#</th><th>Dockerfile 指令</th><th>結果</th></tr>${L.map((l, i) => { const re = i >= first; if (re) t += l[2]; return `<tr><td class="num">${i + 1}</td><td class="mono small">${esc(l[0])}</td><td>${re ? `<span class="tag bad">重新建置</span> <span class="tiny muted">${l[2]} 秒</span>` : '<span class="tag ok">使用快取</span>'}</td></tr>`; }).join('')}</table>
+          <div class="box ${t > 30 ? 'warn' : 'memo'}"><b class="t">建置約 ${t.toFixed(1)} 秒</b>Docker 由上往下比對每一層，某一層的輸入改變後，<b>它和之後的所有層</b>都要重新建置。${order === 'bad' && change === 'code' ? '先 COPY 全部程式碼，只改一行程式也會讓 pip install 重跑。' : order === 'good' && change === 'code' ? '套件安裝在程式碼之前，只改程式碼時套件層直接用快取。' : '改變套件清單或基底映像，後面的層一定要重建，這是正常的。'}</div>`;
+      };
+      tabsSelect(root, (tabs, v) => { if (tabs.id === 'dcOrder') order = v; else change = v; run(); });
+      run();
+    }
+    if (id === 'gitcmd') {
+      const G = [
+        ['改了檔案但還沒 add，想放棄修改', 'git restore 檔名', '修改會直接消失，無法復原。'],
+        ['已經 add，想取消暫存（保留修改）', 'git restore --staged 檔名', '只是移出暫存區，檔案內容不變。'],
+        ['剛 commit 完發現訊息打錯或漏了檔案', 'git add 漏掉的檔案\ngit commit --amend', '只在還沒 push 前使用；已 push 的提交不要 amend。'],
+        ['撤銷一個「已經 push」的提交', 'git revert 提交編號', '產生一個反向的新提交，不改寫歷史，多人協作時的安全做法。'],
+        ['本機提交都不要了，回到某個版本', 'git reset --hard 提交編號', '危險：之後的提交與未提交修改都會消失。先確認或建立備份分支。'],
+        ['建立新分支並切換過去', 'git switch -c feature/login', '舊寫法：git checkout -b feature/login。'],
+        ['把 feature 分支合併回 main', 'git switch main\ngit pull\ngit merge feature/login', '團隊通常改用 Pull Request 在 GitHub 上合併並審查。'],
+        ['合併時出現衝突（conflict）', '打開衝突檔案，處理 <<<<<<< ======= >>>>>>> 標記\ngit add 檔名\ngit commit', '想放棄這次合併：git merge --abort。'],
+        ['手上的修改還沒完成，臨時要切換分支', 'git stash\ngit switch 其他分支\n（處理完回來）git stash pop', 'stash 把修改暫存起來，pop 取回。'],
+        ['下載遠端儲存庫', 'git clone https://github.com/帳號/專案.git', '會自動設定遠端名稱 origin。'],
+        ['把本機分支推上 GitHub（第一次）', 'git push -u origin 分支名稱', '-u 設定追蹤，之後只要 git push。'],
+        ['取得遠端最新的變更', 'git pull', '等於 git fetch + git merge；只想查看不合併用 git fetch。'],
+        ['看提交歷史', 'git log --oneline --graph --all', '圖形化顯示所有分支。'],
+        ['看改了哪些內容', 'git diff（未暫存）\ngit diff --staged（已暫存）', '提交前檢查一次，避免把除錯程式碼提交出去。'],
+        ['不小心把 .env 提交上去', 'git rm --cached .env\n把 .env 加入 .gitignore\ngit commit', '已 push 的密碼要視為外洩，立刻到服務後台更換。'],
+        ['替發布版本打標籤', 'git tag -a v1.2.0 -m "說明"\ngit push origin v1.2.0', '標籤常搭配語意化版本號。']
+      ];
+      const run = () => {
+        const q = $('#gcQ', root).value.trim();
+        const list = G.filter(g => !q || (g[0] + g[1] + g[2]).includes(q));
+        $('#gcOut', root).innerHTML = list.length ? list.map(g => `<div style="border-bottom:1px solid var(--line);padding:10px 0"><b>${esc(g[0])}</b><pre class="out" style="margin:6px 0;white-space:pre">${esc(g[1])}</pre><div class="tiny muted">${esc(g[2])}</div></div>`).join('') : '<p class="small muted">沒有符合的情境，試試「撤銷」「分支」「遠端」。</p>';
+      };
+      $('#gcQ', root).addEventListener('input', run);
+      $('#gcQ', root).addEventListener('keydown', e => e.stopPropagation());
+      run();
+    }
+    if (id === 'semver') {
+      let type = 'patch';
+      const parse = v => { const m = /^\s*v?(\d+)\.(\d+)\.(\d+)\s*$/.exec(v); return m ? m.slice(1).map(Number) : null; };
+      const allow = (r, v) => {
+        const m = /^\s*([\^~]?)(\d+)\.(\d+)\.(\d+)\s*$/.exec(r); if (!m) return null;
+        const [op, a, b, c] = [m[1], +m[2], +m[3], +m[4]];
+        const ge = v[0] > a || (v[0] === a && (v[1] > b || (v[1] === b && v[2] >= c)));
+        if (op === '') return v[0] === a && v[1] === b && v[2] === c;
+        if (op === '~') return ge && v[0] === a && v[1] === b;
+        return ge && (a > 0 ? v[0] === a : b > 0 ? v[0] === 0 && v[1] === b : v[0] === 0 && v[1] === 0 && v[2] === c);
+      };
+      const run = () => {
+        const v = parse($('#svV', root).value), out = $('#svOut', root);
+        if (!v) { out.innerHTML = '<p class="small" style="color:var(--bad)">請輸入 主版號.次版號.修訂號，例如 1.4.2</p>'; return; }
+        const n = type === 'major' ? [v[0] + 1, 0, 0] : type === 'minor' ? [v[0], v[1] + 1, 0] : [v[0], v[1], v[2] + 1];
+        const ok = allow($('#svR', root).value, n);
+        out.innerHTML = `<div class="out">${v.join('.')}  →  <b>${n.join('.')}</b></div>
+          <p class="small" style="margin:8px 0">${type === 'major' ? '破壞性變更：主版號加 1，次版號與修訂號歸零。使用者升級前要看變更說明。' : type === 'minor' ? '新增向下相容的功能：次版號加 1，修訂號歸零。' : '只修正錯誤：修訂號加 1。'}</p>
+          ${ok === null ? '<p class="small muted">範圍寫法支援 1.4.2、~1.4.2、^1.4.2。</p>' : `<div class="box ${ok ? 'memo' : 'warn'}"><b class="t">${ok ? '範圍允許升級' : '範圍不允許升級'}</b>相依範圍 <code>${esc($('#svR', root).value.trim())}</code> ${ok ? '包含' : '不包含'} ${n.join('.')}。^ 允許次版與修訂更新（不跨主版號）；~ 只允許修訂更新。</div>`}`;
+      };
+      tabsSelect(root, (tabs, v) => { type = v; run(); });
+      root.addEventListener('input', run); run();
+    }
+    if (id === 'binary') {
+      const run = () => {
+        const out = $('#bnOut', root), parts = $('#bnIp', root).value.trim().split('.').map(Number), pre = Math.round(+$('#bnPre', root).value);
+        if (parts.length !== 4 || parts.some(x => !Number.isInteger(x) || x < 0 || x > 255) || !(pre >= 0 && pre <= 32)) { out.innerHTML = '<p class="small" style="color:var(--bad)">請輸入正確的 IPv4 位址（例如 192.168.10.37）與 0～32 的前綴長度。</p>'; return; }
+        const bin = parts.map(x => x.toString(2).padStart(8, '0'));
+        const bits = bin.join(''), mask = '1'.repeat(pre).padEnd(32, '0');
+        const toIp = b => [0, 8, 16, 24].map(i => parseInt(b.slice(i, i + 8), 2)).join('.');
+        const net = bits.slice(0, pre).padEnd(32, '0'), bc = bits.slice(0, pre).padEnd(32, '1');
+        const a = parts[0], cls = a < 128 ? 'A' : a < 192 ? 'B' : a < 224 ? 'C' : a < 240 ? 'D（多播）' : 'E（保留）';
+        const priv = a === 10 || (a === 172 && parts[1] >= 16 && parts[1] <= 31) || (a === 192 && parts[1] === 168);
+        const special = a === 127 ? '迴路位址（Loopback）' : a === 169 && parts[1] === 254 ? '鏈路本地（APIPA，DHCP 失敗時自動取得）' : a === 100 && parts[1] >= 64 && parts[1] <= 127 ? '電信級 NAT 共享位址（CGNAT）' : '';
+        const marked = bits.split('').map((b, i) => (i && i % 8 === 0 ? '.' : '') + (i < pre ? `<b style="color:var(--accent)">${b}</b>` : b)).join('');
+        out.innerHTML = `<table class="tbl" style="margin-top:4px">
+          <tr><td style="width:7em">逐段二進位</td><td class="mono small">${parts.map((x, i) => `${x} = ${bin[i]}`).join('<br>')}</td></tr>
+          <tr><td>網路／主機位元</td><td class="mono small">${marked}<div class="tiny muted">藍色為前 ${pre} 位網路位元，其餘 ${32 - pre} 位為主機位元</div></td></tr>
+          <tr><td>子網路遮罩</td><td class="mono">${toIp(mask)}<span class="tiny muted">　萬用遮罩 ${toIp(mask.replace(/./g, c => c === '1' ? '0' : '1'))}</span></td></tr>
+          <tr><td>網路位址</td><td class="mono">${toIp(net)}/${pre}</td></tr>
+          <tr><td>廣播位址</td><td class="mono">${toIp(bc)}</td></tr>
+          <tr><td>可用主機數</td><td class="num">${pre >= 31 ? (pre === 31 ? '2（點對點專用）' : '1') : (2 ** (32 - pre) - 2).toLocaleString()}</td></tr>
+          <tr><td>位址分類</td><td>Class ${cls}　${priv ? '<span class="tag ok">私有位址</span>' : special ? `<span class="tag warn">${special}</span>` : '<span class="tag">公有位址</span>'}</td></tr></table>`;
+      };
+      const runDec = () => {
+        const v = $('#bnDec', root).value.trim(), o = $('#bnDecOut', root);
+        if (/^[01]{1,8}$/.test(v) && v.length > 3) { o.textContent = `二進位 ${v.padStart(8, '0')} = 十進位 ${parseInt(v, 2)}`; return; }
+        const n = Number(v);
+        if (!Number.isInteger(n) || n < 0 || n > 255) { o.textContent = '請輸入 0～255 的十進位，或 4～8 位的二進位'; return; }
+        const b = n.toString(2).padStart(8, '0');
+        o.textContent = `十進位 ${n} = 二進位 ${b}\n` + [128, 64, 32, 16, 8, 4, 2, 1].map((w, i) => b[i] === '1' ? w : null).filter(Boolean).join(' + ') + (n ? ` = ${n}` : '（全部為 0）');
+      };
+      root.addEventListener('input', e => { if (e.target.id === 'bnDec') runDec(); else run(); });
+      run(); runDec();
+    }
+    if (id === 'osi') {
+      const NAMES = ['', '實體層', '資料連結層', '網路層', '傳輸層', '會議層', '表現層', '應用層'];
+      const ITEMS = [['HTTP', 7, '網頁傳輸協定'], ['DNS', 7, '網域名稱解析'], ['SMTP', 7, '寄送電子郵件'], ['DHCP', 7, '自動分配 IP'], ['FTP', 7, '檔案傳輸'], ['SSH', 7, '加密遠端登入'],
+        ['JPEG／MP4 編碼', 6, '資料格式與編碼'], ['加密與壓縮（傳統分類）', 6, 'OSI 把資料表示方式歸在表現層'], ['工作階段建立與管理', 5, '維持與同步通訊工作階段'],
+        ['TCP', 4, '可靠的連線導向傳輸'], ['UDP', 4, '不保證送達的快速傳輸'], ['埠號（Port）', 4, '識別同一台主機上的不同服務'], ['區段 Segment', 4, '傳輸層的資料單位'],
+        ['IP', 3, '邏輯定址與路由'], ['ICMP（ping）', 3, '網路層的錯誤回報與診斷'], ['路由器', 3, '依 IP 位址轉送封包'], ['封包 Packet', 3, '網路層的資料單位'], ['OSPF', 3, '動態路由協定'],
+        ['MAC 位址', 2, '網路卡的實體位址'], ['交換器（二層）', 2, '依 MAC 位址轉送訊框'], ['訊框 Frame', 2, '資料連結層的資料單位'], ['ARP', 2, '由 IP 查詢 MAC，常歸在第二、三層之間，考試多答資料連結層'], ['VLAN（802.1Q）', 2, '在交換器上切割廣播域'],
+        ['集線器 Hub', 1, '只負責把電訊號廣播出去'], ['雙絞線與 RJ-45', 1, '傳輸媒介與接頭'], ['位元 Bit', 1, '實體層的資料單位'], ['光纖', 1, '以光訊號傳輸']];
+      let cur, score = 0, total = 0, answered = false;
+      const opts = $('#osOpts', root);
+      opts.innerHTML = [7, 6, 5, 4, 3, 2, 1].map(n => `<button type="button" data-v="${n}">L${n} ${NAMES[n]}</button>`).join('');
+      const next = () => { cur = ITEMS[Math.floor(Math.random() * ITEMS.length)]; answered = false; $('#osQ', root).textContent = cur[0]; $('#osMsg', root).textContent = ''; opts.querySelectorAll('button').forEach(b => b.classList.remove('on')); };
+      opts.addEventListener('click', e => {
+        const b = e.target.closest('button'); if (!b || answered) return;
+        answered = true; total++; const ok = +b.dataset.v === cur[1]; if (ok) score++;
+        b.classList.add('on');
+        $('#osScore', root).textContent = score; $('#osTotal', root).textContent = total;
+        $('#osMsg', root).innerHTML = `${ok ? '<b style="color:var(--ok)">答對</b>' : `<b style="color:var(--bad)">答錯</b>，正確是 L${cur[1]} ${NAMES[cur[1]]}`}：${esc(cur[2])}`;
+        setTimeout(next, ok ? 900 : 2200);
+      });
+      $('#osNext', root).addEventListener('click', next);
+      next();
+    }
+    if (id === 'vlsm') {
+      const ip2n = s => s.split('.').reduce((n, x) => n * 256 + (+x), 0);
+      const n2ip = n => [24, 16, 8, 0].map(b => Math.floor(n / 2 ** b) % 256).join('.');
+      const run = () => {
+        const out = $('#vlOut', root);
+        const m = /^\s*(\d{1,3}(?:\.\d{1,3}){3})\/(\d{1,2})\s*$/.exec($('#vlNet', root).value);
+        if (!m || m[1].split('.').some(x => +x > 255) || +m[2] > 30) { out.innerHTML = '<p class="small" style="color:var(--bad)">請輸入網段，例如 192.168.10.0/24（前綴 0～30）。</p>'; return; }
+        const pre = +m[2], size = 2 ** (32 - pre), base = Math.floor(ip2n(m[1]) / size) * size;
+        const reqs = $('#vlReq', root).value.split('\n').map(l => l.trim()).filter(Boolean).map(l => { const mm = /^(.*?)[\s,，]+(\d+)$/.exec(l); return mm ? { name: mm[1], hosts: +mm[2] } : null; });
+        if (reqs.some(r => !r || r.hosts < 1)) { out.innerHTML = '<p class="small" style="color:var(--bad)">每行請輸入「名稱 數量」，數量至少 1。</p>'; return; }
+        reqs.sort((a, b) => b.hosts - a.hosts);
+        let cur = base, rows = '', fail = '', used = 0;
+        for (const r of reqs) {
+          let bitsH = 2; while (2 ** bitsH - 2 < r.hosts) bitsH++;
+          const blk = 2 ** bitsH;
+          cur = Math.ceil(cur / blk) * blk;
+          if (cur + blk > base + size) { fail = r.name; break; }
+          rows += `<tr><td>${esc(r.name)}<div class="tiny muted">需要 ${r.hosts} 台</div></td><td class="mono small">${n2ip(cur)}/${32 - bitsH}</td><td class="mono small">${n2ip(2 ** 32 - blk)}</td><td class="mono small">${n2ip(cur + 1)} – ${n2ip(cur + blk - 2)}</td><td class="mono small">${n2ip(cur + blk - 1)}</td><td class="num">${blk - 2 - r.hosts}</td></tr>`;
+          cur += blk; used += blk;
+        }
+        out.innerHTML = `<div class="table-wrap"><table class="tbl" style="margin-top:4px"><tr><th>子網路</th><th>網段</th><th>遮罩</th><th>可用範圍</th><th>廣播</th><th>浪費</th></tr>${rows}</table></div>
+          ${fail ? `<div class="box warn"><b class="t">空間不足</b>分配到「${esc(fail)}」時已超出 ${n2ip(base)}/${pre} 的範圍，請改用更大的網段或減少需求。</div>`
+            : `<p class="small muted" style="margin:8px 0 0">共使用 ${used} / ${size} 個位址，剩餘 ${size - used} 個可供日後擴充。VLSM 先分配需求最大的子網路，可以避免位址空間零碎；每個子網路的可用主機數是 2^主機位元 − 2（扣掉網路位址與廣播位址）。</p>`}`;
+      };
+      root.addEventListener('input', run); run();
+    }
+    if (id === 'gitgraph') {
+      let C, B, H, T, n, order;
+      const hid = k => ((k * 2654435761) >>> 0).toString(16).padStart(8, '0').slice(0, 7);
+      const reset = () => { n = 0; C = {}; order = []; B = {}; T = {}; mk('初始提交', []); B.main = order[0]; H = 'main'; };
+      function mk(msg, parents) { const id = hid(++n); C[id] = { msg, parents }; order.push(id); return id; }
+      const ancestors = id => { const seen = new Set(), st = id ? [id] : []; while (st.length) { const x = st.pop(); if (!seen.has(x)) { seen.add(x); st.push(...C[x].parents); } } return seen; };
+      const logEl = () => $('#ggLog', root);
+      const say = (cmd, out) => { const el = logEl(); el.textContent += `$ ${cmd}\n${out ? out + '\n' : ''}`; el.scrollTop = el.scrollHeight; };
+      function exec(cmd) {
+        const t = cmd.trim(); if (!t) return;
+        const m = t.match(/^git\s+(\S+)\s*(.*)$/);
+        if (!m) return say(t, '只支援 git 開頭的指令');
+        const [, sub, rest] = m; const args = rest.match(/"[^"]*"|'[^']*'|\S+/g) || [];
+        const tip = () => B[H];
+        if (sub === 'commit') {
+          const i = args.indexOf('-m'); const msg = i >= 0 && args[i + 1] ? args[i + 1].replace(/^["']|["']$/g, '') : null;
+          if (!msg) return say(t, '請用 -m "說明" 加上提交訊息');
+          const id = mk(msg, [tip()]); B[H] = id; return say(t, `[${H} ${id}] ${msg}`);
+        }
+        if (sub === 'branch') {
+          if (!args.length) return say(t, Object.keys(B).map(b => (b === H ? '* ' : '  ') + b).join('\n'));
+          if (args[0] === '-d' || args[0] === '-D') { const b = args[1]; if (!B[b]) return say(t, `error: 找不到分支 '${b}'`); if (b === H) return say(t, `error: 無法刪除目前所在的分支 '${b}'`); if (args[0] === '-d' && !ancestors(B[H]).has(B[b])) return say(t, `error: 分支 '${b}' 尚未合併，確定要刪除請用 -D`); delete B[b]; return say(t, `已刪除分支 ${b}`); }
+          if (B[args[0]]) return say(t, `fatal: 分支 '${args[0]}' 已經存在`);
+          B[args[0]] = tip(); return say(t, '');
+        }
+        if (sub === 'switch' || sub === 'checkout') {
+          const create = args[0] === '-c' || args[0] === '-b'; const b = create ? args[1] : args[0];
+          if (!b) return say(t, '請指定分支名稱');
+          if (create) { if (B[b]) return say(t, `fatal: 分支 '${b}' 已經存在`); B[b] = tip(); H = b; return say(t, `已切換到新分支 '${b}'`); }
+          if (!B[b]) return say(t, `fatal: 找不到分支 '${b}'（要建立新分支請加 -c）`);
+          H = b; return say(t, `已切換到分支 '${b}'`);
+        }
+        if (sub === 'merge') {
+          const b = args[0]; if (!B[b]) return say(t, `merge: ${b} - 找不到這個分支`);
+          if (b === H) return say(t, '不能合併自己');
+          const cur = tip(), other = B[b];
+          if (ancestors(cur).has(other)) return say(t, 'Already up to date.（已是最新，沒有需要合併的提交）');
+          if (ancestors(other).has(cur)) { B[H] = other; return say(t, `Updating ${cur}..${other}\nFast-forward（快轉：${H} 指標直接移到 ${other}，不產生新提交）`); }
+          const id = mk(`Merge branch '${b}' into ${H}`, [cur, other]); B[H] = id;
+          return say(t, `Merge made by the 'ort' strategy.（產生合併提交 ${id}，有兩個父提交）`);
+        }
+        if (sub === 'reset') {
+          const mm = rest.match(/--hard\s+HEAD~(\d+)/) || rest.match(/--hard\s+HEAD\^/) && [null, '1'];
+          if (!mm) return say(t, '本模擬器支援 git reset --hard HEAD~n');
+          let id = tip(); for (let i = 0; i < +mm[1]; i++) { if (!C[id].parents.length) return say(t, 'fatal: 已經沒有更早的提交'); id = C[id].parents[0]; }
+          B[H] = id; return say(t, `HEAD is now at ${id} ${C[id].msg}（之後的提交不再被任何分支指到，看起來「消失」了，但 reflog 還找得回來）`);
+        }
+        if (sub === 'revert') {
+          if (!/^HEAD$/i.test(args[0] || '')) return say(t, '本模擬器支援 git revert HEAD');
+          const cur = tip(); if (!C[cur].parents.length) return say(t, '無法還原初始提交');
+          const id = mk(`Revert "${C[cur].msg}"`, [cur]); B[H] = id; return say(t, `[${H} ${id}] Revert "${C[cur].msg}"（新增一個反向提交，歷史不被改寫）`);
+        }
+        if (sub === 'tag') { if (!args[0]) return say(t, Object.keys(T).join('\n') || '（沒有標籤）'); T[args[0]] = tip(); return say(t, ''); }
+        if (sub === 'log') { const rs = ancestors(tip()); return say(t, order.filter(x => rs.has(x)).reverse().map(x => `${x} ${C[x].msg}`).join('\n')); }
+        if (sub === 'status') return say(t, `On branch ${H}\nnothing to commit, working tree clean`);
+        return say(t, `本模擬器不支援 git ${sub}`);
+      }
+      function draw() {
+        const rs = ancestors(B[H]);
+        const labels = id => [...Object.entries(B).filter(([, v]) => v === id).map(([b]) => b === H ? `<span class="tag ok">HEAD → ${esc(b)}</span>` : `<span class="tag">${esc(b)}</span>`), ...Object.entries(T).filter(([, v]) => v === id).map(([tg]) => `<span class="tag warn">🏷 ${esc(tg)}</span>`)].join(' ');
+        $('#ggOut', root).innerHTML = `<div class="table-wrap"><table class="tbl"><tr><th>提交</th><th>訊息</th><th>父提交</th><th>指標</th></tr>${order.slice().reverse().map(id => `<tr style="${rs.has(id) ? '' : 'opacity:.4'}"><td class="mono small">${id}</td><td class="small">${esc(C[id].msg)}${C[id].parents.length > 1 ? ' <span class="tiny muted">（合併）</span>' : ''}</td><td class="mono tiny">${C[id].parents.join('<br>') || '—'}</td><td>${labels(id)}</td></tr>`).join('')}</table></div>
+          <p class="tiny muted" style="margin:6px 0 0">最新的提交在最上面。半透明的提交不在目前分支的歷史中。分支只是指向某個提交的「指標」，HEAD 代表你現在所在的分支。</p>`;
+      }
+      const PRESET = {
+        ff: ['git switch -c feature', 'git commit -m "新增登入頁"', 'git commit -m "登入頁加上驗證"', 'git switch main', 'git merge feature'],
+        merge: ['git switch -c feature', 'git commit -m "新增報表功能"', 'git switch main', 'git commit -m "修正首頁錯字"', 'git merge feature'],
+        reset: ['git commit -m "功能 A"', 'git commit -m "功能 B（有 bug）"', 'git revert HEAD', 'git commit -m "測試用提交"', 'git reset --hard HEAD~1'],
+        clear: []
+      };
+      const run = () => { const i = $('#ggIn', root); exec(i.value); i.value = ''; draw(); };
+      $('#ggRun', root).addEventListener('click', run);
+      $('#ggIn', root).addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') run(); });
+      tabsSelect(root, (tabs, v) => { reset(); logEl().textContent = ''; PRESET[v].forEach(exec); draw(); root.querySelectorAll('#ggPreset button').forEach(b => b.classList.remove('on')); });
+      reset(); say('git init', 'Initialized empty Git repository（已建立初始提交方便練習）'); draw();
     }
     if (id === 'cvss') {
       const v = Object.fromEntries(CVSS_METRICS.map(m => [m.key, m.def]));
