@@ -47,12 +47,86 @@
     binary: { name: '二進位與 IP 轉換', desc: '輸入 IPv4 位址，逐段轉成二進位，判斷位址等級與私有位址，並換算前綴長度與子網路遮罩。' },
     osi: { name: 'OSI 分層配對', desc: '隨機出現協定、設備或資料單位名稱，選出它屬於 OSI 的哪一層，熟悉各層的代表項目。' },
     vlsm: { name: 'VLSM 子網路規劃', desc: '輸入可用網段與各部門需要的主機數，自動以 VLSM 由大到小分配子網路，列出網段、遮罩、可用範圍與浪費的位址。' },
-    gitgraph: { name: 'Git 指令模擬器', desc: '在瀏覽器輸入 git commit、branch、switch、merge、reset、revert 等指令，即時觀察提交歷史與分支指標的變化。' }
+    gitgraph: { name: 'Git 指令模擬器', desc: '在瀏覽器輸入 git commit、branch、switch、merge、reset、revert 等指令，即時觀察提交歷史與分支指標的變化。' },
+    sqlorder: { name: 'SQL 執行順序', desc: '依序點選 SQL 子句，練習「撰寫順序」與「執行順序」的差別，理解為什麼 WHERE 不能用別名與彙總函式。' },
+    joinviz: { name: 'JOIN 結果視覺化', desc: '切換 INNER、LEFT、RIGHT、FULL OUTER JOIN，觀察客戶表與訂單表配對後保留哪些列、哪些欄位變成 NULL。' },
+    specificity: { name: '選擇器權重計算', desc: '輸入兩個 CSS 選擇器，計算 (ID, 類別, 標籤) 權重並判斷哪一條規則會生效。' },
+    boxmodel: { name: '盒模型計算', desc: '調整 width、padding、border、margin 與 box-sizing，看元素實際佔用的寬度與內容區大小。' },
+    flexbox: { name: 'Flexbox 遊樂場', desc: '切換 flex-direction、justify-content、align-items、flex-wrap，即時觀察子元素的排列方式與對應的 CSS。' },
+    cellref: { name: '儲存格參照複製', desc: '輸入公式與複製的來源、目標儲存格，看相對、絕對、混合參照複製後分別變成什麼。' },
+    xlookup: { name: 'XLOOKUP 查閱模擬', desc: '在價目表與獎金級距表中練習精確比對與近似比對，逐步看 XLOOKUP 如何找到結果，並對照 VLOOKUP 寫法。' },
+    pivot: { name: '樞紐分析模擬', desc: '用講義的銷售範例資料，選擇列、欄、值與摘要方式，即時產生樞紐分析表與總計百分比。' }
   };
   const fmtN = (x, d = 4) => Number.isFinite(x) ? (+x.toFixed(d)).toString() : '—';
 
   function render(id) {
     switch (id) {
+      case 'sqlorder': return `
+        <div class="row small"><div class="tabs" id="soMode"><button type="button" data-v="exec" class="on">執行順序</button><button type="button" data-v="write">撰寫順序</button></div><span class="spacer"></span><button class="btn sm outline" id="soReset" type="button">重新開始</button></div>
+        <p class="small muted" id="soHint" style="margin:12px 0 6px"></p>
+        <div class="so-picked" id="soPicked"></div>
+        <div class="so-pool" id="soPool"></div>
+        <p class="small" id="soMsg" style="margin:10px 0 0;min-height:1.6em"></p>`;
+      case 'joinviz': return `
+        <div class="tabs" id="jvType"><button type="button" data-v="INNER" class="on">INNER JOIN</button><button type="button" data-v="LEFT">LEFT JOIN</button><button type="button" data-v="RIGHT">RIGHT JOIN</button><button type="button" data-v="FULL">FULL OUTER JOIN</button></div>
+        <div class="jv-src"><div id="jvA"></div><div id="jvB"></div></div>
+        <div class="out" id="jvSql" style="margin:10px 0"></div>
+        <div id="jvOut"></div>`;
+      case 'specificity': return `
+        <div class="grid g2" style="gap:10px">
+          <label class="field"><span>選擇器 A（先寫）</span><input class="input mono" id="spA" value="#nav .item a" spellcheck="false"></label>
+          <label class="field"><span>選擇器 B（後寫）</span><input class="input mono" id="spB" value=".menu .item a:hover" spellcheck="false"></label>
+        </div>
+        <div class="row small" style="margin-top:8px;flex-wrap:wrap">${['p', '.card p', '#hero', 'ul li:first-child', 'a[href^="https"]', 'h2::before', ':not(#main) p', 'nav > ul li.active a'].map(s => `<button class="btn sm outline" type="button" data-sp="${esc(s)}">${esc(s)}</button>`).join('')}</div>
+        <div id="spOut"></div>`;
+      case 'boxmodel': return `
+        <div class="grid g2" style="gap:10px">
+          <label class="field"><span>width（px）</span><input class="input num" type="number" id="bmW" value="200" min="0"></label>
+          <label class="field"><span>padding（px，左右各）</span><input class="input num" type="number" id="bmP" value="20" min="0"></label>
+          <label class="field"><span>border（px，左右各）</span><input class="input num" type="number" id="bmB" value="5" min="0"></label>
+          <label class="field"><span>margin（px，左右各）</span><input class="input num" type="number" id="bmM" value="10" min="0"></label>
+        </div>
+        <div class="tabs" id="bmSizing" style="margin-top:10px"><button type="button" data-v="content-box" class="on">content-box（預設）</button><button type="button" data-v="border-box">border-box</button></div>
+        <div id="bmOut"></div>`;
+      case 'flexbox': return `
+        <div class="fx-ctl">
+          <div><span class="small muted">flex-direction</span><div class="tabs" data-fx="flexDirection"><button type="button" data-v="row" class="on">row</button><button type="button" data-v="column">column</button><button type="button" data-v="row-reverse">row-reverse</button></div></div>
+          <div><span class="small muted">justify-content（主軸）</span><div class="tabs" data-fx="justifyContent"><button type="button" data-v="flex-start" class="on">flex-start</button><button type="button" data-v="center">center</button><button type="button" data-v="flex-end">flex-end</button><button type="button" data-v="space-between">space-between</button><button type="button" data-v="space-around">space-around</button></div></div>
+          <div><span class="small muted">align-items（交錯軸）</span><div class="tabs" data-fx="alignItems"><button type="button" data-v="stretch" class="on">stretch</button><button type="button" data-v="flex-start">flex-start</button><button type="button" data-v="center">center</button><button type="button" data-v="flex-end">flex-end</button></div></div>
+          <div><span class="small muted">flex-wrap</span><div class="tabs" data-fx="flexWrap"><button type="button" data-v="nowrap" class="on">nowrap</button><button type="button" data-v="wrap">wrap</button></div></div>
+        </div>
+        <div class="fx-stage" id="fxStage"></div>
+        <div class="out" id="fxCss" style="margin-top:10px"></div>`;
+      case 'cellref': return `
+        <label class="field"><span>公式</span><input class="input mono" id="crF" value="=$A2*B$1" spellcheck="false"></label>
+        <div class="grid g2" style="gap:10px">
+          <label class="field"><span>原本所在的儲存格</span><input class="input mono" id="crFrom" value="B2" spellcheck="false"></label>
+          <label class="field"><span>複製到</span><input class="input mono" id="crTo" value="D5" spellcheck="false"></label>
+        </div>
+        <div class="row small" style="margin-top:8px;flex-wrap:wrap">
+          <button class="btn sm outline" type="button" data-cr="=E2*F2|G2|G5">相對參照往下</button>
+          <button class="btn sm outline" type="button" data-cr="=G2*$J$1|H2|H9">絕對參照（稅率）</button>
+          <button class="btn sm outline" type="button" data-cr="=$A2*B$1|B2|D5">混合參照（九九乘法）</button>
+          <button class="btn sm outline" type="button" data-cr="=SUM(B2:B9)/$B$10|C2|D3">範圍與絕對</button>
+        </div>
+        <div id="crOut"></div>`;
+      case 'xlookup': return `
+        <div class="tabs" id="xlMode"><button type="button" data-v="exact" class="on">價目表（精確比對）</button><button type="button" data-v="approx">獎金級距（近似比對）</button></div>
+        <div class="grid g2" style="gap:10px;margin-top:10px">
+          <label class="field"><span id="xlInLabel">要查的產品</span><input class="input" id="xlIn" value="螢幕"></label>
+          <label class="field" id="xlRetWrap"><span>回傳欄位</span><select class="input" id="xlRet"><option value="1">單價</option><option value="2">類別</option></select></label>
+        </div>
+        <div id="xlTable"></div>
+        <div id="xlOut"></div>`;
+      case 'pivot': return `
+        <div class="grid g2" style="gap:10px">
+          <label class="field"><span>列</span><select class="input" id="pvRow"><option value="1">業務</option><option value="2">地區</option><option value="3">產品</option><option value="0">月份</option></select></label>
+          <label class="field"><span>欄</span><select class="input" id="pvCol"><option value="">（無）</option><option value="3" selected>產品</option><option value="2">地區</option><option value="1">業務</option><option value="0">月份</option></select></label>
+          <label class="field"><span>值</span><select class="input" id="pvVal"><option value="6">金額</option><option value="4">數量</option></select></label>
+          <label class="field"><span>摘要方式</span><select class="input" id="pvAgg"><option value="sum">加總</option><option value="count">計數</option><option value="avg">平均值</option><option value="max">最大值</option></select></label>
+        </div>
+        <div class="tabs" id="pvShow" style="margin-top:10px"><button type="button" data-v="val" class="on">數值</button><button type="button" data-v="pct">總計百分比</button></div>
+        <div id="pvOut"></div>`;
       case 'hash': return `
         <label class="field"><span>輸入文字</span><textarea class="input" id="hashIn" rows="2">iPAS 資安工程師</textarea></label>
         <div class="out" id="hashOut"></div>
@@ -1126,6 +1200,210 @@ print('平均：', round(sum(scores.values()) / len(scores), 1))</pre>
           <div class="out" style="width:100%">${vec}</div>`;
       };
       tabsSelect(root, (tabs, val) => { v[tabs.dataset.metric] = val; run(); });
+      run();
+    }
+    if (id === 'sqlorder') {
+      const ORDER = { exec: ['FROM', 'WHERE', 'GROUP BY', 'HAVING', 'SELECT', 'ORDER BY', 'LIMIT'], write: ['SELECT', 'FROM', 'WHERE', 'GROUP BY', 'HAVING', 'ORDER BY', 'LIMIT'] };
+      const WHY = { FROM: '先決定從哪張表（含 JOIN）取資料', WHERE: '篩選資料列，此時還沒有 SELECT 的別名，也不能用彙總函式', 'GROUP BY': '把資料分組', HAVING: '篩選分組後的結果，可以用彙總函式', SELECT: '計算要顯示的欄位與別名（視窗函式也在這裡）', 'ORDER BY': '排序，可以使用 SELECT 的別名', LIMIT: '最後才取前幾筆' };
+      let mode = 'exec', picked = [];
+      const run = () => {
+        const target = ORDER[mode];
+        $('#soHint', root).textContent = mode === 'exec' ? '依資料庫「實際執行」的順序點選子句：' : '依寫 SQL 時「撰寫」的順序點選子句：';
+        const pool = [...target].sort((a, b) => a.localeCompare(b)).filter(c => !picked.includes(c));
+        $('#soPicked', root).innerHTML = picked.map((c, i) => `<span class="so-chip ok"><b>${i + 1}</b>${c}</span>`).join('') || '<span class="muted small">（尚未點選）</span>';
+        $('#soPool', root).innerHTML = pool.map(c => `<button type="button" class="so-chip" data-c="${c}">${c}</button>`).join('');
+        if (picked.length === target.length) $('#soMsg', root).innerHTML = '<b style="color:var(--ok)">完成！</b>' + (mode === 'exec' ? '　' + target.map(c => `${c}：${WHY[c]}`).join('；') : '　撰寫順序與執行順序不同，這就是 WHERE 不能使用 SELECT 別名的原因。');
+      };
+      $('#soPool', root).addEventListener('click', e => {
+        const b = e.target.closest('button[data-c]'); if (!b) return;
+        const want = ORDER[mode][picked.length];
+        if (b.dataset.c === want) { picked.push(want); $('#soMsg', root).textContent = mode === 'exec' ? `${want}：${WHY[want]}` : ''; }
+        else $('#soMsg', root).innerHTML = `<b style="color:var(--bad)">不對</b>，第 ${picked.length + 1} 個應該是 ${esc(want)}，再試一次。`;
+        run();
+      });
+      tabsSelect(root, (tabs, v) => { if (tabs.id === 'soMode') { mode = v; picked = []; $('#soMsg', root).textContent = ''; run(); } });
+      $('#soReset', root).addEventListener('click', () => { picked = []; $('#soMsg', root).textContent = ''; run(); });
+      run();
+    }
+    if (id === 'joinviz') {
+      const A = [[1, '王小明'], [2, '李美華'], [3, '張大偉'], [4, '鄭佩珊']];
+      const B = [[101, 1, 590], [102, 1, 2490], [103, 3, 6990], [104, 5, 199]];
+      const nul = '<span class="sql-null">NULL</span>';
+      const tbl = (cap, head, rows, cls = () => '') => `<div class="jv-t"><div class="small muted">${cap}</div><table class="tbl"><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr>${rows.map((r, i) => `<tr class="${cls(r, i)}">${r.map(v => `<td>${v === null ? nul : esc(v)}</td>`).join('')}</tr>`).join('')}</table></div>`;
+      const run = type => {
+        const out = [], usedB = new Set(), usedA = new Set();
+        A.forEach(a => {
+          const m = B.filter(b => b[1] === a[0]);
+          m.forEach(b => { out.push([a[0], a[1], b[0], b[2], 'both']); usedB.add(b[0]); usedA.add(a[0]); });
+          if (!m.length && (type === 'LEFT' || type === 'FULL')) out.push([a[0], a[1], null, null, 'left']);
+        });
+        if (type === 'RIGHT' || type === 'FULL') B.filter(b => !usedB.has(b[0])).forEach(b => out.push([null, null, b[0], b[2], 'right']));
+        if (type === 'RIGHT') out.sort((x, y) => (x[2] ?? 999) - (y[2] ?? 999));
+        $('#jvA', root).innerHTML = tbl('customers（左表）', ['id', 'name'], A, r => usedA.has(r[0]) ? 'jv-hit' : (type === 'LEFT' || type === 'FULL') ? 'jv-keep' : 'jv-drop');
+        $('#jvB', root).innerHTML = tbl('orders（右表）', ['id', 'customer_id', 'amount'], B, r => usedB.has(r[0]) ? 'jv-hit' : (type === 'RIGHT' || type === 'FULL') ? 'jv-keep' : 'jv-drop');
+        $('#jvSql', root).textContent = `SELECT c.id, c.name, o.id AS order_id, o.amount\nFROM customers c\n${type === 'INNER' ? 'JOIN' : type + ' JOIN'} orders o ON o.customer_id = c.id;`;
+        const note = { INNER: '只保留兩邊都配對得到的列：李美華、鄭佩珊沒有訂單，訂單 104 的客戶 5 不存在，都被排除。', LEFT: '保留左表（客戶）全部：沒有訂單的李美華、鄭佩珊仍出現，訂單欄位為 NULL。找「沒有訂單的客戶」就是再加上 WHERE o.id IS NULL。', RIGHT: '保留右表（訂單）全部：訂單 104 找不到客戶，客戶欄位為 NULL。把表的順序對調寫成 LEFT JOIN 結果相同。', FULL: '兩邊全部保留，配對不到的一側為 NULL。MySQL 不支援 FULL OUTER JOIN，可用 LEFT JOIN UNION RIGHT JOIN 代替。' }[type];
+        $('#jvOut', root).innerHTML = tbl(`結果：${out.length} 列`, ['c.id', 'c.name', 'order_id', 'amount'], out.map(r => r.slice(0, 4)), r => '') + `<p class="small" style="margin:8px 0 0">${note}</p>`;
+      };
+      tabsSelect(root, (tabs, v) => run(v));
+      run('INNER');
+    }
+    if (id === 'specificity') {
+      // 計算 CSS 選擇器權重 (ID, 類別／屬性／偽類, 標籤／偽元素)
+      const spec = sel => {
+        let s = sel.trim(), a = 0, b = 0, c = 0;
+        s = s.replace(/:where\((?:[^()]|\([^()]*\))*\)/g, ' ');
+        s = s.replace(/:(?:not|is|has)\(((?:[^()]|\([^()]*\))*)\)/g, (_, inner) => {
+          const best = inner.split(',').map(spec).sort((x, y) => y[0] - x[0] || y[1] - x[1] || y[2] - x[2])[0] || [0, 0, 0];
+          a += best[0]; b += best[1]; c += best[2]; return ' ';
+        });
+        s = s.replace(/\[[^\]]*\]/g, () => { b++; return ' '; });
+        s = s.replace(/::[\w-]+(\([^)]*\))?/g, () => { c++; return ' '; });
+        s = s.replace(/:(before|after|first-line|first-letter)\b/g, () => { c++; return ' '; });
+        s = s.replace(/:[\w-]+(\([^)]*\))?/g, () => { b++; return ' '; });
+        s = s.replace(/#[\w-]+/g, () => { a++; return ' '; });
+        s = s.replace(/\.[\w-]+/g, () => { b++; return ' '; });
+        (s.match(/(^|[\s>+~(,])([a-zA-Z][\w-]*)/g) || []).forEach(() => c++);
+        return [a, b, c];
+      };
+      const fmt = v => `(${v.join(', ')})`;
+      const run = () => {
+        const sa = $('#spA', root).value, sb = $('#spB', root).value;
+        const A = spec(sa), B = spec(sb);
+        const cmp = A[0] - B[0] || A[1] - B[1] || A[2] - B[2];
+        const win = cmp > 0 ? 'A 的權重較高，A 生效' : cmp < 0 ? 'B 的權重較高，B 生效' : '權重相同，後寫的 B 生效';
+        const row = (n, s, v) => `<tr><td>${n}</td><td class="mono">${esc(s)}</td><td class="num" style="white-space:nowrap"><b>${fmt(v)}</b></td><td class="small muted">ID ${v[0]}・類別／屬性／偽類 ${v[1]}・標籤／偽元素 ${v[2]}</td></tr>`;
+        $('#spOut', root).innerHTML = `<table class="tbl" style="margin-top:12px"><tr><th></th><th>選擇器</th><th>權重</th><th>組成</th></tr>${row('A', sa, A)}${row('B', sb, B)}</table><p style="margin:6px 0 0"><b>${win}</b>　<span class="small muted">比較方式：先比 ID，相同再比類別，再比標籤；行內 style 與 !important 優先於所有選擇器。</span></p>`;
+      };
+      root.addEventListener('input', run);
+      root.addEventListener('click', e => { const b = e.target.closest('[data-sp]'); if (b) { $('#spB', root).value = b.dataset.sp; run(); } });
+      run();
+    }
+    if (id === 'boxmodel') {
+      let sizing = 'content-box';
+      const run = () => {
+        const w = Math.max(0, +$('#bmW', root).value || 0), p = Math.max(0, +$('#bmP', root).value || 0), b = Math.max(0, +$('#bmB', root).value || 0), m = Math.max(0, +$('#bmM', root).value || 0);
+        const content = sizing === 'border-box' ? Math.max(0, w - 2 * p - 2 * b) : w;
+        const box = content + 2 * p + 2 * b, total = box + 2 * m;
+        const scale = Math.min(1, 300 / Math.max(total, 1));
+        $('#bmOut', root).innerHTML = `
+          <div class="bm-wrap"><div class="bm-m" style="padding:${m * scale}px"><div class="bm-b" style="border-width:${b * scale}px"><div class="bm-p" style="padding:${p * scale}px"><div class="bm-c" style="width:${content * scale}px">內容 ${content}</div></div></div></div></div>
+          <table class="tbl" style="margin-top:12px">
+            <tr><td>內容區寬度（content）</td><td class="num">${content} px</td><td class="small muted">${sizing === 'border-box' ? `${w} − ${p}×2 − ${b}×2` : 'width 只算內容'}</td></tr>
+            <tr><td>元素寬度（含 padding、border）</td><td class="num"><b>${box} px</b></td><td class="small muted">${content} + ${p}×2 + ${b}×2</td></tr>
+            <tr><td>佔用的總寬度（再加 margin）</td><td class="num">${total} px</td><td class="small muted">${box} + ${m}×2</td></tr>
+          </table>
+          ${sizing === 'border-box' && w < 2 * p + 2 * b ? '<p class="small" style="color:var(--bad)">padding 與 border 已超過 width，內容區被壓縮為 0。</p>' : ''}`;
+      };
+      root.addEventListener('input', run);
+      tabsSelect(root, (tabs, v) => { sizing = v; run(); });
+      run();
+    }
+    if (id === 'flexbox') {
+      const st = { flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'stretch', flexWrap: 'nowrap' };
+      const stage = $('#fxStage', root);
+      stage.innerHTML = [1, 2, 3, 4, 5].map(n => `<div class="fx-item" style="${n === 2 ? 'padding-top:18px;padding-bottom:18px' : ''}${n === 4 ? ';min-width:110px' : ''}">${n}</div>`).join('');
+      const kebab = k => k.replace(/[A-Z]/g, c => '-' + c.toLowerCase());
+      const run = () => {
+        Object.assign(stage.style, st);
+        $('#fxCss', root).textContent = `.container {\n  display: flex;\n${Object.entries(st).map(([k, v]) => `  ${kebab(k)}: ${v};`).join('\n')}\n  gap: 8px;\n}`;
+      };
+      tabsSelect(root, (tabs, v) => { st[tabs.dataset.fx] = v; run(); });
+      run();
+    }
+    if (id === 'cellref') {
+      const colNum = s => s.split('').reduce((n, ch) => n * 26 + ch.charCodeAt(0) - 64, 0);
+      const colStr = n => { let s = ''; while (n > 0) { const r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = Math.floor((n - 1) / 26); } return s; };
+      const parse = a => { const m = /^\s*\$?([A-Za-z]{1,3})\$?(\d+)\s*$/.exec(a); return m ? [colNum(m[1].toUpperCase()), +m[2]] : null; };
+      const run = () => {
+        const f = $('#crF', root).value, from = parse($('#crFrom', root).value), to = parse($('#crTo', root).value);
+        if (!from || !to) { $('#crOut', root).innerHTML = '<p class="small" style="color:var(--bad)">請輸入正確的儲存格位址，例如 B2。</p>'; return; }
+        const dc = to[0] - from[0], dr = to[1] - from[1], notes = [];
+        let bad = false;
+        // 引號內的文字不處理
+        const parts = f.split(/("[^"]*")/);
+        const res = parts.map(part => part.startsWith('"') ? part : part.replace(/(^|[^A-Za-z0-9_$!])(\$?)([A-Za-z]{1,3})(\$?)(\d+)(?![A-Za-z0-9_(])/g, (all, pre, d1, col, d2, row) => {
+          const c0 = colNum(col.toUpperCase()), r0 = +row;
+          const c1 = d1 ? c0 : c0 + dc, r1 = d2 ? r0 : r0 + dr;
+          if (c1 < 1 || r1 < 1) { bad = true; return pre + '#REF!'; }
+          const ref = `${d1}${colStr(c1)}${d2}${r1}`;
+          const kind = d1 && d2 ? '絕對參照，欄列都不變' : d1 ? '鎖欄：欄固定、列跟著變' : d2 ? '鎖列：列固定、欄跟著變' : '相對參照，欄列都跟著變';
+          notes.push(`<tr><td class="mono">${esc(d1 + col.toUpperCase() + d2 + row)}</td><td class="mono"><b>${esc(ref)}</b></td><td class="small muted">${kind}</td></tr>`);
+          return pre + ref;
+        })).join('');
+        $('#crOut', root).innerHTML = `<p style="margin:12px 0 6px">從 <b class="mono">${colStr(from[0])}${from[1]}</b> 複製到 <b class="mono">${colStr(to[0])}${to[1]}</b>（欄移動 ${dc >= 0 ? '+' : ''}${dc}、列移動 ${dr >= 0 ? '+' : ''}${dr}）：</p>
+          <div class="out" style="font-size:1.05rem">${esc(res)}</div>
+          ${notes.length ? `<table class="tbl" style="margin-top:10px"><tr><th>原本</th><th>複製後</th><th>說明</th></tr>${notes.join('')}</table>` : ''}
+          ${bad ? '<p class="small" style="color:var(--bad)">有參照被移到工作表範圍之外，變成 #REF!。</p>' : ''}`;
+      };
+      root.addEventListener('input', run);
+      root.addEventListener('click', e => { const b = e.target.closest('[data-cr]'); if (!b) return; const [f, a, t] = b.dataset.cr.split('|'); $('#crF', root).value = f; $('#crFrom', root).value = a; $('#crTo', root).value = t; run(); });
+      run();
+    }
+    if (id === 'xlookup') {
+      const PRICE = [['滑鼠', 590, '周邊'], ['鍵盤', 2490, '周邊'], ['螢幕', 6990, '顯示'], ['耳機', 1990, '影音'], ['喇叭', 1890, '影音']];
+      const BONUS = [[0, '0%'], [10000, '2%'], [20000, '3%'], [30000, '5%']];
+      let mode = 'exact';
+      const run = () => {
+        const v = $('#xlIn', root).value.trim();
+        if (mode === 'exact') {
+          const ret = +$('#xlRet', root).value, retName = ret === 1 ? '單價' : '類別', retCol = ret === 1 ? 'L' : 'M';
+          const i = PRICE.findIndex(r => r[0] === v);
+          $('#xlTable', root).innerHTML = `<table class="sheet" style="margin-top:10px"><tr><th></th><th>K 產品</th><th>L 單價</th><th>M 類別</th></tr>${PRICE.map((r, j) => `<tr class="${j === i ? 'xl-hit' : ''}"><th>${j + 2}</th><td>${r[0]}</td><td class="n">${r[1].toLocaleString()}</td><td>${r[2]}</td></tr>`).join('')}</table>`;
+          const result = i >= 0 ? (ret === 1 ? PRICE[i][1].toLocaleString() : PRICE[i][2]) : '查無產品';
+          $('#xlOut', root).innerHTML = `<div class="out">=XLOOKUP("${esc(v)}", $K$2:$K$6, $${retCol}$2:$${retCol}$6, "查無產品")</div>
+            <p style="margin:8px 0">${i >= 0 ? `在 K 欄第 ${i + 1} 個位置（第 ${i + 2} 列）找到「${esc(v)}」，傳回同一列的${retName}：` : `K 欄中找不到「${esc(v)}」，傳回第 4 個引數：`}<b>${esc(result)}</b></p>
+            <p class="small muted">VLOOKUP 寫法：=VLOOKUP("${esc(v)}", $K$2:$M$6, ${ret + 1}, FALSE)${i < 0 ? '　→ 找不到時顯示 #N/A，需要再包 IFNA。' : ''}</p>`;
+        } else {
+          const n = Number(v.replace(/,/g, ''));
+          if (!Number.isFinite(n) || v === '') { $('#xlOut', root).innerHTML = '<p class="small" style="color:var(--bad)">請輸入業績金額，例如 28730。</p>'; $('#xlTable', root).innerHTML = ''; return; }
+          let i = -1; BONUS.forEach((r, j) => { if (r[0] <= n) i = j; });
+          $('#xlTable', root).innerHTML = `<table class="sheet" style="margin-top:10px"><tr><th></th><th>O 業績下限</th><th>P 獎金比例</th></tr>${BONUS.map((r, j) => `<tr class="${j === i ? 'xl-hit' : ''}"><th>${j + 2}</th><td class="n">${r[0].toLocaleString()}</td><td class="n">${r[1]}</td></tr>`).join('')}</table>`;
+          $('#xlOut', root).innerHTML = `<div class="out">=XLOOKUP(${n}, $O$2:$O$5, $P$2:$P$5, , -1)</div>
+            <p style="margin:8px 0">${i >= 0 ? `找不到剛好等於 ${n.toLocaleString()} 的值，比對模式 -1 取「小於等於它的最大值」${BONUS[i][0].toLocaleString()}，傳回 <b>${BONUS[i][1]}</b>。` : '比級距表最小的值還小，傳回 #N/A。'}</p>
+            <p class="small muted">VLOOKUP 寫法：=VLOOKUP(${n}, $O$2:$P$5, 2, TRUE)　近似比對時級距表必須由小到大排序。</p>`;
+        }
+      };
+      tabsSelect(root, (tabs, v) => {
+        mode = v;
+        $('#xlInLabel', root).textContent = mode === 'exact' ? '要查的產品' : '業績金額';
+        $('#xlIn', root).value = mode === 'exact' ? '螢幕' : '28730';
+        $('#xlRetWrap', root).style.visibility = mode === 'exact' ? 'visible' : 'hidden';
+        run();
+      });
+      root.addEventListener('input', run);
+      $('#xlRet', root).addEventListener('change', run);
+      run();
+    }
+    if (id === 'pivot') {
+      // 講義第 1 章的銷售範例資料：[月份, 業務, 地區, 產品, 數量, 單價, 金額]
+      const D = [['1 月', '王小明', '北區', '滑鼠', 10, 590, 5900], ['1 月', '李美華', '中區', '鍵盤', 5, 2490, 12450], ['1 月', '王小明', '北區', '螢幕', 2, 6990, 13980], ['2 月', '張大偉', '南區', '滑鼠', 8, 590, 4720], ['2 月', '李美華', '北區', '鍵盤', 3, 2490, 7470], ['2 月', '王小明', '中區', '滑鼠', 15, 590, 8850], ['3 月', '張大偉', '南區', '螢幕', 1, 6990, 6990], ['3 月', '李美華', '中區', '滑鼠', 6, 590, 3540]];
+      const FIELD = ['月份', '業務', '地區', '產品', '數量', '單價', '金額'];
+      let show = 'val';
+      const agg = (rows, vi, how) => {
+        if (!rows.length) return null;
+        const v = rows.map(r => r[vi]);
+        return how === 'count' ? v.length : how === 'avg' ? v.reduce((a, b) => a + b, 0) / v.length : how === 'max' ? Math.max(...v) : v.reduce((a, b) => a + b, 0);
+      };
+      const run = () => {
+        const ri = +$('#pvRow', root).value, ciRaw = $('#pvCol', root).value, ci = ciRaw === '' ? null : +ciRaw, vi = +$('#pvVal', root).value, how = $('#pvAgg', root).value;
+        if (ci === ri) { $('#pvOut', root).innerHTML = '<p class="small" style="color:var(--bad)">列與欄不能放同一個欄位。</p>'; return; }
+        const uniq = i => [...new Set(D.map(r => r[i]))];
+        const rowsK = uniq(ri), colsK = ci === null ? [] : uniq(ci);
+        const grand = agg(D, vi, how);
+        const pctOk = show === 'pct' && (how === 'sum' || how === 'count');
+        const f = x => x === null ? '' : pctOk ? (x / grand * 100).toFixed(1) + '%' : (how === 'avg' ? +x.toFixed(2) : x).toLocaleString();
+        const head = `<tr><th>${FIELD[ri]} ＼ ${ci === null ? '' : FIELD[ci]}</th>${colsK.map(c => `<th>${esc(c)}</th>`).join('')}<th>總計</th></tr>`;
+        const body = rowsK.map(rk => {
+          const rr = D.filter(r => r[ri] === rk);
+          return `<tr><td>${esc(rk)}</td>${colsK.map(ck => `<td class="n">${f(agg(rr.filter(r => r[ci] === ck), vi, how))}</td>`).join('')}<td class="n"><b>${f(agg(rr, vi, how))}</b></td></tr>`;
+        }).join('');
+        const foot = `<tr><td><b>總計</b></td>${colsK.map(ck => `<td class="n"><b>${f(agg(D.filter(r => r[ci] === ck), vi, how))}</b></td>`).join('')}<td class="n"><b>${f(grand)}</b></td></tr>`;
+        const label = { sum: '加總', count: '計數', avg: '平均值', max: '最大值' }[how];
+        $('#pvOut', root).innerHTML = `<p class="small muted" style="margin:12px 0 4px">${label} - ${FIELD[vi]}${show === 'pct' && !pctOk ? '（總計百分比只適用於加總與計數）' : pctOk ? '（總計百分比）' : ''}</p><div class="table-wrap"><table class="sheet">${head}${body}${foot}</table></div>`;
+      };
+      root.addEventListener('change', run);
+      tabsSelect(root, (tabs, v) => { show = v; run(); });
       run();
     }
   }

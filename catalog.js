@@ -8,6 +8,7 @@ const categories = [
   { id: 'ai', name: 'AI 人工智慧', hue: 268 },
   { id: 'cloud', name: '雲端', hue: 32 },
   { id: 'code', name: '程式設計', hue: 152 },
+  { id: 'data', name: '資料分析', hue: 75 },
   { id: 'it', name: 'IT 與 DevOps', hue: 190 },
   { id: 'practice', name: '實作專題', hue: 346 }
 ];
@@ -68,11 +69,29 @@ const courses = {
     audience: ['完成 Python 入門、想做出實際作品的人', '想自動化 Excel、報表、通知等工作的上班族', '準備資料分析或自動化職缺的求職者'],
     highlights: ['6 個完整的實戰作品', 'pandas、matplotlib、openpyxl、BeautifulSoup 範例可在網頁上執行', '作品 README 範本與面試介紹技巧']
   },
+  web: {
+    cat: 'code', kind: 'skill', code: 'Web', level: '入門',
+    pitch: '自學轉職最多人走的前端路線：HTML 結構、CSS 排版與響應式設計、JavaScript 互動與串接 API，範例都能即時預覽。',
+    audience: ['想轉職前端或全端工程師的人', '想自己做網站、修改公司網頁的設計師與行銷', '準備學 React 或 Vue 的初學者'],
+    highlights: ['HTML、CSS 範例即時預覽，JavaScript 範例可直接執行', 'JavaScript 輸出題皆以 Node.js 實際執行驗證', '選擇器權重、盒模型計算與 Flexbox 遊樂場']
+  },
   'ai-apps': {
     cat: 'ai', kind: 'skill', code: 'RAG', level: '進階',
     pitch: '從會用 AI 聊天進階到能打造 AI 應用：提示工程、API、RAG、工具呼叫與代理流程。',
     audience: ['想把生成式 AI 導入工作流程的人', '有 Python 基礎、想開發 AI 應用的開發者', '完成 iPAS AI 課程、想動手實作的學員'],
     highlights: ['RAG 檢索與評估範例可在網頁上執行', '文件切塊視覺化、RAG 檢索模擬、LLM 費用估算', '提示注入、資料外洩等資安風險與防護']
+  },
+  sql: {
+    cat: 'data', kind: 'skill', code: 'SQL', level: '入門',
+    pitch: '資料分析、後端、MIS 職缺最常要求的技能。從 SELECT、JOIN、分組統計到視窗函式，每個查詢都能在網頁上直接執行。',
+    audience: ['想從事資料分析、商業分析的上班族', '準備後端或 MIS 職缺的求職者', '常被 Excel 資料量卡住、想更有效率處理資料的人'],
+    highlights: ['77 個 SQL 範例在網頁上以 SQLite 直接執行', '查詢結果題皆以 SQLite 實際執行驗證', '執行順序練習與 JOIN 結果視覺化']
+  },
+  excel: {
+    cat: 'data', kind: 'skill', code: 'Excel', level: '入門',
+    pitch: '行政、財會、業務、行銷都用得到：函式、XLOOKUP、樞紐分析、Power Query 自動化，再進階到 Power BI 儀表板。',
+    audience: ['每天和報表奮戰的行政、財會、業務人員', '想做出自動更新報表與儀表板的主管與分析師', '準備 MOS Excel 或 PL-300 的考生'],
+    highlights: ['同一份銷售範例資料貫穿所有公式與樞紐分析', 'Power Query 自動化與 Power BI 星狀模型、DAX 量值', '儲存格參照、XLOOKUP 與樞紐分析互動練習']
   },
   network: {
     cat: 'it', kind: 'skill', code: 'NET', level: '入門',
@@ -111,7 +130,8 @@ const paths = [
   { id: 'soc', name: '資安分析師', desc: '從網路與系統基礎開始，取得國內外資安證照，準備 SOC 與資安工程師職缺。', steps: ['network', 'linux', 'beginner', 'secplus', 'intermediate'] },
   { id: 'cloud', name: '雲端工程師', desc: '打好網路與 Linux 基礎，取得 AWS 證照，再學會容器與自動化部署。', steps: ['network', 'linux', 'git', 'aws-clf', 'aws-saa', 'devops'] },
   { id: 'ai', name: 'AI 應用開發', desc: '從 Python 入門到考取 iPAS AI 證照，最後動手打造 RAG 與 AI 代理。', steps: ['py-basic', 'ai-beginner', 'py-practice', 'ai-apps', 'ai-intermediate'] },
-  { id: 'auto', name: '辦公自動化與資料分析', desc: '不需資訊背景，用 Python 與 AI 自動化報表、分析資料並做出作品集。', steps: ['py-basic', 'py-practice', 'git', 'ai-apps'] }
+  { id: 'auto', name: '辦公自動化與資料分析', desc: '不需資訊背景，從 Excel 與 SQL 開始，再用 Python 與 AI 自動化報表、分析資料並做出作品集。', steps: ['excel', 'sql', 'py-basic', 'py-practice', 'ai-apps'] },
+  { id: 'frontend', name: '前端工程師', desc: '從 HTML、CSS、JavaScript 打好基礎，學會版本控制與資料庫，再把作品自動部署上線。', steps: ['web', 'git', 'sql', 'devops'] }
 ];
 
 module.exports = { categories, courses, paths };

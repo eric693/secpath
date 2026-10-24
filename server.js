@@ -25,7 +25,10 @@ const LEVELS = {
   'ai-apps': { name: 'AI 應用實作', title: 'AI 應用實作：提示工程、RAG 與代理流程', hashEnv: 'PASS_AI_APPS', org: 'AI 應用實作・提示工程 × RAG × AI 代理', foot: 'API 用法以各家官方文件為準；處理個資請遵守個資法與公司政策', labels: ['基礎篇', '進階篇'], subjects: ['提示工程與 API 應用', 'RAG、工具呼叫與代理流程'] },
   git: { name: 'Git', title: 'Git 版本控制：從入門到團隊協作', hashEnv: 'PASS_GIT', org: '開發必備技能・Git × GitHub', foot: '指令以 Git 2.40 以上版本與官方文件為準', labels: ['個人篇', '協作篇'], subjects: ['基本操作、還原與分支', '遠端、GitHub 與團隊實務'] },
   devops: { name: 'DevOps', title: 'DevOps 入門：Docker、CI/CD 與雲端部署', hashEnv: 'PASS_DEVOPS', org: 'DevOps 入門・容器 × 自動化 × 維運', foot: '指令與設定以各工具官方文件為準', labels: ['容器篇', '部署篇'], subjects: ['Docker 與容器化', 'CI/CD、雲端與維運'] },
-  network: { name: '網路基礎', title: '網路基礎：從 OSI 到子網路與路由', hashEnv: 'PASS_NETWORK', org: '網路基礎・CCNA 與網路架設技術士核心觀念', foot: '非 Cisco 或勞動部官方課程；考試範圍以官方公告為準', labels: ['原理篇', '實務篇'], subjects: ['網路模型與 IP 定址', '交換、路由、服務與排錯'] }
+  network: { name: '網路基礎', title: '網路基礎：從 OSI 到子網路與路由', hashEnv: 'PASS_NETWORK', org: '網路基礎・CCNA 與網路架設技術士核心觀念', foot: '非 Cisco 或勞動部官方課程；考試範圍以官方公告為準', labels: ['原理篇', '實務篇'], subjects: ['網路模型與 IP 定址', '交換、路由、服務與排錯'] },
+  sql: { name: 'SQL', title: 'SQL 資料庫入門：從查詢到資料分析', hashEnv: 'PASS_SQL', org: '資料分析與後端必備・SQL × 關聯式資料庫', foot: '語法以 SQLite 為主，各資料庫差異以官方文件為準', labels: ['查詢篇', '設計篇'], subjects: ['查詢、彙總與資料分析', '建立資料表、設計與實務'] },
+  web: { name: '網頁開發', title: '網頁開發入門：HTML、CSS 與 JavaScript', hashEnv: 'PASS_WEB', org: '前端與轉職必備・HTML × CSS × JavaScript', foot: '語法以現代瀏覽器與 MDN 文件為準', labels: ['版面篇', '互動篇'], subjects: ['HTML 與 CSS', 'JavaScript 與上線'] },
+  excel: { name: 'Excel／Power BI', title: 'Excel 與 Power BI 資料分析', hashEnv: 'PASS_EXCEL', org: '辦公室必備・Excel × 樞紐分析 × Power BI', foot: '介面以 Microsoft 365 繁體中文版為準；非 Microsoft 官方課程', labels: ['Excel 篇', 'Power BI 篇'], subjects: ['函式、樞紐分析與 Power Query', '資料模型、DAX 與儀表板'] }
 };
 const IPAS = { org: 'iPAS 資訊安全工程師能力鑑定', foot: '考試資訊以 iPAS 經濟部產業人才能力鑑定官網公告為準', labels: ['科目一', '科目二'] };
 for (const [k, v] of Object.entries(LEVELS)) {
@@ -36,7 +39,7 @@ for (const [k, v] of Object.entries(LEVELS)) {
 
 const site = require('./site')({ ROOT, LEVELS });
 
-const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'application/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.json': 'application/json', '.png': 'image/png', '.ico': 'image/x-icon', '.mp4': 'video/mp4', '.webm': 'video/webm', '.vtt': 'text/vtt' };
+const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'application/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.json': 'application/json', '.png': 'image/png', '.ico': 'image/x-icon', '.mp4': 'video/mp4', '.webm': 'video/webm', '.vtt': 'text/vtt', '.wasm': 'application/wasm' };
 const SESSION_DAYS = 30;
 const LEVEL_PATH = new RegExp(`^/(${Object.keys(LEVELS).join('|')})(/.*)?$`);
 

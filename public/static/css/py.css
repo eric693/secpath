@@ -26,3 +26,67 @@
 .slice-cells div.on small { color: inherit; opacity: .8; }
 /* 題目選項保留換行與空白（程式輸出題） */
 .opt > span:last-child { white-space: pre-wrap; }
+
+/* SQL 執行器：結果表格與資料表結構 */
+.sql-out { padding: 10px 14px 8px; }
+.sql-out p { margin: 6px 0; font-size: .84rem; }
+.sql-out .py-err, .sql-out .py-hint, .sql-out .py-status { font-family: var(--mono); }
+.sql-res { margin: 4px 0 10px; }
+.sql-cap { font-size: .76rem; color: var(--ink-2); margin-bottom: 4px; }
+.sql-scroll { overflow: auto; max-height: 360px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+.sql-res table { border-collapse: collapse; width: max-content; min-width: 100%; font-size: .84rem; margin: 0; }
+.sql-res th, .sql-res td { padding: 5px 12px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
+.sql-res th { position: sticky; top: 0; background: var(--surface-2); font-family: var(--mono); font-size: .76rem; font-weight: 600; color: var(--ink-2); border-bottom: 1.5px solid var(--line-2); padding-left: 12px !important; }
+.sql-res td:first-child { padding-left: 12px !important; }
+.sql-res td.n { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.sql-res tr:last-child td { border-bottom: 0; }
+.sql-null { color: var(--muted); font-style: italic; font-family: var(--mono); font-size: .78rem; }
+.sql-msg { font-family: var(--mono); color: var(--ok); }
+.sql-schema { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; padding: 2px 0 6px; }
+.sql-schema > div { border: 1px solid var(--line); border-radius: 6px; background: var(--surface); padding: 8px 10px; font-size: .8rem; }
+.sql-schema b { font-family: var(--mono); }
+.sql-schema small { float: right; color: var(--muted); }
+.sql-schema ul { list-style: none; padding: 0 !important; margin: 6px 0 0 !important; }
+.sql-schema li { display: flex; justify-content: space-between; gap: 8px; margin: 0 !important; font-family: var(--mono); line-height: 1.7; }
+.sql-schema li span { color: var(--muted); font-size: .72rem; }
+.sql-schema li.pk { font-weight: 600; }
+/* 網頁預覽 */
+.web-out { border-top: 1px solid var(--line); background: var(--surface-2); padding: 8px 10px 10px; }
+.web-label { font-size: .72rem; letter-spacing: .1em; color: var(--ink-2); margin: 0 0 6px 4px; }
+.web-out iframe { display: block; width: 100%; height: 120px; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+.web-console { margin: 8px 0 0; padding: 8px 10px; border-radius: 6px; background: var(--surface); border: 1px solid var(--line); font-family: var(--mono); font-size: .8rem; line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
+.web-console::before { content: "Console"; display: block; font-size: .7rem; letter-spacing: .1em; color: var(--muted); margin-bottom: 2px; }
+.web-console .c-error { color: var(--bad); }
+.web-console .c-warn { color: var(--warn); }
+
+/* SQL、網頁、Excel 課程的互動練習 */
+.so-picked, .so-pool { display: flex; flex-wrap: wrap; gap: 8px; min-height: 40px; align-items: center; }
+.so-pool { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line); }
+.so-chip { font-family: var(--mono); font-size: .9rem; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--line-2); background: var(--surface); color: var(--ink); cursor: pointer; }
+.so-chip.ok { border-color: var(--ok); background: var(--ok-soft); color: var(--ok); cursor: default; }
+.so-chip b { margin-right: 6px; font-size: .76rem; }
+.jv-src { display: grid; grid-template-columns: 1fr 1.3fr; gap: 12px; margin-top: 12px; }
+.jv-t table { font-size: .84rem; margin: 4px 0 0; }
+.jv-t tr.jv-hit td { background: var(--accent-soft); }
+.jv-t tr.jv-keep td { background: var(--warn-soft); }
+.jv-t tr.jv-drop td { color: var(--muted); text-decoration: line-through; }
+.bm-wrap { display: flex; justify-content: center; margin-top: 14px; overflow-x: auto; }
+.bm-m { background: repeating-linear-gradient(45deg, #fbe7c6, #fbe7c6 6px, #fdf3e1 6px, #fdf3e1 12px); }
+.bm-b { border-style: solid; border-color: #e0a46a; background: #c9e4d6; }
+.bm-p { background: #c9e4d6; }
+.bm-c { background: #8bb2e8; color: #0f1115; font-size: .76rem; text-align: center; padding: 10px 0; white-space: nowrap; overflow: hidden; min-height: 36px; }
+.fx-ctl { display: grid; gap: 8px; }
+.fx-ctl > div { display: flex; flex-direction: column; gap: 3px; }
+.fx-stage { display: flex; gap: 8px; min-height: 190px; margin-top: 12px; padding: 8px; border: 1px dashed var(--line-2); border-radius: var(--r); background: var(--surface-2); }
+.fx-item { min-width: 48px; padding: 8px 12px; border-radius: 6px; background: var(--accent); color: var(--accent-ink); font-family: var(--mono); text-align: center; }
+.xl-hit td { background: var(--hl) !important; font-weight: 700; }
+/* 模擬工作表 */
+table.sheet { border-collapse: collapse; font-size: .86rem; margin: 0 0 1.2em; width: auto; }
+table.sheet th, table.sheet td { border: 1px solid var(--line-2) !important; padding: 4px 10px !important; white-space: nowrap; }
+table.sheet tr:first-child th { background: var(--surface-2); color: var(--muted); font-weight: 500; text-align: center; font-family: var(--mono); font-size: .76rem; letter-spacing: 0; border-bottom: 1px solid var(--line-2) !important; }
+table.sheet th:first-child { background: var(--surface-2); color: var(--muted); font-weight: 500; text-align: center; font-family: var(--mono); font-size: .76rem; min-width: 28px; }
+table.sheet td.n { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.lesson-body .table-wrap > table.sheet { min-width: 0; }
+@media (max-width: 640px) { .jv-src { grid-template-columns: 1fr; } }
+#spOut td.num { white-space: nowrap; }
+#pvOut table.sheet th, #pvOut table.sheet td { padding: 4px 7px !important; font-size: .82rem; }
