@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{{LEVEL_TITLE}} · SecPath 資安學堂</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#f7f7f5">
+  <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/static/css/py.css">
+</head>
+<body data-level="{{LEVEL}}">
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="/">
+        <span class="brand-name">SecPath</span>
+        <span class="brand-sub">資安學堂</span>
+      </a>
+      <div class="brand-desc">
+        <span>{{ORG}}</span>
+        <b class="level-badge">{{LEVEL_NAME}}課程</b>
+      </div>
+      <nav class="nav" id="nav">
+        <div class="nav-group">課程</div>
+        <a href="#/" data-nav="home">學習總覽</a>
+        <a href="#/path" data-nav="path">課程大綱</a>
+        <a href="#/videos" data-nav="videos">教學影片</a>
+        <div class="nav-group">練習</div>
+        <a href="#/practice" data-nav="practice">題庫練習</a>
+        <a href="#/exam" data-nav="exam">模擬考</a>
+        <a href="#/wrong" data-nav="wrong">錯題與收藏</a>
+        <div class="nav-group">複習</div>
+        <a href="#/glossary" data-nav="glossary">名詞速查</a>
+        <a href="#/cards" data-nav="cards">名詞記憶卡</a>
+        <a href="#/sprint" data-nav="sprint">考前重點</a>
+        <div class="nav-group">工具</div>
+        <a href="#/tools" data-nav="tools">互動練習</a>
+      </nav>
+      <div class="side-foot">
+        <button class="link-btn" id="themeBtn" type="button">切換深色模式</button>
+        <p><a class="link-btn" href="/">切換級別</a>　<a class="link-btn" href="logout">登出</a></p>
+        <p>學習進度儲存於本機瀏覽器</p>
+      </div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <button class="text-btn" id="menuBtn" type="button">選單</button>
+        <div class="crumb" id="crumb"></div>
+        <div class="top-actions">
+          <button class="search-trigger" id="searchBtn" type="button">搜尋<kbd>/</kbd></button>
+          <span class="streak" id="streak" title="連續學習天數">連續 <b>0</b> 天</span>
+        </div>
+      </header>
+      <main id="view" class="view" tabindex="-1"></main>
+      <footer class="site-foot">SecPath 資安學堂 · {{FOOT}}</footer>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay"></div>
+  <div class="search-modal" id="searchModal" hidden>
+    <div class="search-box">
+      <input id="searchInput" type="search" placeholder="搜尋課程內容、名詞或題目" autocomplete="off">
+      <div id="searchResults" class="search-results"></div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <script src="data/level.js"></script>
+  <script src="data/chapters1.js"></script>
+  <script src="data/chapters2.js"></script>
+  <script src="data/questions.js"></script>
+  <script src="data/glossary.js"></script>
+  <script src="data/videos.js"></script>
+  <script src="/static/js/store.js"></script>
+  <script src="/static/js/tools.js"></script>
+  <script src="/static/js/app.js"></script>
+  <script src="/static/js/py.js"></script>
+</body>
+</html>

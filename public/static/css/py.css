@@ -1,0 +1,28 @@
+/* Python 執行器與 Python 課程專用工具 */
+.py-box { border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); margin: 0 0 1.3em; overflow: hidden; }
+.py-box.running { border-color: var(--accent); }
+.py-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 8px 6px 14px; border-bottom: 1px solid var(--line); background: var(--surface-2); font-family: var(--mono); font-size: .76rem; letter-spacing: .08em; color: var(--ink-3, var(--ink-2)); }
+.py-actions { display: flex; gap: 6px; }
+.py-btn { font: inherit; font-size: .8rem; letter-spacing: 0; padding: 4px 12px; border-radius: 6px; border: 1px solid var(--line-2); background: var(--surface); color: var(--ink); cursor: pointer; }
+.py-btn.run { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.py-btn.stop { border-color: var(--bad); color: var(--bad); }
+.py-btn:disabled { opacity: .5; cursor: progress; }
+.py-code { display: block; width: 100%; border: 0; resize: vertical; padding: 12px 14px; font-family: var(--mono); font-size: .86rem; line-height: 1.65; tab-size: 4; background: var(--surface); color: var(--ink); white-space: pre; overflow-x: auto; outline: none; }
+.py-code:focus { background: var(--surface-2); }
+.py-in { display: block; border-top: 1px dashed var(--line); padding: 8px 14px; }
+.py-in span { display: block; font-size: .76rem; color: var(--ink-2); margin-bottom: 4px; }
+.py-in textarea { width: 100%; font-family: var(--mono); font-size: .84rem; border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; background: var(--surface-2); color: var(--ink); resize: vertical; }
+.py-out { border-top: 1px solid var(--line); background: var(--surface-2); padding: 10px 14px; }
+.py-out pre { margin: 0; font-family: var(--mono); font-size: .84rem; line-height: 1.65; white-space: pre-wrap; word-break: break-word; color: var(--ink); }
+.py-out .py-err { color: var(--bad); }
+.py-out .py-hint { color: var(--warn); }
+.py-out .py-status { color: var(--ink-2); font-size: .78rem; }
+.py-figs img { display: block; max-width: 100%; margin-top: 10px; background: #fff; border-radius: 6px; }
+.lesson-body .py-box { margin-bottom: 1.3em; }
+.slice-cells { display: flex; flex-wrap: wrap; gap: 4px; margin: 10px 0; }
+.slice-cells div { min-width: 44px; text-align: center; border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px; background: var(--surface); font-family: var(--mono); font-size: .84rem; }
+.slice-cells div small { display: block; color: var(--ink-2); font-size: .7rem; }
+.slice-cells div.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.slice-cells div.on small { color: inherit; opacity: .8; }
+/* 題目選項保留換行與空白（程式輸出題） */
+.opt > span:last-child { white-space: pre-wrap; }
