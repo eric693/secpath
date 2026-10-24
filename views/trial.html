@@ -13,12 +13,14 @@
   <link rel="stylesheet" href="/static/css/style.css">
   <link rel="stylesheet" href="/static/css/py.css">
   <link rel="stylesheet" href="/static/css/catalog.css">
+  <link rel="stylesheet" href="/static/css/members.css">
   <script>try { var t = localStorage.getItem('secpath.theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch (e) {}</script>
 </head>
 <body class="plain" style="--h:{{HUE}}">
   <header class="plain-head site-head">
     <a class="brand" href="/"><span class="brand-name">SecPath</span><span class="brand-sub">學堂</span></a>
     <nav class="plain-nav"><a href="/course/{{ID}}">課程介紹</a><a href="/{{ID}}/">進入課程</a></nav>
+    {{USER_NAV}}
   </header>
 
   <div class="trial-bar"><span><b>免費試讀</b>{{NAME}}・第一章</span><a href="/course/{{ID}}">查看完整課程大綱</a></div>

@@ -1,0 +1,12 @@
+{
+  "name": "secpath",
+  "private": true,
+  "description": "SecPath 學堂",
+  "main": "server.js",
+  "scripts": {
+    "start": "node --env-file=.env server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "11.10.0"
+  }
+}

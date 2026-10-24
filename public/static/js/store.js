@@ -1,4 +1,5 @@
-/* 學習進度：只存在本機瀏覽器 localStorage，初級與中級分開儲存；讀寫失敗時退回記憶體 */
+/* 學習進度：存在本機瀏覽器 localStorage，各課程分開儲存；讀寫失敗時退回記憶體。
+   登入會員時（伺服器內嵌 window.SP_USER）另同步到帳號：以伺服器為準，未同步的本機變更與登入前的進度會合併上傳。 */
 (function () {
   const KEY = 'secpath.' + (document.body.dataset.level || 'default');
   const THEME_KEY = 'secpath.theme';
@@ -19,8 +20,60 @@
     if (raw) mem = Object.assign(blank(), JSON.parse(raw));
   } catch (e) { /* 無痕模式或被封鎖時只用記憶體 */ }
 
+  const U = window.SP_USER;
+  const LEVEL = document.body.dataset.level;
+
+  // 合併兩份進度：時間戳記取較新、題目統計取作答次數較多者、陣列取聯集
+  function merge(a, b) {
+    const out = Object.assign(blank(), a);
+    ['done', 'visited', 'wrong', 'stars'].forEach(k => {
+      out[k] = Object.assign({}, a[k]);
+      Object.entries(b[k] || {}).forEach(([id, t]) => { if (!(out[k][id] >= t)) out[k][id] = t; });
+    });
+    ['cards', 'check'].forEach(k => { out[k] = Object.assign({}, b[k], a[k]); });
+    out.qs = Object.assign({}, a.qs);
+    Object.entries(b.qs || {}).forEach(([id, s]) => {
+      const x = out.qs[id];
+      if (!x || (s.c + s.w) > (x.c + x.w)) out.qs[id] = s;
+    });
+    out.days = Array.from(new Set([...(a.days || []), ...(b.days || [])])).sort().slice(-400);
+    const seen = new Set();
+    out.exams = [...(a.exams || []), ...(b.exams || [])].filter(e => !seen.has(e.at) && seen.add(e.at)).sort((x, y) => y.at - x.at).slice(0, 30);
+    return out;
+  }
+
+  let timer = null, pushing = false, again = false;
+  function setState(t) { const el = document.getElementById('syncState'); if (el) el.textContent = t; }
+  function push() {
+    if (!U) return;
+    if (pushing) { again = true; return; }
+    pushing = true;
+    const body = JSON.stringify(Object.assign({}, mem, { _owner: undefined, _dirty: undefined }));
+    fetch('/api/progress/' + encodeURIComponent(LEVEL), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, keepalive: body.length < 60000, credentials: 'same-origin' })
+      .then(r => {
+        if (!r.ok) throw new Error(r.status);
+        mem._dirty = false; write(); setState('已同步到帳號');
+      })
+      .catch(() => setState('暫時無法同步，稍後會自動重試'))
+      .finally(() => { pushing = false; if (again) { again = false; push(); } });
+  }
+  function write() { try { localStorage.setItem(KEY, JSON.stringify(mem)); } catch (e) {} }
   function save() {
-    try { localStorage.setItem(KEY, JSON.stringify(mem)); } catch (e) {}
+    if (U) { mem._dirty = true; setState('同步中…'); clearTimeout(timer); timer = setTimeout(push, 1500); }
+    write();
+  }
+  if (U) {
+    const local = mem, srv = U.progress ? Object.assign(blank(), U.progress) : null;
+    const mine = local._owner === U.id;
+    const hasLocal = Object.keys(local.done).length || Object.keys(local.qs).length || local.exams.length;
+    if (local._owner && !mine) mem = srv || blank();               // 這台電腦上是別人的進度：不使用
+    else if (srv) mem = mine && !local._dirty ? srv : merge(srv, local);
+    mem._owner = U.id;
+    const needPush = !srv ? hasLocal : (!mine && hasLocal) || local._dirty;
+    write();
+    if (needPush) { mem._dirty = true; push(); }
+    addEventListener('pagehide', () => { if (mem._dirty) { clearTimeout(timer); push(); } });
+    addEventListener('online', () => { if (mem._dirty) push(); });
   }
   function today() {
     const d = new Date();
@@ -63,8 +116,8 @@
     setCheck(k, v) { mem.check[k] = v; save(); },
     getTheme() { try { return localStorage.getItem(THEME_KEY); } catch (e) { return null; } },
     setTheme(t) { try { localStorage.setItem(THEME_KEY, t); } catch (e) {} },
-    reset() { mem = blank(); save(); },
+    reset() { mem = Object.assign(blank(), { _owner: mem._owner }); save(); },
     exportJSON() { return JSON.stringify(mem, null, 2); },
-    importJSON(text) { mem = Object.assign(blank(), JSON.parse(text)); save(); }
+    importJSON(text) { mem = Object.assign(blank(), JSON.parse(text), { _owner: mem._owner }); save(); }
   };
 })();

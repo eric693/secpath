@@ -128,17 +128,56 @@ function readBody(req, limit = 2048) {
   });
 }
 
+/* ---------- 會員系統與管理後台 API ---------- */
+const members = require('./members')({ LEVELS, site, esc, render, send, redirect, readBody, clientIp, cookies, verifyPassword });
+const adminApi = require('./admin-api')({ LEVELS, site, send, readBody, members });
+const ADMIN_DIST = path.join(ROOT, 'admin', 'dist');
+
+// 課程登入頁：未登入顯示會員登入與課程密碼兩種方式，已登入則改為兌換碼
+function loginVars(u, level) {
+  const next = encodeURIComponent(`/${level}/`);
+  if (u) return {
+    HEADING: '開通課程',
+    INTRO: `你已登入 <b>${esc(u.email)}</b>，尚未開通這門課。輸入課程兌換碼（課程密碼）即可開通，之後用帳號登入就能直接進入。`,
+    FIELD: '課程兌換碼', SUBMIT: '開通課程', MEMBER: `<p class="m-switch small"><a href="/account">返回我的課程</a>・<a href="/logout">切換帳號</a></p>`
+  };
+  return {
+    HEADING: '課程登入',
+    INTRO: '本課程僅限授權學員使用。登入已開通此課程的會員帳號，或直接輸入課程密碼。',
+    FIELD: '課程密碼', SUBMIT: '進入課程',
+    MEMBER: `<a class="btn outline lg block" href="/login?next=${next}">會員登入</a><p class="m-switch small">還沒有帳號？<a href="/register?next=${next}">註冊會員</a>，再用課程密碼開通，學習進度可跨裝置同步。</p><div class="m-or"><span>或直接輸入課程密碼</span></div>`
+  };
+}
+
 /* ---------- 路由 ---------- */
 const server = http.createServer(async (req, res) => {
   let url;
   try { url = new URL(req.url, 'http://x'); } catch { return send(res, 400, 'Bad request', 'text/plain'); }
   const p = decodeURIComponent(url.pathname);
 
-  if (p === '/' || p === '/index.html') return send(res, 200, render('home.html', site.home()));
+  if (p === '/' || p === '/index.html') return send(res, 200, render('home.html', { ...site.home(), USER_NAV: members.userNav(members.user(req)) }));
   const cm = p.match(/^\/course\/([\w-]+)(\/trial)?\/?$/);
   if (cm) {
     const vars = cm[2] ? site.trial(cm[1]) : site.course(cm[1]);
-    return vars ? send(res, 200, render(cm[2] ? 'trial.html' : 'course.html', vars)) : send(res, 404, render('notfound.html', {}));
+    if (!vars) return send(res, 404, render('notfound.html', {}));
+    const u = members.user(req);
+    const has = authed(req, cm[1]) || members.canAccess(u, cm[1]);
+    return send(res, 200, render(cm[2] ? 'trial.html' : 'course.html', { ...vars, USER_NAV: members.userNav(u), ENTER: has ? '進入課程，繼續學習' : u ? '輸入兌換碼開通課程' : '已有課程密碼，進入課程' }));
+  }
+  try {
+    if (await members.handle(req, res, url, p)) return;
+    if (await adminApi.handle(req, res, url, p)) return;
+  } catch (e) {
+    console.error(e);
+    return res.headersSent ? res.end() : send(res, 500, 'Server error', 'text/plain; charset=utf-8');
+  }
+  // 管理後台前端（admin/ 以 Vite 建置）：靜態資源直接提供，其餘路徑回傳 index.html 由前端路由處理
+  if (p === '/admin' || p.startsWith('/admin/')) {
+    if (p.startsWith('/admin/assets/')) return serveFile(res, ADMIN_DIST, p.slice(7), 'public, max-age=31536000, immutable');
+    const u = members.user(req);
+    if (!u) return redirect(res, '/login?next=' + encodeURIComponent(p));
+    if (!u.is_admin) return send(res, 403, render('notfound.html', {}));
+    return serveFile(res, ADMIN_DIST, 'index.html', 'no-cache');
   }
   if (p.startsWith('/static/')) return serveFile(res, path.join(ROOT, 'public', 'static'), p.slice(8), 'public, max-age=3600');
   if (p === '/favicon.ico') return serveFile(res, path.join(ROOT, 'public', 'static'), 'icon.svg', 'public, max-age=86400');
@@ -154,7 +193,10 @@ const server = http.createServer(async (req, res) => {
     let body = '';
     try { body = await readBody(req); } catch { return send(res, 413, 'Too large', 'text/plain'); }
     const pw = new URLSearchParams(body).get('password') || '';
-    if (pw && verifyPassword(pw, L.hash)) {
+    // 已登入會員：課程密碼當作兌換碼，開通到帳號
+    const redeemed = pw ? members.redeemFromCoursePage(req, level, pw) : null;
+    if (redeemed) { attempts.delete(ip); return redirect(res, `/${level}/`); }
+    if (redeemed === null && pw && verifyPassword(pw, L.hash)) {
       attempts.delete(ip);
       return redirect(res, `/${level}/`, {
         'Set-Cookie': `${cookieName(level)}=${makeToken(level)}; Path=/${level}/; Max-Age=${SESSION_DAYS * 86400}; HttpOnly; Secure; SameSite=Lax`
@@ -167,15 +209,17 @@ const server = http.createServer(async (req, res) => {
     return redirect(res, '/', { 'Set-Cookie': `${cookieName(level)}=; Path=/${level}/; Max-Age=0; HttpOnly; Secure; SameSite=Lax` });
   }
 
-  const ok = authed(req, level);
+  const user = members.user(req);
+  const ok = members.canAccess(user, level) || authed(req, level);
   if (rest === '/' || rest === '/index.html') {
-    if (ok) return send(res, 200, render('app.html', { LEVEL: level, LEVEL_NAME: esc(L.name), LEVEL_TITLE: esc(L.title), ORG: esc(L.org), FOOT: esc(L.foot) }));
+    if (ok) return send(res, 200, render('app.html', { LEVEL: level, LEVEL_NAME: esc(L.name), LEVEL_TITLE: esc(L.title), ORG: esc(L.org), FOOT: esc(L.foot), ...members.appVars(req, level) }));
     const e = url.searchParams.get('e');
     const msg = e === 'locked' ? '嘗試次數過多，請 15 分鐘後再試。' : e ? '密碼不正確，請再試一次。' : '';
     return send(res, 200, render('login.html', {
       LEVEL: level, LEVEL_NAME: esc(L.name), LEVEL_TITLE: esc(L.title), ORG: esc(L.org),
       SUBJECTS: L.subjects.map((s, i) => `<dt>${esc(L.labels[i])}</dt><dd>${esc(s)}</dd>`).join(''),
-      ERROR: msg ? `<p class="login-error" role="alert">${msg}</p>` : ''
+      ERROR: msg ? `<p class="login-error" role="alert">${msg}</p>` : '',
+      ...loginVars(user, level)
     }));
   }
   if (rest.startsWith('/data/')) {

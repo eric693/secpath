@@ -42,8 +42,7 @@
       </nav>
       <div class="side-foot">
         <button class="link-btn" id="themeBtn" type="button">切換深色模式</button>
-        <p><a class="link-btn" href="/">切換級別</a>　<a class="link-btn" href="logout">登出</a></p>
-        <p>學習進度儲存於本機瀏覽器</p>
+        {{ACCOUNT_LINKS}}
       </div>
     </aside>
 
@@ -76,6 +75,7 @@
   <script src="data/questions.js"></script>
   <script src="data/glossary.js"></script>
   <script src="data/videos.js"></script>
+  {{USER_SCRIPT}}
   <script src="/static/js/store.js"></script>
   <script src="/static/js/tools.js"></script>
   <script src="/static/js/app.js"></script>

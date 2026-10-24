@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/static/css/members.css">
 </head>
 <body class="plain">
   <header class="plain-head">
@@ -19,14 +20,15 @@
   <main class="login-wrap">
     <section class="login-card">
       <div class="overline">{{ORG}}</div>
-      <h1>{{LEVEL_NAME}}課程登入</h1>
-      <p class="muted">本課程僅限授權學員使用，請輸入{{LEVEL_NAME}}課程密碼。</p>
+      <h1>{{LEVEL_NAME}}{{HEADING}}</h1>
+      <p class="muted">{{INTRO}}</p>
       {{ERROR}}
+      {{MEMBER}}
       <form method="post" action="/{{LEVEL}}/login">
-        <label class="field"><span>課程密碼</span>
+        <label class="field"><span>{{FIELD}}</span>
           <input class="input" type="password" name="password" required autofocus autocomplete="current-password" maxlength="200">
         </label>
-        <button class="btn accent lg" type="submit" style="width:100%">進入課程</button>
+        <button class="btn accent lg" type="submit" style="width:100%">{{SUBMIT}}</button>
       </form>
       <dl class="login-info">
         {{SUBJECTS}}

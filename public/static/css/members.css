@@ -1,0 +1,49 @@
+/* ============ 會員：登入、註冊、我的課程 ============ */
+.head-user { display: flex; align-items: center; gap: 14px; font-size: .92rem; white-space: nowrap; }
+.head-user a:not(.btn) { color: var(--ink-2); }
+.m-main { flex: 1; width: 100%; max-width: 480px; margin: 0 auto; padding: 48px 16px 64px; }
+.m-main.wide { max-width: 1080px; padding: 40px 48px 64px; }
+.m-card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 32px; }
+.m-card h1 { font-size: 1.7rem; margin-bottom: 6px; }
+.m-form { display: grid; gap: 14px; margin-top: 18px; }
+.m-form .field, .login-card .field { display: grid; gap: 4px; font-size: .86rem; color: var(--ink-2); }
+.m-alert { padding: 10px 14px; border-radius: var(--r); font-size: .9rem; margin: 16px 0; border-left: 3px solid; }
+.m-alert.bad { border-color: var(--bad); background: var(--bad-soft); color: var(--bad); }
+.m-alert.ok { border-color: var(--ok); background: var(--ok-soft); color: var(--ok); }
+.m-alert code.big { font-size: 1.05rem; padding: 2px 8px; user-select: all; }
+.m-or { display: flex; align-items: center; gap: 12px; margin: 18px 0 4px; font-size: .8rem; color: var(--muted); }
+.m-or::before, .m-or::after { content: ""; flex: 1; border-top: 1px solid var(--line); }
+.m-switch { text-align: center; margin: 16px 0 0; font-size: .9rem; }
+.btn.block.g-btn { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 18px; }
+.g-logo { width: 22px; height: 22px; border-radius: 50%; display: inline-grid; place-items: center; font-weight: 700; font-size: .8rem; color: #fff; background: conic-gradient(#ea4335 0 25%, #fbbc05 0 50%, #34a853 0 75%, #4285f4 0); }
+.btn.block { display: block; width: 100%; text-align: center; }
+.login-card .btn.block { margin-top: 18px; }
+
+.m-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
+.m-head h1 { font-size: 1.9rem; margin: 2px 0 4px; }
+.m-sec { padding: 28px 0 8px; }
+.m-sec h2 { font-size: 1.3rem; margin-bottom: 14px; }
+.m-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 40px; border-top: 1px solid var(--line); margin-top: 20px; }
+.m-inline { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.m-inline .input { flex: 1; min-width: 160px; }
+.m-details { margin: 6px 0 12px; }
+.m-details summary { font-size: .92rem; color: var(--accent); }
+
+.my-list { display: grid; gap: 12px; }
+.my-card { display: grid; grid-template-columns: 120px minmax(0, 1fr) auto; gap: 18px; align-items: center; padding: 12px 18px 12px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; color: var(--ink); }
+.my-card:hover { text-decoration: none; border-color: var(--line-2); box-shadow: 0 6px 18px rgba(0,0,0,.06); }
+.my-card .cover.sm { aspect-ratio: 16 / 10; border-radius: 6px; }
+.my-card .cover.sm .cover-code { font-size: 1.3rem; left: 10px; bottom: 6px; }
+.my-card h3 { font-size: 1rem; margin: 0 0 8px; }
+.my-card p { margin: 6px 0 0; }
+.my-bar { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; max-width: 360px; }
+.my-bar i { display: block; height: 100%; background: hsl(var(--h, 152) 52% 40%); border-radius: 3px; }
+
+@media (max-width: 860px) {
+  .head-user { gap: 10px; font-size: .86rem; }
+  .m-main.wide { padding: 28px 16px 56px; }
+  .m-card { padding: 24px 18px; }
+  .m-cols { grid-template-columns: minmax(0, 1fr); }
+  .my-card { grid-template-columns: 84px minmax(0, 1fr); gap: 12px; }
+  .my-card > .btn { grid-column: 1 / -1; text-align: center; }
+}

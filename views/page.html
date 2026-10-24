@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{TITLE}} · SecPath 學堂</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#f7f7f5">
+  <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/static/css/catalog.css">
+  <link rel="stylesheet" href="/static/css/members.css">
+  <script>try { var t = localStorage.getItem('secpath.theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch (e) {}</script>
+</head>
+<body class="plain">
+  <header class="plain-head site-head">
+    <a class="brand" href="/"><span class="brand-name">SecPath</span><span class="brand-sub">學堂</span></a>
+    <nav class="plain-nav"><a href="/#courses">所有課程</a><a href="/#paths">學習路線</a></nav>
+    {{USER_NAV}}
+  </header>
+  <main class="m-main{{WIDE}}">
+    {{BODY}}
+  </main>
+  <footer class="site-foot plain-foot">SecPath 學堂</footer>
+</body>
+</html>
