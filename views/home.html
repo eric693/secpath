@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SecPath 學堂 · 資安、AI、雲端、程式設計與 IT 課程</title>
+  <meta name="description" content="{{COUNT}} 門線上課程：iPAS 資訊安全工程師、iPAS AI 應用規劃師、CompTIA Security+、AWS 雲端證照備考，以及 Python、Git、DevOps、網路基礎、Linux 與 AI 應用實作。完整講義、教學影片、題庫、模擬考與互動練習。">
+  <meta name="theme-color" content="#f7f7f5">
+  <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/static/css/catalog.css">
+  <script>try { var t = localStorage.getItem('secpath.theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch (e) {}</script>
+</head>
+<body class="plain">
+  <header class="plain-head site-head">
+    <a class="brand" href="/"><span class="brand-name">SecPath</span><span class="brand-sub">學堂</span></a>
+    <nav class="plain-nav"><a href="#courses">所有課程</a><a href="#paths">學習路線</a><a href="#method">學習方式</a><a href="#exam">考試資訊</a></nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-in">
+        <div class="overline">資安・AI・雲端・程式設計・IT 與 DevOps</div>
+        <h1>學到能上工的<br>資訊技能與證照</h1>
+        <p class="lead">從 iPAS、Security+、AWS 證照備考，到 Python、Git、Docker 與 AI 應用實作。每門課都有完整講義、教學影片、附解析的練習題與互動練習，第一章免費試讀。</p>
+        <form class="hero-search" role="search" onsubmit="return false">
+          <input id="q" type="search" placeholder="搜尋課程，例如：子網路、RAG、Docker、Security+" autocomplete="off" aria-label="搜尋課程">
+        </form>
+        <div class="hero-stats">{{STATS}}</div>
+        <div class="hero-art" aria-hidden="true">{{HERO_ART}}</div>
+      </div>
+    </section>
+
+    <div class="wrap">
+      <section id="courses" class="cw">
+        <div class="cw-head">
+          <h2>所有課程</h2>
+          <div class="kind-switch" role="group" aria-label="課程類型">
+            <button type="button" class="on" data-kind="">全部</button><button type="button" data-kind="cert">證照備考</button><button type="button" data-kind="skill">技能教學</button>
+          </div>
+        </div>
+        <div class="chips" role="group" aria-label="課程分類">{{CHIPS}}</div>
+        <div class="cw-grid" id="grid">{{CARDS}}</div>
+        <p class="cw-empty" id="empty" hidden>找不到符合的課程，試試其他關鍵字。</p>
+      </section>
+
+      <section id="paths" class="landing-section">
+        <h2>學習路線</h2>
+        <p class="muted">不知道從哪裡開始？依職涯目標照順序學，每一門課都銜接下一門。</p>
+        <div class="lp-list">{{PATHS}}</div>
+      </section>
+
+      <section id="method" class="landing-section">
+        <h2>學習方式</h2>
+        <div class="method-grid">
+          <div><span class="num">01</span><h3>閱讀講義</h3><p>每章以觀念說明、比較表、情境範例與重點提示組成，讀完附重點整理。</p></div>
+          <div><span class="num">02</span><h3>章節練習</h3><p>每題附詳細解析，選項順序隨機，答錯的題目自動收進錯題本。</p></div>
+          <div><span class="num">03</span><h3>計時測驗</h3><p>依各章平均抽題，交卷後提供各章答對率與弱點建議。</p></div>
+          <div><span class="num">04</span><h3>互動練習</h3><p>計算器、模擬器與可直接執行的程式範例，動手做比只看更記得住。</p></div>
+        </div>
+      </section>
+
+      <section id="exam" class="landing-section">
+        <h2>考試資訊</h2>
+        <div class="table-wrap"><table class="tbl">
+          <tr><th>課程</th><th>科目一</th><th>科目二</th><th>題型</th><th>通過標準</th></tr>
+          <tr><td>初級</td><td>資訊安全管理概論</td><td>資訊安全技術概論</td><td>單選題</td><td>兩科平均 70 分以上</td></tr>
+          <tr><td>中級</td><td>資訊安全規劃實務</td><td>資訊安全防護實務</td><td>單選題（每科 90 分鐘）</td><td>兩科平均 70 分以上</td></tr>
+          <tr><td>AI 初級</td><td>人工智慧基礎概論</td><td>生成式 AI 應用與規劃</td><td>單選題 50 題（每科 75 分鐘）</td><td>兩科平均 70 分以上且單科不低於 60 分</td></tr>
+          <tr><td>AI 中級</td><td>人工智慧技術應用與規劃</td><td>大數據處理分析與應用，或機器學習技術與應用（擇一）</td><td>單選題 50 題（每科 90 分鐘）</td><td>兩科各 70 分以上</td></tr>
+          <tr><td>Security+</td><td colspan="2">SY0-701 單一考試，涵蓋五大領域</td><td>單選、複選與實作題（最多 90 題・90 分鐘）</td><td>750 分以上（滿分 900）</td></tr>
+          <tr><td>AWS CLF</td><td colspan="2">CLF-C02 單一考試，涵蓋四大領域</td><td>單選與複選題（65 題・90 分鐘）</td><td>700 分以上（滿分 1,000）</td></tr>
+          <tr><td>AWS SAA</td><td colspan="2">SAA-C03 單一考試，涵蓋四大領域</td><td>單選與複選題（65 題・130 分鐘）</td><td>720 分以上（滿分 1,000）</td></tr>
+        </table></div>
+        <p class="muted small">報名資格、考試日期、題數與合格標準可能逐年調整，請以 <a href="https://www.ipas.org.tw/" target="_blank" rel="noopener">iPAS 官網</a>當年度簡章、<a href="https://www.comptia.org/certifications/security" target="_blank" rel="noopener">CompTIA 官網</a>與 <a href="https://aws.amazon.com/tw/certification/" target="_blank" rel="noopener">AWS 認證官網</a>為準。</p>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-foot plain-foot">SecPath 學堂 · 非 iPAS、CompTIA、AWS 或 Cisco 官方網站，課程內容供學習使用 · 每門課程使用獨立的課程密碼，請向課程管理者索取</footer>
+  <script src="/static/js/catalog.js"></script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{TITLE}} · SecPath 學堂</title>
+  <meta name="description" content="{{DESC}}">
+  <meta name="theme-color" content="#f7f7f5">
+  <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/static/css/catalog.css">
+  <script>try { var t = localStorage.getItem('secpath.theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch (e) {}</script>
+</head>
+<body class="plain" style="--h:{{HUE}}">
+  <header class="plain-head site-head">
+    <a class="brand" href="/"><span class="brand-name">SecPath</span><span class="brand-sub">學堂</span></a>
+    <nav class="plain-nav"><a href="/#courses">所有課程</a><a href="/#paths">學習路線</a><a href="/{{ID}}/">進入課程</a></nav>
+  </header>
+
+  <main>
+    <section class="cp-hero">
+      <div class="cp-hero-in">
+        <nav class="crumbs" aria-label="導覽"><a href="/">首頁</a><span>/</span><a href="/#courses" data-cat="{{CAT_ID}}">{{CAT}}</a><span>/</span><span>{{NAME}}</span></nav>
+        <div class="cw-tags">{{TAGS}}</div>
+        <h1>{{TITLE}}</h1>
+        <p class="lead">{{PITCH}}</p>
+        <div class="cp-hero-meta">{{HERO_META}}</div>
+      </div>
+    </section>
+
+    <div class="cp-layout">
+      <aside class="cp-card">
+        {{COVER}}
+        <div class="cp-card-body">
+          <a class="btn accent lg block" href="/course/{{ID}}/trial">免費試讀第一章</a>
+          <a class="btn outline lg block" href="/{{ID}}/">已有課程密碼，進入課程</a>
+          <h4>課程包含</h4>
+          <ul class="incl">{{INCLUDES}}</ul>
+        </div>
+      </aside>
+
+      <div class="cp-main">
+        <nav class="cp-tabs" aria-label="本頁內容"><a href="#learn">你會學到</a><a href="#about">課程介紹</a><a href="#syllabus">課程大綱</a><a href="#info">{{INFO_TITLE}}</a><a href="#faq">常見問題</a></nav>
+
+        <section class="cp-sec" id="learn">
+          <h2>你會學到</h2>
+          <ul class="checks">{{CHECKLIST}}</ul>
+        </section>
+
+        <section class="cp-sec" id="about">
+          <h2>課程介紹</h2>
+          <p>{{LEAD}}</p>
+          <h3>課程特色</h3>
+          <ul class="dots">{{HIGHLIGHTS}}</ul>
+          <h3>適合對象</h3>
+          <ul class="dots">{{AUDIENCE}}</ul>
+        </section>
+
+        <section class="cp-sec" id="syllabus">
+          <div class="sec-head"><h2>課程大綱</h2><span class="muted small">{{SYL_SUM}}</span></div>
+          {{SYLLABUS}}
+        </section>
+
+        <section class="cp-sec">
+          <h2>建議學習進度</h2>
+          <div class="table-wrap"><table class="tbl kv">{{PLAN}}</table></div>
+        </section>
+
+        <section class="cp-sec" id="info">
+          <h2>{{INFO_TITLE}}</h2>
+          <div class="table-wrap"><table class="tbl kv">{{INFO}}</table></div>
+          {{INFO_NOTE}}
+          {{SITE}}
+        </section>
+
+        {{PATHS}}
+
+        <section class="cp-sec" id="faq">
+          <h2>常見問題</h2>
+          {{FAQ}}
+        </section>
+
+        {{RELATED}}
+      </div>
+    </div>
+  </main>
+
+  <div class="cp-bar"><span>{{NAME}}</span><a class="btn accent" href="/course/{{ID}}/trial">免費試讀</a></div>
+  <footer class="site-foot plain-foot">SecPath 學堂 · 每門課程使用獨立的課程密碼，請向課程管理者索取</footer>
+  <script src="/static/js/catalog.js"></script>
+</body>
+</html>

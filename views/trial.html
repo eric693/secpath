@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>試讀：{{CH_TITLE}} · {{TITLE}} · SecPath 學堂</title>
+  <meta name="description" content="{{CH_SUMMARY}}">
+  <meta name="theme-color" content="#f7f7f5">
+  <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/static/css/py.css">
+  <link rel="stylesheet" href="/static/css/catalog.css">
+  <script>try { var t = localStorage.getItem('secpath.theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch (e) {}</script>
+</head>
+<body class="plain" style="--h:{{HUE}}">
+  <header class="plain-head site-head">
+    <a class="brand" href="/"><span class="brand-name">SecPath</span><span class="brand-sub">學堂</span></a>
+    <nav class="plain-nav"><a href="/course/{{ID}}">課程介紹</a><a href="/{{ID}}/">進入課程</a></nav>
+  </header>
+
+  <div class="trial-bar"><span><b>免費試讀</b>{{NAME}}・第一章</span><a href="/course/{{ID}}">查看完整課程大綱</a></div>
+
+  <main id="view" class="view">
+    <div class="lesson">
+      <article>
+        <header class="lesson-head">
+          <div class="overline">{{CH_OVERLINE}}</div>
+          <h1>{{CH_TITLE}}</h1>
+          <p class="lead">{{CH_SUMMARY}}</p>
+          <div class="lesson-meta">{{CH_META}}</div>
+        </header>
+        <div class="lesson-body">
+          {{SECTIONS}}
+          <section id="s-key" class="lesson-end">
+            <h2><span class="sec-no">★</span>本章重點</h2>
+            <ol class="keypoints">{{KEYPOINTS}}</ol>
+          </section>
+        </div>
+        <div class="trial-end">
+          <div class="overline">試讀結束</div>
+          <h2>繼續學習完整課程</h2>
+          <p>完整課程還有其餘 {{REST}} 章講義、{{QUESTIONS}} 題附解析練習題、教學影片、計時測驗與互動練習。</p>
+          <p class="muted small">{{NEXT}}</p>
+          <div class="row"><a class="btn accent lg" href="/{{ID}}/">輸入課程密碼，進入課程</a><a class="btn outline lg" href="/course/{{ID}}#syllabus">查看課程大綱</a></div>
+        </div>
+      </article>
+      <aside class="toc">
+        <h4>本章內容</h4>
+        {{TOC}}
+        <a href="#s-key"><span>★</span>本章重點</a>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="site-foot plain-foot">SecPath 學堂 · {{TITLE}}</footer>
+  <script src="/static/js/catalog.js"></script>
+  <script src="/static/js/py.js"></script>
+</body>
+</html>

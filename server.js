@@ -34,6 +34,8 @@ for (const [k, v] of Object.entries(LEVELS)) {
   if (!v.hash || !v.hash.startsWith('scrypt$')) { console.error(`${v.hashEnv} 未設定，請執行 node scripts/set-password.js ${k} <密碼>`); process.exit(1); }
 }
 
+const site = require('./site')({ ROOT, LEVELS });
+
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'application/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.json': 'application/json', '.png': 'image/png', '.ico': 'image/x-icon', '.mp4': 'video/mp4', '.webm': 'video/webm', '.vtt': 'text/vtt' };
 const SESSION_DAYS = 30;
 const LEVEL_PATH = new RegExp(`^/(${Object.keys(LEVELS).join('|')})(/.*)?$`);
@@ -132,7 +134,12 @@ const server = http.createServer(async (req, res) => {
   try { url = new URL(req.url, 'http://x'); } catch { return send(res, 400, 'Bad request', 'text/plain'); }
   const p = decodeURIComponent(url.pathname);
 
-  if (p === '/' || p === '/index.html') return serveFile(res, path.join(ROOT, 'public'), 'index.html', 'no-cache');
+  if (p === '/' || p === '/index.html') return send(res, 200, render('home.html', site.home()));
+  const cm = p.match(/^\/course\/([\w-]+)(\/trial)?\/?$/);
+  if (cm) {
+    const vars = cm[2] ? site.trial(cm[1]) : site.course(cm[1]);
+    return vars ? send(res, 200, render(cm[2] ? 'trial.html' : 'course.html', vars)) : send(res, 404, render('notfound.html', {}));
+  }
   if (p.startsWith('/static/')) return serveFile(res, path.join(ROOT, 'public', 'static'), p.slice(8), 'public, max-age=3600');
   if (p === '/favicon.ico') return serveFile(res, path.join(ROOT, 'public', 'static'), 'icon.svg', 'public, max-age=86400');
 
