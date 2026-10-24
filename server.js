@@ -28,7 +28,9 @@ const LEVELS = {
   network: { name: '網路基礎', title: '網路基礎：從 OSI 到子網路與路由', hashEnv: 'PASS_NETWORK', org: '網路基礎・CCNA 與網路架設技術士核心觀念', foot: '非 Cisco 或勞動部官方課程；考試範圍以官方公告為準', labels: ['原理篇', '實務篇'], subjects: ['網路模型與 IP 定址', '交換、路由、服務與排錯'] },
   sql: { name: 'SQL', title: 'SQL 資料庫入門：從查詢到資料分析', hashEnv: 'PASS_SQL', org: '資料分析與後端必備・SQL × 關聯式資料庫', foot: '語法以 SQLite 為主，各資料庫差異以官方文件為準', labels: ['查詢篇', '設計篇'], subjects: ['查詢、彙總與資料分析', '建立資料表、設計與實務'] },
   web: { name: '網頁開發', title: '網頁開發入門：HTML、CSS 與 JavaScript', hashEnv: 'PASS_WEB', org: '前端與轉職必備・HTML × CSS × JavaScript', foot: '語法以現代瀏覽器與 MDN 文件為準', labels: ['版面篇', '互動篇'], subjects: ['HTML 與 CSS', 'JavaScript 與上線'] },
-  excel: { name: 'Excel／Power BI', title: 'Excel 與 Power BI 資料分析', hashEnv: 'PASS_EXCEL', org: '辦公室必備・Excel × 樞紐分析 × Power BI', foot: '介面以 Microsoft 365 繁體中文版為準；非 Microsoft 官方課程', labels: ['Excel 篇', 'Power BI 篇'], subjects: ['函式、樞紐分析與 Power Query', '資料模型、DAX 與儀表板'] }
+  excel: { name: 'Excel／Power BI', title: 'Excel 與 Power BI 資料分析', hashEnv: 'PASS_EXCEL', org: '辦公室必備・Excel × 樞紐分析 × Power BI', foot: '介面以 Microsoft 365 繁體中文版為準；非 Microsoft 官方課程', labels: ['Excel 篇', 'Power BI 篇'], subjects: ['函式、樞紐分析與 Power Query', '資料模型、DAX 與儀表板'] },
+  c: { name: 'C 語言', title: 'C 語言程式設計：從基礎到指標與嵌入式', hashEnv: 'PASS_C', org: '資工與韌體必修・C 語言 × 指標 × 記憶體', foot: '語法以 C17 與 GCC 為準；範例透過 Compiler Explorer 編譯執行', labels: ['基礎篇', '進階篇'], subjects: ['語法、流程控制、函式與陣列', '指標、記憶體、檔案與嵌入式'] },
+  cpp: { name: 'C++', title: 'C++ 程式設計：STL、物件導向與現代 C++', hashEnv: 'PASS_CPP', org: 'APCS 與高效能開發・C++ × STL × 物件導向', foot: '語法以 C++17 與 G++ 為準；範例透過 Compiler Explorer 編譯執行', labels: ['基礎篇', '物件導向篇'], subjects: ['語法、函式與 STL', '類別、記憶體管理與現代 C++'] }
 };
 const IPAS = { org: 'iPAS 資訊安全工程師能力鑑定', foot: '考試資訊以 iPAS 經濟部產業人才能力鑑定官網公告為準', labels: ['科目一', '科目二'] };
 for (const [k, v] of Object.entries(LEVELS)) {

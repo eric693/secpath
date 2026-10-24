@@ -55,12 +55,56 @@
     flexbox: { name: 'Flexbox 遊樂場', desc: '切換 flex-direction、justify-content、align-items、flex-wrap，即時觀察子元素的排列方式與對應的 CSS。' },
     cellref: { name: '儲存格參照複製', desc: '輸入公式與複製的來源、目標儲存格，看相對、絕對、混合參照複製後分別變成什麼。' },
     xlookup: { name: 'XLOOKUP 查閱模擬', desc: '在價目表與獎金級距表中練習精確比對與近似比對，逐步看 XLOOKUP 如何找到結果，並對照 VLOOKUP 寫法。' },
-    pivot: { name: '樞紐分析模擬', desc: '用講義的銷售範例資料，選擇列、欄、值與摘要方式，即時產生樞紐分析表與總計百分比。' }
+    pivot: { name: '樞紐分析模擬', desc: '用講義的銷售範例資料，選擇列、欄、值與摘要方式，即時產生樞紐分析表與總計百分比。' },
+    ctypes: { name: '資料型別範圍與溢位', desc: '選擇整數型別並輸入數值，看可表示的範圍、存進去後實際的值與二進位，理解無號整數繞回與有號整數的二補數。' },
+    bitops: { name: '位元運算視覺化', desc: '輸入兩個數字，逐位元觀察 AND、OR、XOR、NOT 與位移的結果，並練習設定、清除、切換第 n 個位元。' },
+    ptrmem: { name: '指標與記憶體圖', desc: '以 int 陣列的記憶體圖逐步執行 p++、p += 2、*p = 99 等操作，觀察指標存放的位址與指向的值如何變化。' },
+    bigo: { name: '時間複雜度比較', desc: '輸入資料量 n，比較 O(1) 到 O(n!) 各需要多少次運算、以每秒 10⁸ 次估算的執行時間，判斷會不會超時。' },
+    stlpick: { name: 'STL 容器選擇', desc: '依需求情境找出最適合的 STL 容器，查看常用操作的時間複雜度與範例程式。' }
   };
   const fmtN = (x, d = 4) => Number.isFinite(x) ? (+x.toFixed(d)).toString() : '—';
 
   function render(id) {
     switch (id) {
+      case 'ctypes': return `
+        <div class="grid g2" style="gap:10px">
+          <label class="field"><span>型別</span><select class="input" id="ctType">
+            <option value="8,0">unsigned char（8 位元）</option><option value="8,1">signed char（8 位元）</option>
+            <option value="16,0">unsigned short（16 位元）</option><option value="16,1">short（16 位元）</option>
+            <option value="32,0">unsigned int（32 位元）</option><option value="32,1" selected>int（32 位元）</option>
+            <option value="64,1">long long（64 位元）</option></select></label>
+          <label class="field"><span>要存入的值（可輸入很大或負的數）</span><input class="input mono" id="ctVal" value="2147483648"></label>
+        </div>
+        <div class="row small" style="margin-top:8px;flex-wrap:wrap">${['255+1|8,0', '-1|8,0', '128|8,1', '2147483648|32,1', '4294967296|32,0', '100000*100000|32,1'].map(s => `<button class="btn sm outline" type="button" data-ct="${s}">${esc(s.split('|')[0])}</button>`).join('')}</div>
+        <div id="ctOut"></div>`;
+      case 'bitops': return `
+        <div class="grid g2" style="gap:10px">
+          <label class="field"><span>a（0～255）</span><input class="input num" type="number" id="boA" value="12" min="0" max="255"></label>
+          <label class="field"><span>b（0～255）</span><input class="input num" type="number" id="boB" value="10" min="0" max="255"></label>
+          <label class="field"><span>位移量 n（0～7）</span><input class="input num" type="number" id="boN" value="3" min="0" max="7"></label>
+        </div>
+        <div id="boOut"></div>`;
+      case 'ptrmem': return `
+        <div class="row small" style="flex-wrap:wrap;gap:6px">
+          <div class="tabs" id="pmType"><button type="button" data-v="1">char（1 位元組）</button><button type="button" data-v="4" class="on">int（4 位元組）</button><button type="button" data-v="8">double（8 位元組）</button></div>
+        </div>
+        <div class="row small" style="flex-wrap:wrap;gap:6px;margin-top:8px">
+          <button class="btn sm outline" type="button" data-pm="inc">p++</button>
+          <button class="btn sm outline" type="button" data-pm="dec">p--</button>
+          <button class="btn sm outline" type="button" data-pm="add2">p += 2</button>
+          <button class="btn sm outline" type="button" data-pm="set">*p = 99</button>
+          <button class="btn sm outline" type="button" data-pm="plus">(*p)++</button>
+          <button class="btn sm outline" type="button" data-pm="reset">重設 p = a</button>
+        </div>
+        <div id="pmOut"></div>`;
+      case 'bigo': return `
+        <label class="field"><span>資料量 n</span><input class="input num" type="number" id="bgN" value="100000" min="1"></label>
+        <div class="row small" style="margin-top:8px;flex-wrap:wrap">${[10, 20, 1000, 100000, 1000000, 10000000].map(n => `<button class="btn sm outline" type="button" data-bg="${n}">n = ${n.toLocaleString()}</button>`).join('')}</div>
+        <div id="bgOut"></div>`;
+      case 'stlpick': return `
+        <p class="small muted" style="margin:0 0 8px">選擇你的需求：</p>
+        <div class="tabs" id="spkTabs" style="flex-wrap:wrap"></div>
+        <div id="spkOut"></div>`;
       case 'sqlorder': return `
         <div class="row small"><div class="tabs" id="soMode"><button type="button" data-v="exec" class="on">執行順序</button><button type="button" data-v="write">撰寫順序</button></div><span class="spacer"></span><button class="btn sm outline" id="soReset" type="button">重新開始</button></div>
         <p class="small muted" id="soHint" style="margin:12px 0 6px"></p>
@@ -1405,6 +1449,128 @@ print('平均：', round(sum(scores.values()) / len(scores), 1))</pre>
       root.addEventListener('change', run);
       tabsSelect(root, (tabs, v) => { show = v; run(); });
       run();
+    }
+    if (id === 'ctypes') {
+      const run = () => {
+        const [bits, signed] = $('#ctType', root).value.split(',').map(Number);
+        const raw = $('#ctVal', root).value.trim().replace(/[,_\s]/g, '');
+        let v;
+        try {
+          if (!/^[-+]?\d+([*+-]\d+)*$/.test(raw)) throw 0;
+          v = raw.match(/[-+]?\d+|[*]/g).reduce((acc, t, i, arr) => {   // 支援 a*b、a+b、a-b 的簡單運算
+            if (t === '*') return acc;
+            const n = BigInt(t);
+            if (i === 0) return n;
+            return arr[i - 1] === '*' ? acc * n : acc + n;
+          }, 0n);
+        } catch (e) { $('#ctOut', root).innerHTML = '<p class="small" style="color:var(--bad)">請輸入整數，例如 255、-1、100000*100000。</p>'; return; }
+        const B = BigInt(bits), mod = 1n << B;
+        const min = signed ? -(1n << (B - 1n)) : 0n, max = signed ? (1n << (B - 1n)) - 1n : mod - 1n;
+        let stored = ((v % mod) + mod) % mod;
+        const bin = stored.toString(2).padStart(bits, '0');
+        if (signed && stored > max) stored -= mod;
+        const inRange = v >= min && v <= max;
+        const groups = bin.match(/.{1,8}/g).join(' ');
+        $('#ctOut', root).innerHTML = `
+          <table class="tbl" style="margin-top:12px">
+            <tr><td>可表示範圍</td><td class="mono">${min.toLocaleString()} ～ ${max.toLocaleString()}</td></tr>
+            <tr><td>要存入的值</td><td class="mono">${v.toLocaleString()}</td></tr>
+            <tr><td>實際存到的值</td><td class="mono"><b style="color:${inRange ? 'var(--ok)' : 'var(--bad)'}">${stored.toLocaleString()}</b></td></tr>
+            <tr><td>記憶體中的位元</td><td class="mono" style="word-break:break-all">${groups}</td></tr>
+          </table>
+          <p class="small" style="margin:6px 0 0">${inRange ? '在範圍內，正確存入。' : signed
+            ? '超出範圍。<b>有號整數的運算溢位在 C／C++ 是未定義行為</b>；上表為常見平台（二補數、取低位元）的結果，實際程式不應依賴它，請改用更大的型別。'
+            : '超出範圍。無號整數會對 2<sup>' + bits + '</sup> 取餘數（繞回），這是標準明確定義的行為。'}</p>`;
+      };
+      root.addEventListener('input', run);
+      $('#ctType', root).addEventListener('change', run);
+      root.addEventListener('click', e => { const b = e.target.closest('[data-ct]'); if (!b) return; const [val, t] = b.dataset.ct.split('|'); $('#ctVal', root).value = val; $('#ctType', root).value = t; run(); });
+      run();
+    }
+    if (id === 'bitops') {
+      const bits8 = x => (x & 255).toString(2).padStart(8, '0');
+      const cells = x => bits8(x).split('').map(c => `<span class="bo-b${c === '1' ? ' on' : ''}">${c}</span>`).join('');
+      const run = () => {
+        const clamp = (v, hi) => Math.max(0, Math.min(hi, Math.floor(+v || 0)));
+        const a = clamp($('#boA', root).value, 255), b = clamp($('#boB', root).value, 255), n = clamp($('#boN', root).value, 7);
+        const rows = [
+          ['a', a, ''], ['b', b, ''], ['a & b', a & b, '兩者皆 1 才是 1'], ['a | b', a | b, '任一為 1 就是 1'], ['a ^ b', a ^ b, '不同為 1'],
+          ['~a', (~a) & 255, '每個位元反轉（以 8 位元顯示）'], [`a << ${n}`, (a << n) & 255, `乘以 ${1 << n}，超出 8 位元的部分被捨棄`], [`a >> ${n}`, a >> n, `除以 ${1 << n}（捨去小數）`],
+          [`a | (1 << ${n})`, a | (1 << n), `設定第 ${n} 位元`], [`a & ~(1 << ${n})`, a & ~(1 << n) & 255, `清除第 ${n} 位元`], [`a ^ (1 << ${n})`, a ^ (1 << n), `切換第 ${n} 位元`]
+        ];
+        $('#boOut', root).innerHTML = `<div class="table-wrap"><table class="tbl bo-t" style="margin-top:12px"><tr><th>運算</th><th class="mono">7 6 5 4 3 2 1 0</th><th>十進位</th><th>十六進位</th><th>說明</th></tr>${rows.map(([k, v, d], i) => `<tr${i === 1 ? ' class="bo-sep"' : ''}><td class="mono">${k}</td><td>${cells(v)}</td><td class="num">${v}</td><td class="mono">0x${v.toString(16).toUpperCase().padStart(2, '0')}</td><td class="small muted">${d}</td></tr>`).join('')}</table></div>
+          <p class="small" style="margin:6px 0 0">第 ${n} 位元目前是 <b>${(a >> n) & 1}</b>（<code>(a &gt;&gt; ${n}) &amp; 1</code>）；a 是${a & 1 ? '奇' : '偶'}數（<code>a &amp; 1</code>）。</p>`;
+      };
+      root.addEventListener('input', run);
+      run();
+    }
+    if (id === 'ptrmem') {
+      const BASE = 0x1000, INIT = [10, 20, 30, 40, 50];
+      let size = 4, idx = 0, vals = [...INIT], msg = '執行 int *p = a; 後，p 存放 a[0] 的位址。';
+      const hex = n => '0x' + n.toString(16).toUpperCase();
+      const name = { 1: 'char', 4: 'int', 8: 'double' };
+      const run = () => {
+        const ok = idx >= 0 && idx < 5;
+        $('#pmOut', root).innerHTML = `
+          <div class="pm-mem">${vals.map((v, i) => `<div class="pm-cell${i === idx ? ' on' : ''}"><small>${hex(BASE + i * size)}</small><b>${v}</b><span>a[${i}]</span></div>`).join('')}${idx === 5 ? '<div class="pm-cell out on"><small>' + hex(BASE + 5 * size) + '</small><b>?</b><span>a + 5（陣列外）</span></div>' : ''}</div>
+          <table class="tbl" style="margin-top:10px">
+            <tr><td>p 存放的值（位址）</td><td class="mono"><b>${hex(BASE + idx * size)}</b></td><td class="small muted">a 的位址 ${hex(BASE)} + ${idx} × sizeof(${name[size]})（${size}）</td></tr>
+            <tr><td>p - a</td><td class="mono">${idx}</td><td class="small muted">兩指標相差的「元素個數」，不是位元組數</td></tr>
+            <tr><td>*p</td><td class="mono">${ok ? vals[idx] : '未定義行為'}</td><td class="small muted">${ok ? `等同 a[${idx}]` : '指標已在陣列範圍外，解參考是未定義行為'}</td></tr>
+          </table>
+          <p class="small" style="margin:6px 0 0">${msg}</p>`;
+      };
+      root.addEventListener('click', e => {
+        const b = e.target.closest('[data-pm]'); if (!b) return;
+        const a = b.dataset.pm;
+        if (a === 'inc') { if (idx < 5) idx++; msg = `p++：指標往後移一個元素，位址增加 ${size} 個位元組。` + (idx === 5 ? '指向陣列結尾的下一個位置是合法的，但不能解參考。' : ''); }
+        if (a === 'dec') { if (idx > 0) idx--; msg = `p--：指標往前移一個元素，位址減少 ${size} 個位元組。`; }
+        if (a === 'add2') { idx = Math.min(5, idx + 2); msg = `p += 2：一次往後移兩個元素（${2 * size} 個位元組）。`; }
+        if (a === 'set') { if (idx < 5) { vals[idx] = 99; msg = `*p = 99：修改 p 指向的元素，a[${idx}] 變成 99。`; } else msg = '指標在陣列外，*p = 99 會寫入不屬於陣列的記憶體（緩衝區溢位）。'; }
+        if (a === 'plus') { if (idx < 5) { vals[idx]++; msg = `(*p)++：先解參考再加 1，a[${idx}] 變成 ${vals[idx]}。注意 *p++ 的意思不同：它是先取值，再讓指標往後移。`; } }
+        if (a === 'reset') { idx = 0; vals = [...INIT]; msg = '重設：p = a，陣列恢復原本的值。'; }
+        run();
+      });
+      tabsSelect(root, (tabs, v) => { size = +v; msg = `元素型別改為 ${name[size]}，每個元素佔 ${size} 個位元組，p + 1 的位址就增加 ${size}。`; run(); });
+      run();
+    }
+    if (id === 'bigo') {
+      const fact = n => { let r = 1; for (let i = 2; i <= n; i++) { r *= i; if (!Number.isFinite(r)) return Infinity; } return r; };
+      const fmtOps = x => !Number.isFinite(x) || x > 1e300 ? '天文數字' : x >= 1e6 ? x.toExponential(2).replace('e+', ' × 10^') : Math.round(x).toLocaleString();
+      const fmtTime = s => !Number.isFinite(s) || s > 3.15e7 * 1e6 ? '比宇宙年齡還久' : s < 1e-6 ? '< 1 微秒' : s < 1e-3 ? (s * 1e6).toFixed(1) + ' 微秒' : s < 1 ? (s * 1e3).toFixed(1) + ' 毫秒' : s < 60 ? s.toFixed(1) + ' 秒' : s < 3600 ? (s / 60).toFixed(1) + ' 分鐘' : s < 86400 * 2 ? (s / 3600).toFixed(1) + ' 小時' : s < 3.15e7 * 2 ? (s / 86400).toFixed(0) + ' 天' : (s / 3.15e7).toExponential(1).replace('e+', ' × 10^') + ' 年';
+      const run = () => {
+        const n = Math.max(1, Math.floor(+$('#bgN', root).value || 1));
+        const rows = [['O(1)', 1, '陣列索引、雜湊表查詢'], ['O(log n)', Math.log2(n), '二分搜尋、set／map 操作'], ['O(n)', n, '單層迴圈、前綴和'], ['O(n log n)', n * Math.log2(n), 'sort、合併排序'], ['O(n²)', n * n, '雙層迴圈、氣泡排序'], ['O(n³)', n ** 3, '三層迴圈'], ['O(2ⁿ)', 2 ** n, '列舉所有子集合'], ['O(n!)', fact(n), '列舉所有排列']];
+        $('#bgOut', root).innerHTML = `<table class="tbl" style="margin-top:12px"><tr><th>複雜度</th><th>運算次數</th><th>估計時間</th><th></th><th class="small">常見情況</th></tr>${rows.map(([k, ops, d]) => {
+          const t = ops / 1e8, ok = t <= 1;
+          return `<tr><td class="mono"><b>${k}</b></td><td class="mono">${fmtOps(ops)}</td><td>${fmtTime(t)}</td><td>${ok ? '<span class="tag ok">1 秒內</span>' : '<span class="tag bad">超時</span>'}</td><td class="small muted">${d}</td></tr>`;
+        }).join('')}</table><p class="small muted" style="margin:6px 0 0">以 C++ 每秒約 10⁸ 次簡單運算估算，實際時間依運算內容與電腦而定。線上解題通常限制 1～2 秒。</p>`;
+      };
+      root.addEventListener('input', run);
+      root.addEventListener('click', e => { const b = e.target.closest('[data-bg]'); if (b) { $('#bgN', root).value = b.dataset.bg; run(); } });
+      run();
+    }
+    if (id === 'stlpick') {
+      const S = [
+        ['一般的動態陣列，依索引存取', 'vector', '&lt;vector&gt;', [['v[i]', 'O(1)'], ['push_back', '平均 O(1)'], ['中間 insert／erase', 'O(n)'], ['find（未排序）', 'O(n)']], 'vector<int> v = {3, 1, 4};\nv.push_back(5);\ncout << v[2];', '不知道用什麼時的預設選擇，記憶體連續、快取效率最好。'],
+        ['計算每個字出現幾次（需要依字母順序輸出）', 'map', '&lt;map&gt;', [['m[key]', 'O(log n)'], ['find／count', 'O(log n)'], ['erase', 'O(log n)'], ['依鍵排序走訪', 'O(n)']], 'map<string, int> cnt;\ncnt["apple"]++;\nfor (auto &[k, v] : cnt) cout << k << " " << v;', '鍵自動排序；只需要查詢不需要順序時改用 unordered_map。'],
+        ['只需要非常快速地查詢某個鍵是否存在', 'unordered_map／unordered_set', '&lt;unordered_map&gt;', [['查詢、插入、刪除', '平均 O(1)'], ['最差情況', 'O(n)'], ['走訪順序', '不固定']], 'unordered_set<int> seen;\nif (seen.count(x)) { … }\nseen.insert(x);', '雜湊表實作，沒有順序；兩數之和、去重查詢的首選。'],
+        ['去除重複並保持排序，找第一個 ≥ x 的值', 'set', '&lt;set&gt;', [['insert／erase／count', 'O(log n)'], ['lower_bound', 'O(log n)'], ['最小／最大', '*begin()／*rbegin()']], 'set<int> s = {5, 3, 5, 1};\nauto it = s.lower_bound(4);   // 5', '需要允許重複時改用 multiset。'],
+        ['後進先出：括號配對、復原（Undo）', 'stack', '&lt;stack&gt;', [['push／pop／top', 'O(1)']], 'stack<char> st;\nst.push(\'(\');\nst.top(); st.pop();', 'DFS 也可以用 stack 實作。'],
+        ['先進先出：排隊、BFS 最短步數', 'queue', '&lt;queue&gt;', [['push／pop／front', 'O(1)']], 'queue<pair<int,int>> q;\nq.push({0, 0});\nauto [r, c] = q.front(); q.pop();', 'BFS 每一步成本相同時，第一次到達即為最短距離。'],
+        ['每次都要取出最大（或最小）的元素', 'priority_queue', '&lt;queue&gt;', [['push', 'O(log n)'], ['pop', 'O(log n)'], ['top', 'O(1)']], 'priority_queue<int> pq;          // 最大在頂\npriority_queue<int, vector<int>, greater<int>> mq;  // 最小在頂', '排程、Dijkstra 最短路徑、前 k 大的元素。'],
+        ['兩端都要快速加入與移除（滑動視窗）', 'deque', '&lt;deque&gt;', [['push_front／push_back', 'O(1)'], ['pop_front／pop_back', 'O(1)'], ['d[i]', 'O(1)']], 'deque<int> d;\nd.push_back(1); d.push_front(0);\nd.pop_back();', '單調佇列（滑動視窗最大值）常用 deque。']
+      ];
+      const tabs = $('#spkTabs', root);
+      tabs.innerHTML = S.map((s, i) => `<button type="button" data-v="${i}"${i === 0 ? ' class="on"' : ''}>${esc(s[0].split('，')[0].split('：')[0])}</button>`).join('');
+      const run = i => {
+        const [need, name, header, ops, code, note] = S[i];
+        $('#spkOut', root).innerHTML = `<div class="spk-card"><div class="small muted">${esc(need)}</div><div class="spk-name mono">${esc(name)}</div><div class="small muted">#include ${header}</div>
+          <table class="tbl" style="margin-top:8px">${ops.map(([o, c]) => `<tr><td class="mono">${esc(o)}</td><td class="mono"><b>${esc(c)}</b></td></tr>`).join('')}</table>
+          <pre class="out">${esc(code)}</pre><p class="small" style="margin:6px 0 0">${esc(note)}</p></div>`;
+      };
+      tabsSelect(root, (t, v) => run(+v));
+      run(0);
     }
   }
 

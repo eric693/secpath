@@ -69,6 +69,18 @@ const courses = {
     audience: ['完成 Python 入門、想做出實際作品的人', '想自動化 Excel、報表、通知等工作的上班族', '準備資料分析或自動化職缺的求職者'],
     highlights: ['6 個完整的實戰作品', 'pandas、matplotlib、openpyxl、BeautifulSoup 範例可在網頁上執行', '作品 README 範本與面試介紹技巧']
   },
+  c: {
+    cat: 'code', kind: 'skill', code: 'C', level: '入門',
+    pitch: '半導體、韌體與嵌入式工程師的必備語言，也是資工系與 APCS 的基礎。從語法、指標、記憶體到位元運算，範例都能在網頁上編譯執行。',
+    audience: ['資工、電機系學生與 APCS 考生', '想往韌體、嵌入式、半導體發展的工程師', '想真正理解電腦如何運作的程式初學者'],
+    highlights: ['45 個範例可在網頁上以 GCC 編譯執行', '輸出題皆以 GCC 實際編譯執行驗證', '資料型別溢位、位元運算、指標記憶體圖互動練習']
+  },
+  cpp: {
+    cat: 'code', kind: 'skill', code: 'C++', level: '進階',
+    pitch: 'APCS 與程式競賽最常用的語言：STL 容器與演算法、類別與多型、智慧指標與現代 C++，並整理競程技巧與面試重點。',
+    audience: ['準備 APCS、程式競賽的高中生與大學生', '想從事遊戲、EDA、金融科技的工程師', '學完 C 語言、想學物件導向與 STL 的人'],
+    highlights: ['40 個範例可在網頁上以 G++ 編譯執行', '輸出題皆以 G++ 實際編譯執行驗證', '時間複雜度比較與 STL 容器選擇互動工具']
+  },
   web: {
     cat: 'code', kind: 'skill', code: 'Web', level: '入門',
     pitch: '自學轉職最多人走的前端路線：HTML 結構、CSS 排版與響應式設計、JavaScript 互動與串接 API，範例都能即時預覽。',
@@ -131,6 +143,7 @@ const paths = [
   { id: 'cloud', name: '雲端工程師', desc: '打好網路與 Linux 基礎，取得 AWS 證照，再學會容器與自動化部署。', steps: ['network', 'linux', 'git', 'aws-clf', 'aws-saa', 'devops'] },
   { id: 'ai', name: 'AI 應用開發', desc: '從 Python 入門到考取 iPAS AI 證照，最後動手打造 RAG 與 AI 代理。', steps: ['py-basic', 'ai-beginner', 'py-practice', 'ai-apps', 'ai-intermediate'] },
   { id: 'auto', name: '辦公自動化與資料分析', desc: '不需資訊背景，從 Excel 與 SQL 開始，再用 Python 與 AI 自動化報表、分析資料並做出作品集。', steps: ['excel', 'sql', 'py-basic', 'py-practice', 'ai-apps'] },
+  { id: 'firmware', name: '韌體與嵌入式工程師', desc: '從 C 語言打好指標與記憶體的基礎，學會 Linux 與網路，再用 C++ 與 Git 開發大型專案。', steps: ['c', 'linux', 'network', 'cpp', 'git'] },
   { id: 'frontend', name: '前端工程師', desc: '從 HTML、CSS、JavaScript 打好基礎，學會版本控制與資料庫，再把作品自動部署上線。', steps: ['web', 'git', 'sql', 'devops'] }
 ];
 

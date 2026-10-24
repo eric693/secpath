@@ -1,7 +1,8 @@
 /* SQL 與網頁課程的執行器：把講義中的程式碼區塊變成可編輯、可執行的區塊。
    <pre class="sql" data-db="shop">  在瀏覽器中以 SQLite 執行查詢，結果顯示為表格（每次執行都從範例資料重新開始）
    <pre class="web">                 HTML／CSS／JS 片段，在隔離的 iframe 中即時預覽，並顯示 console 輸出
-   <pre class="js">                  純 JavaScript，在背景執行緒執行並顯示 console 輸出，可停止無限迴圈 */
+   <pre class="js">                  純 JavaScript，在背景執行緒執行並顯示 console 輸出，可停止無限迴圈
+   <pre class="c">／<pre class="cpp">  C／C++ 程式，送到 Compiler Explorer（godbolt.org）以 GCC 編譯並執行；data-input 為標準輸入 */
 (function () {
   const view = document.getElementById('view');
   if (!view) return;
@@ -221,7 +222,91 @@ self.addEventListener('unhandledrejection', e => { e.preventDefault(); postMessa
     box.addEventListener('reset', () => { stop(); out.hidden = true; });
   }
 
+  /* ---------- C／C++（Compiler Explorer 編譯執行） ---------- */
+  const CE = { c: { id: 'cg142', flags: '-std=c17 -Wall -O0', label: 'C' }, cpp: { id: 'g142', flags: '-std=c++17 -Wall -O0', label: 'C++' } };
+  const stripAnsi = t => String(t).replace(/\x1b\[[0-9;]*[A-Za-z]/g, '');
+  const CC_HINTS = [
+    [/expected (',' or )?';'/, '少了分號：每一行敘述結尾都要加 ;，錯誤常常出現在「上一行」。'],
+    [/undeclared|was not declared in this scope/, '名稱未宣告：變數或函式還沒宣告就使用，或是拼字、大小寫不一致；使用函式庫的函式要先 #include 對應的標頭檔。'],
+    [/implicit declaration of function/, '函式未宣告：忘了 #include 標頭檔（例如 printf 需要 stdio.h、strlen 需要 string.h），或函式定義在呼叫之後卻沒有寫原型。'],
+    [/expected '\)'|expected '\}'|expected declaration or statement at end of input/, '括號或大括號沒有成對：檢查 ( ) 與 { } 是否一一對應。'],
+    [/format '%[a-z]*' expects argument of type/, 'printf／scanf 的格式字元與變數型別不符：int 用 %d、double 用 %f（scanf 用 %lf）、char 用 %c、字串用 %s、size_t 用 %zu。'],
+    [/incompatible (pointer )?type|invalid conversion/, '型別不相容：檢查是否把指標和整數混用，或 scanf 少了 &。'],
+    [/no match for 'operator/, '找不到對應的運算子：這個型別不支援該運算（例如 cout << 自訂類別需要先多載 <<）。'],
+    [/no matching function for call/, '找不到符合的函式：參數的數量或型別與函式宣告不同。'],
+    [/Segmentation fault|SIGSEGV|exit code 139/, '記憶體區段錯誤：存取了不該存取的記憶體，常見原因是陣列越界、使用 NULL 或未初始化的指標、free 後繼續使用。'],
+    [/undefined reference to/, '連結錯誤：函式只有宣告沒有定義，或 main 拼錯。']
+  ];
+  function enhanceCompiled(pre, lang) {
+    const cfg = CE[lang];
+    const hasInput = pre.hasAttribute('data-input') || /\b(scanf|cin\s*>>|getline|fgets\s*\([^)]*stdin)/.test(pre.textContent);
+    const { box, ta } = shell(pre, cfg.label, '<button type="button" class="py-btn run">編譯並執行</button>');
+    box.className = 'py-box run-' + lang;
+    if (hasInput) {
+      const lab = document.createElement('label');
+      lab.className = 'py-in';
+      lab.innerHTML = '<span>標準輸入（程式讀取的資料，每行一筆）</span><textarea rows="2" spellcheck="false"></textarea>';
+      lab.querySelector('textarea').value = pre.getAttribute('data-input') || '';
+      lab.querySelector('textarea').addEventListener('keydown', e => e.stopPropagation());
+      box.appendChild(lab);
+    }
+    const out = document.createElement('div');
+    out.className = 'py-out'; out.hidden = true; out.innerHTML = '<pre></pre>';
+    box.appendChild(out);
+    const outPre = out.querySelector('pre'), btn = box.querySelector('.run');
+    const write = (t, cls) => { const s = document.createElement('span'); if (cls) s.className = cls; s.textContent = t + '\n'; outPre.appendChild(s); };
+    let busy = false;
+    async function run() {
+      if (busy) return;
+      busy = true; btn.disabled = true; box.classList.add('running');
+      out.hidden = false; outPre.textContent = '';
+      write('編譯中…（以 Compiler Explorer 的 GCC 14.2 編譯執行）', 'py-status');
+      const t0 = performance.now();
+      const stdin = hasInput ? box.querySelector('.py-in textarea').value : '';
+      try {
+        const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 25000);
+        const res = await fetch(`https://godbolt.org/api/compiler/${cfg.id}/compile`, {
+          method: 'POST', signal: ctl.signal,
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({ source: ta.value, lang: lang === 'c' ? 'c' : 'c++', options: { userArguments: cfg.flags, executeParameters: { args: [], stdin }, compilerOptions: { executorRequest: true }, filters: { execute: true } } })
+        });
+        clearTimeout(timer);
+        if (!res.ok) throw new Error(res.status === 429 ? '請求太頻繁，請稍等一下再執行' : `HTTP ${res.status}`);
+        const d = await res.json();
+        outPre.textContent = '';
+        const build = d.buildResult || {};
+        const diag = stripAnsi((build.stderr || []).map(x => x.text).join('\n')).replace(/\/app\/example\.(c|cpp)|<source>/g, '程式');
+        if (build.code !== 0 || !d.didExecute) {
+          write('編譯失敗：', 'py-err');
+          write(diag.split('\n').filter(l => /error|錯誤/.test(l) || /^\s+\d+ \|/.test(l) || /^\s+\|/.test(l)).slice(0, 12).join('\n') || diag.slice(0, 1500), 'py-err');
+        } else {
+          if (diag.trim()) write('編譯警告：\n' + diag.split('\n').filter(l => /warning/.test(l)).slice(0, 6).join('\n'), 'py-hint');
+          const so = (d.stdout || []).map(x => x.text).join('\n'), se = stripAnsi((d.stderr || []).map(x => x.text).join('\n'));
+          if (so) write(so);
+          if (se) write(se, 'py-err');
+          if (d.timedOut) write('執行逾時，已被中止，請檢查是否有無限迴圈。', 'py-err');
+          else if (d.code !== 0) write(`程式結束代碼 ${d.code}` + (d.code === 139 || d.code === -11 ? '（Segmentation fault）' : ''), 'py-err');
+          if (!so && !se && d.code === 0) write('（程式已執行完畢，沒有輸出）', 'py-status');
+        }
+        const all = diag + '\n' + (d.stderr || []).map(x => x.text).join('\n') + (d.code === 139 ? ' exit code 139' : '');
+        const hint = CC_HINTS.find(([re]) => re.test(all));
+        if (hint && (build.code !== 0 || d.code !== 0 || /warning/.test(diag))) write('提示：' + hint[1], 'py-hint');
+        write('— 完成，' + fmtMs(performance.now() - t0), 'py-status');
+      } catch (e) {
+        outPre.textContent = '';
+        write('無法連線到 Compiler Explorer：' + (e.name === 'AbortError' ? '等待逾時' : e.message) + '。請檢查網路後再試一次，或把程式複製到自己電腦的編譯器執行。', 'py-err');
+      } finally {
+        busy = false; btn.disabled = false; box.classList.remove('running');
+      }
+    }
+    box.addEventListener('run', run);
+    btn.addEventListener('click', run);
+    box.addEventListener('reset', () => { out.hidden = true; });
+  }
+
   const scan = () => {
+    view.querySelectorAll('pre.c').forEach(p => enhanceCompiled(p, 'c'));
+    view.querySelectorAll('pre.cpp').forEach(p => enhanceCompiled(p, 'cpp'));
     view.querySelectorAll('pre.sql').forEach(enhanceSql);
     view.querySelectorAll('pre.web').forEach(enhanceWeb);
     view.querySelectorAll('pre.js').forEach(enhanceJs);
