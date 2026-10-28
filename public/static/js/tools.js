@@ -68,7 +68,11 @@
     sortviz: { name: '排序過程逐步播放', desc: '選擇氣泡、插入、選擇、快速或合併排序，逐步觀察每次比較與交換，並統計比較與交換次數。' },
     bsearch: { name: '二分搜尋逐步追蹤', desc: '在已排序陣列中逐步追蹤 lo、mid、hi 的變化，比較「找 x」與 lower_bound 兩種寫法。' },
     dpgrid: { name: 'DP 表格逐格填寫', desc: '以 0/1 背包、LCS、編輯距離為例，逐格填寫 DP 表格並標出轉移方程用到的格子，最後回溯出答案。' },
-    graphpath: { name: '最短路徑逐步執行', desc: '在範例圖上逐步執行 Dijkstra 或 BFS，觀察每一步取出的頂點與距離更新，以及最後的最短路徑樹。' }
+    graphpath: { name: '最短路徑逐步執行', desc: '在範例圖上逐步執行 Dijkstra 或 BFS，觀察每一步取出的頂點與距離更新，以及最後的最短路徑樹。' },
+    jsxconv: { name: 'JSX 轉換器', desc: '輸入 JSX，看它被 Babel 轉成 React.createElement 或新版 jsx() 呼叫後的樣子，理解 JSX 其實就是 JavaScript。' },
+    immut: { name: '不可變更新練習', desc: '對待辦清單與使用者物件做新增、刪除、修改、排序，比較各種寫法：React 能否偵測到改變、原本的 state 有沒有被偷偷修改。' },
+    effectlab: { name: 'useEffect 執行順序', desc: '切換依賴陣列與 StrictMode，模擬掛載、更新 state、改變 props、卸載，觀察 effect 與清除函式的執行時機。' },
+    renderflow: { name: '重新渲染追蹤', desc: '在一棵元件樹上觸發 state 更新，切換 memo 與 useCallback，觀察哪些元件重新渲染、哪些被跳過以及原因。' }
   };
   const fmtN = (x, d = 4) => Number.isFinite(x) ? (+x.toFixed(d)).toString() : '—';
 
@@ -109,6 +113,34 @@
 
   function render(id) {
     switch (id) {
+      case 'jsxconv': return `
+        <div class="row small" style="flex-wrap:wrap;gap:6px"><div class="tabs" id="jcEx" style="flex-wrap:wrap"><button type="button" data-v="0" class="on">基本元素</button><button type="button" data-v="1">屬性與運算式</button><button type="button" data-v="2">元件與 children</button><button type="button" data-v="3">條件與列表</button><button type="button" data-v="4">Fragment</button></div></div>
+        <textarea class="input mono" id="jcIn" rows="6" spellcheck="false" style="width:100%;margin-top:8px;font-size:.85rem"></textarea>
+        <div class="row small" style="margin-top:6px;flex-wrap:wrap;gap:6px"><div class="tabs" id="jcRt"><button type="button" data-v="classic" class="on">傳統：React.createElement</button><button type="button" data-v="automatic">新版：jsx-runtime</button></div><span class="spacer"></span><span class="muted" id="jcSt"></span></div>
+        <pre class="out" id="jcOut" style="margin-top:8px;min-height:80px"></pre>
+        <p class="small muted" id="jcNote" style="margin:6px 0 0"></p>`;
+      case 'immut': return `
+        <div class="tabs" id="imOp" style="flex-wrap:wrap"><button type="button" data-v="add" class="on">新增項目</button><button type="button" data-v="del">刪除項目</button><button type="button" data-v="toggle">切換完成</button><button type="button" data-v="nested">修改巢狀物件</button><button type="button" data-v="sort">排序</button></div>
+        <p class="small" id="imGoal" style="margin:10px 0 6px"></p>
+        <div id="imOpts" class="im-opts"></div>
+        <div id="imOut"></div>`;
+      case 'effectlab': return `
+        <div class="row small" style="flex-wrap:wrap;gap:8px"><div class="tabs" id="elDeps"><button type="button" data-v="none">沒有依賴陣列</button><button type="button" data-v="empty">[]</button><button type="button" data-v="uid" class="on">[userId]</button></div><label class="small"><input type="checkbox" id="elStrict"> StrictMode（開發模式）</label></div>
+        <pre class="out" id="elCode" style="margin-top:8px"></pre>
+        <div class="row small" style="flex-wrap:wrap;gap:6px;margin-top:8px">
+          <button class="btn sm" type="button" data-el="mount">掛載元件</button><button class="btn sm outline" type="button" data-el="count">setCount（自己的 state）</button><button class="btn sm outline" type="button" data-el="uid">父元件改變 userId</button><button class="btn sm outline" type="button" data-el="parent">父元件重新渲染（props 不變）</button><button class="btn sm outline" type="button" data-el="unmount">卸載元件</button><button class="btn sm outline" type="button" data-el="clear">清空紀錄</button>
+        </div>
+        <div class="el-state small muted" id="elState"></div>
+        <ol class="el-log" id="elLog"></ol>`;
+      case 'renderflow': return `
+        <div class="row small" style="flex-wrap:wrap;gap:6px">
+          <button class="btn sm" type="button" data-rf="app">App：setCount</button><button class="btn sm outline" type="button" data-rf="counter">Counter：自己的 state</button><button class="btn sm outline" type="button" data-rf="sidebar">Sidebar：自己的 state</button><button class="btn sm outline" type="button" data-rf="reset">重設計數</button>
+        </div>
+        <div class="row small" style="flex-wrap:wrap;gap:12px;margin-top:8px">
+          <label><input type="checkbox" id="rfFn"> App 傳 onSelect 函式給 Sidebar</label><label><input type="checkbox" id="rfCb" disabled> 用 useCallback 包住 onSelect</label>
+        </div>
+        <div class="rf-tree" id="rfTree"></div>
+        <p class="small" id="rfMsg" style="margin:8px 0 0;min-height:2.4em"></p>`;
       case 'stackq': return `
         <div class="tabs" id="sqMode"><button type="button" data-v="stack" class="on">堆疊 stack</button><button type="button" data-v="queue">佇列 queue</button><button type="button" data-v="deque">雙端佇列 deque</button></div>
         <div class="row small" style="margin-top:10px;flex-wrap:wrap;gap:6px"><label class="small">值 <input class="input num" type="number" id="sqVal" value="10" style="width:80px"></label><span id="sqBtns" class="row" style="gap:6px;flex-wrap:wrap"></span></div>
@@ -2233,6 +2265,201 @@ print('平均：', round(sum(scores.values()) / len(scores), 1))</pre>
       $('#gpSrc', root).addEventListener('change', e => { src = +e.target.value; rebuild(); });
       tabsSelect(root, (t, v) => { algo = v; rebuild(); });
       rebuild();
+    }
+    if (id === 'jsxconv') {
+      const EX = [
+        '<h1 className="title">Hello, React!</h1>',
+        'const user = { name: \'小明\', avatar: \'me.png\' };\nconst el = (\n  <div style={{ color: \'red\' }} onClick={() => alert(1)}>\n    <img src={user.avatar} alt="" />\n    你好，{user.name}，今天 {2 + 3} 度\n  </div>\n);',
+        'function Card({ title, children }) {\n  return <section><h2>{title}</h2>{children}</section>;\n}\n\nconst el = <Card title="公告"><p>明天放假</p></Card>;',
+        'const el = (\n  <ul>\n    {isLoggedIn ? <li>歡迎</li> : <li>請登入</li>}\n    {items.map(item => <li key={item.id}>{item.name}</li>)}\n  </ul>\n);',
+        'const el = (\n  <>\n    <h2>標題</h2>\n    <p>內文</p>\n  </>\n);'
+      ];
+      let rt = 'classic', timer = null, babel = null;
+      const load = () => babel || (babel = new Promise((ok, fail) => {
+        if (window.Babel) return ok(window.Babel);
+        const s = document.createElement('script');
+        s.src = '/static/vendor/react/babel.min.js';
+        s.onload = () => ok(window.Babel);
+        s.onerror = () => { babel = null; s.remove(); fail(new Error('load')); };
+        document.head.appendChild(s);
+      }));
+      const run = async () => {
+        const st = $('#jcSt', root), out = $('#jcOut', root);
+        if (!window.Babel) st.textContent = '第一次使用，正在載入 Babel（約 3 MB）…';
+        try { await load(); } catch { st.textContent = ''; out.textContent = '無法載入 Babel，請檢查網路連線後再試一次。'; return; }
+        st.textContent = '';
+        try {
+          out.textContent = window.Babel.transform($('#jcIn', root).value, { presets: [['react', { runtime: rt }]], sourceType: 'module', filename: 'App.jsx' }).code;
+          out.classList.remove('bad');
+        } catch (e) { out.textContent = '語法錯誤：' + String(e.message).replace(/^\/?App\.jsx: /, ''); out.classList.add('bad'); }
+        $('#jcNote', root).textContent = rt === 'classic'
+          ? '傳統轉換：每個 JSX 元素變成 React.createElement(類型, 屬性物件, ...子元素)。小寫的標籤變成字串，大寫的元件直接傳入函式本身。'
+          : '新版轉換（React 17 起，Vite 預設）：自動從 react/jsx-runtime 匯入 jsx()，children 放進屬性物件，所以檔案開頭不用再寫 import React。';
+      };
+      $('#jcIn', root).value = EX[0];
+      $('#jcIn', root).addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(run, 400); });
+      $('#jcIn', root).addEventListener('keydown', e => e.stopPropagation());
+      tabsSelect(root, (tabs, v) => {
+        if (tabs.id === 'jcEx') $('#jcIn', root).value = EX[+v];
+        if (tabs.id === 'jcRt') rt = v;
+        run();
+      });
+      run();
+    }
+    if (id === 'immut') {
+      const base = () => ({
+        todos: [{ id: 1, title: '寫作業', done: false }, { id: 2, title: '買牛奶', done: true }],
+        user: { name: '小明', address: { city: '台北', zip: '100' } }
+      });
+      const byTitle = (a, b) => a.title.localeCompare(b.title, 'zh-Hant');
+      const OPS = {
+        add: ['todos', '在待辦清單最後新增 { id: 3, title: \'運動\', done: false }', [
+          ['todos.push(newTodo);\nsetTodos(todos);', s => { s.push({ id: 3, title: '運動', done: false }); return s; }, 'push 修改了原陣列，又把同一個陣列傳回去。'],
+          ['setTodos([...todos, newTodo]);', s => [...s, { id: 3, title: '運動', done: false }], '展開運算子建立新陣列，原陣列不變。'],
+          ['setTodos(todos.concat(newTodo));', s => s.concat({ id: 3, title: '運動', done: false }), 'concat 會回傳新陣列，也是正確寫法。'],
+          ['const copy = todos;\ncopy.push(newTodo);\nsetTodos(copy);', s => { const c = s; c.push({ id: 3, title: '運動', done: false }); return c; }, 'copy 只是指向同一個陣列的另一個名字，並沒有複製。']
+        ]],
+        del: ['todos', '刪除 id 為 1 的項目', [
+          ['todos.splice(0, 1);\nsetTodos(todos);', s => { s.splice(0, 1); return s; }, 'splice 直接修改原陣列。'],
+          ['setTodos(todos.filter(t => t.id !== 1));', s => s.filter(t => t.id !== 1), 'filter 回傳新陣列，最常用的刪除寫法。'],
+          ['delete todos[0];\nsetTodos([...todos]);', s => { delete s[0]; return [...s]; }, '雖然傳入新陣列，但原陣列被修改了，而且留下 undefined 的空位。']
+        ]],
+        toggle: ['todos', '把 id 為 1 的項目切換成已完成', [
+          ['todos[0].done = !todos[0].done;\nsetTodos(todos);', s => { s[0].done = !s[0].done; return s; }, '直接修改項目又傳回同一個陣列。'],
+          ['todos[0].done = !todos[0].done;\nsetTodos([...todos]);', s => { s[0].done = !s[0].done; return [...s]; }, '外層陣列是新的，但裡面的物件被直接修改。用 memo 的子元件收到同一個物件，會以為沒變而不更新。'],
+          ['setTodos(todos.map(t =>\n  t.id === 1 ? { ...t, done: !t.done } : t\n));', s => s.map(t => t.id === 1 ? { ...t, done: !t.done } : t), 'map 建立新陣列，只為被修改的項目建立新物件，其他項目保持原參考。']
+        ]],
+        nested: ['user', '把 user.address.city 改成「高雄」', [
+          ['user.address.city = \'高雄\';\nsetUser({ ...user });', s => { s.address.city = '高雄'; return { ...s }; }, '展開運算子是淺拷貝：外層是新物件，但 address 仍是同一個物件，而且被直接修改了。'],
+          ['setUser({\n  ...user,\n  address: { ...user.address, city: \'高雄\' }\n});', s => ({ ...s, address: { ...s.address, city: '高雄' } }), '每一層被修改的物件都要建立新的副本。'],
+          ['setUser({ ...user, city: \'高雄\' });', s => ({ ...s, city: '高雄' }), '會重新渲染，但改錯地方：在最外層多了一個 city，address.city 仍是台北。']
+        ]],
+        sort: ['todos', '依標題排序', [
+          ['setTodos(todos.sort(byTitle));', s => s.sort(byTitle), 'sort 會修改原陣列並回傳同一個陣列。'],
+          ['setTodos([...todos].sort(byTitle));', s => [...s].sort(byTitle), '先複製再排序。'],
+          ['setTodos(todos.toSorted(byTitle));', s => [...s].sort(byTitle), 'toSorted（ES2023）回傳排序後的新陣列。']
+        ]]
+      };
+      let op = 'add', pick = -1;
+      const J = v => JSON.stringify(v, null, 1).replace(/\n\s*/g, ' ');
+      const run = () => {
+        const [key, goal, cands] = OPS[op];
+        $('#imGoal', root).innerHTML = `目標：${esc(goal)}。選一種寫法，看看會發生什麼事：`;
+        $('#imOpts', root).innerHTML = cands.map(([code], i) => `<button type="button" class="im-opt${i === pick ? ' on' : ''}" data-im="${i}"><pre>${esc(code)}</pre></button>`).join('');
+        if (pick < 0) { $('#imOut', root).innerHTML = `<p class="small muted" style="margin:8px 0 0">目前的 ${key}：<code>${esc(J(base()[key]))}</code></p>`; return; }
+        const prev = base()[key], before = J(prev);
+        const next = cands[pick][1](prev);
+        const same = Object.is(prev, next), mutated = J(prev) !== before;
+        const tag = same ? '<span class="tag bad">不會重新渲染</span>' : '<span class="tag ok">會重新渲染</span>';
+        const tag2 = mutated ? '<span class="tag bad">原本的 state 被修改了</span>' : '<span class="tag ok">原本的 state 沒有被修改</span>';
+        const good = !same && !mutated && !/改錯/.test(cands[pick][2]);
+        $('#imOut', root).innerHTML = `<div class="im-res">
+          <p style="margin:0 0 6px">${tag} ${tag2} ${good ? '<span class="tag ok">✓ 正確寫法</span>' : ''}</p>
+          <table class="tbl small"><tr><td>Object.is(舊, 新)</td><td class="mono">${same}</td></tr><tr><td>更新前的 ${key}</td><td class="mono">${esc(before)}</td></tr><tr><td>執行後，舊的參考</td><td class="mono">${esc(J(prev))}</td></tr><tr><td>傳給 set 的新值</td><td class="mono">${esc(J(next))}</td></tr></table>
+          <p class="small" style="margin:6px 0 0">${esc(cands[pick][2])}${same ? ' React 用 Object.is 比較新舊 state，參考相同就認為沒有改變，跳過重新渲染。' : ''}</p></div>`;
+      };
+      root.addEventListener('click', e => { const b = e.target.closest('[data-im]'); if (b) { pick = +b.dataset.im; run(); } });
+      tabsSelect(root, (t, v) => { op = v; pick = -1; run(); });
+      run();
+    }
+    if (id === 'effectlab') {
+      let deps = 'uid', strict = false, mounted = false, uid = 1, count = 0, renders = 0, active = null, lastDeps = null, log = [];
+      const DEPS = { none: '', empty: ', []', uid: ', [userId]' };
+      const code = () => `function Profile({ userId }) {\n  const [count, setCount] = useState(0);\n  useEffect(() => {\n    console.log('執行 effect，userId =', userId);\n    return () => console.log('清除，userId =', userId);\n  }${DEPS[deps]});\n  return …;\n}`;
+      const add = (type, text) => log.push([type, text]);
+      const runEffect = () => { if (active !== null) add('clean', `清除函式（上一次的 userId = ${active}）`); active = uid; add('eff', `執行 effect（userId = ${uid}）`); };
+      const render = (why, first) => {
+        renders++;
+        add('render', `渲染 #${renders}：${why}（userId = ${uid}, count = ${count}）${strict ? '　※ 開發模式會渲染兩次' : ''}`);
+        const now = deps === 'uid' ? [uid] : deps === 'empty' ? [] : null;
+        const changed = first || now === null || now.some((v, i) => !Object.is(v, lastDeps[i]));
+        lastDeps = now;
+        if (changed) {
+          runEffect();
+          if (first && strict) { add('clean', `清除函式（StrictMode 模擬卸載，userId = ${active}）`); active = null; add('eff', `執行 effect（StrictMode 重新掛載，userId = ${uid}）`); active = uid; }
+        } else add('skip', `依賴沒有改變，跳過 effect`);
+      };
+      const draw = () => {
+        $('#elCode', root).textContent = code();
+        $('#elState', root).textContent = mounted ? `元件已掛載　userId = ${uid}　count = ${count}　effect 執行中的 userId = ${active ?? '—'}` : '元件尚未掛載';
+        $('#elLog', root).innerHTML = log.length ? log.map(([t, s]) => `<li class="el-${t}">${esc(s)}</li>`).join('') : '<li class="el-skip">按「掛載元件」開始。</li>';
+        const ol = $('#elLog', root); ol.scrollTop = ol.scrollHeight;
+        root.querySelectorAll('[data-el]').forEach(b => { const a = b.dataset.el; if (a !== 'clear') b.disabled = a === 'mount' ? mounted : !mounted; });
+      };
+      root.addEventListener('click', e => {
+        const b = e.target.closest('[data-el]'); if (!b) return;
+        const a = b.dataset.el;
+        if (a === 'mount') { mounted = true; count = 0; renders = 0; active = null; add('mark', '— 掛載 —'); render('第一次渲染', true); }
+        if (a === 'count') { count++; add('mark', '— setCount(count + 1) —'); render('自己的 state 改變'); }
+        if (a === 'uid') { uid++; add('mark', `— 父元件傳入新的 userId = ${uid} —`); render('props 改變'); }
+        if (a === 'parent') { add('mark', '— 父元件重新渲染，userId 沒變 —'); render('父元件重新渲染'); }
+        if (a === 'unmount') { add('mark', '— 卸載 —'); if (active !== null) add('clean', `清除函式（userId = ${active}）`); active = null; mounted = false; }
+        if (a === 'clear') log = [];
+        draw();
+      });
+      $('#elStrict', root).addEventListener('change', e => { strict = e.target.checked; draw(); });
+      tabsSelect(root, (t, v) => { deps = v; log = []; mounted = false; active = null; uid = 1; draw(); });
+      draw();
+    }
+    if (id === 'renderflow') {
+      // 元件樹：[名稱, 父, 預設是否 memo, 說明]
+      const N = { App: [null, '擁有 count'], Header: ['App', 'props：title（固定字串）'], Counter: ['App', 'props：count；自己也有 state'], Display: ['Counter', 'props：value = count'], Sidebar: ['App', 'props：onSelect（可選）；自己也有 state'], Ad: ['Sidebar', '沒有 props'] };
+      const kids = p => Object.keys(N).filter(k => N[k][0] === p);
+      let count = 0, cLocal = 0, sLocal = 0, fnSeq = 0;
+      const memo = { Header: false, Counter: false, Display: false, Sidebar: false, Ad: false };
+      const renders = Object.fromEntries(Object.keys(N).map(k => [k, 1])), last = {}, why = {};
+      let prevProps = {};
+      const stable = { fn: 'fn#0' };
+      const propsOf = (k, appRendered) => {
+        if (k === 'Header') return { title: '我的網站' };
+        if (k === 'Counter') return { count };
+        if (k === 'Display') return { value: count };
+        if (k === 'Sidebar') {
+          if (!$('#rfFn', root).checked) return {};
+          if ($('#rfCb', root).checked) return { onSelect: stable.fn };
+          if (appRendered) fnSeq++;
+          return { onSelect: 'fn#' + fnSeq };
+        }
+        return {};
+      };
+      const same = (a, b) => a && b && Object.keys(a).length === Object.keys(b).length && Object.keys(a).every(k => Object.is(a[k], b[k]));
+      Object.keys(N).forEach(k => { prevProps[k] = propsOf(k, false); });
+      const pass = start => {
+        Object.keys(N).forEach(k => { last[k] = ''; why[k] = ''; });
+        const visit = (k, reason, appRendered) => {
+          renders[k]++; last[k] = 'on'; why[k] = reason;
+          for (const c of kids(k)) {
+            const np = propsOf(c, k === 'App');
+            if (memo[c] && same(prevProps[c], np)) { last[c] = 'skip'; why[c] = 'memo：props 沒變，跳過'; prevProps[c] = np; continue; }
+            const changed = !same(prevProps[c], np);
+            prevProps[c] = np;
+            visit(c, memo[c] ? 'memo，但 props 改變了' : changed ? '父元件重新渲染（props 也改變）' : '父元件重新渲染（props 沒變也會跟著渲染）');
+          }
+        };
+        visit(start, '自己的 state 改變');
+      };
+      const node = k => `<div class="rf-node ${last[k]}"><div class="rf-head"><b class="mono">&lt;${k} /&gt;</b>${k === 'App' ? '' : `<label class="small"><input type="checkbox" data-memo="${k}"${memo[k] ? ' checked' : ''}> memo</label>`}<span class="rf-cnt">渲染 ${renders[k]} 次</span></div><div class="small muted">${esc(N[k][1])}${why[k] ? `　<b class="rf-why">${esc(why[k])}</b>` : ''}</div>${kids(k).map(node).join('')}</div>`;
+      const draw = msg => {
+        $('#rfTree', root).innerHTML = node('App');
+        const on = Object.keys(N).filter(k => last[k] === 'on'), sk = Object.keys(N).filter(k => last[k] === 'skip');
+        $('#rfMsg', root).innerHTML = msg || (on.length ? `重新渲染：<b>${on.join('、')}</b>${sk.length ? `；被 memo 跳過：<b>${sk.join('、')}</b>` : ''}。` : '按上方按鈕觸發 state 更新，觀察哪些元件重新渲染。');
+      };
+      root.addEventListener('click', e => {
+        const b = e.target.closest('[data-rf]'); if (!b) return;
+        const a = b.dataset.rf;
+        if (a === 'app') { count++; pass('App'); }
+        if (a === 'counter') { cLocal++; pass('Counter'); }
+        if (a === 'sidebar') { sLocal++; pass('Sidebar'); }
+        if (a === 'reset') { Object.keys(renders).forEach(k => { renders[k] = 1; last[k] = ''; why[k] = ''; }); }
+        draw();
+      });
+      root.addEventListener('change', e => {
+        const m = e.target.dataset && e.target.dataset.memo;
+        if (m) { memo[m] = e.target.checked; draw(`${m} ${e.target.checked ? '已用 memo 包起來' : '取消 memo'}。按「App：setCount」看看差別。`); return; }
+        if (e.target.id === 'rfFn') { $('#rfCb', root).disabled = !e.target.checked; if (!e.target.checked) $('#rfCb', root).checked = false; prevProps.Sidebar = propsOf('Sidebar', true); draw(e.target.checked ? 'App 每次渲染都會建立新的 onSelect 函式。把 Sidebar 設成 memo 後按「App：setCount」，會發現 memo 失效。' : ''); }
+        if (e.target.id === 'rfCb') { prevProps.Sidebar = propsOf('Sidebar', true); draw(e.target.checked ? 'useCallback 讓 onSelect 在每次渲染都是同一個函式，memo 的 Sidebar 就能跳過渲染。' : ''); }
+      });
+      draw();
     }
   }
 

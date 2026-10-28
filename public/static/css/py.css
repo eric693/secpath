@@ -181,3 +181,29 @@ table.sheet td.n { text-align: right; font-family: var(--mono); font-variant-num
 .gp-svg .nd.cur circle { stroke: var(--accent); fill: var(--accent-soft); stroke-width: 3; }
 .gp-svg .dl { font-size: 12px; font-weight: 700; fill: var(--accent); }
 .gp-fin { color: var(--ok); font-weight: 700; }
+
+/* React 工具 */
+pre.out.bad { color: var(--bad); }
+.im-opts { display: grid; gap: 6px; }
+.im-opt { display: block; width: 100%; text-align: left; padding: 0; border: 1px solid var(--line-2); border-radius: 8px; background: var(--surface); cursor: pointer; color: inherit; font: inherit; }
+.im-opt pre { margin: 0; padding: 8px 10px; font-family: var(--mono); font-size: .82rem; white-space: pre-wrap; background: none; border: 0; }
+.im-opt:hover { border-color: var(--accent); }
+.im-opt.on { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent); }
+.im-res { margin-top: 10px; }
+.im-res td.mono { word-break: break-all; font-size: .8rem; }
+.el-state { margin-top: 8px; }
+.el-log { margin: 8px 0 0; padding: 8px 10px; list-style: none; max-height: 260px; overflow: auto; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface-2); font-family: var(--mono); font-size: .82rem; line-height: 1.7; }
+.el-log li.el-mark { color: var(--muted); }
+.el-log li.el-render { color: var(--ink-2); }
+.el-log li.el-eff { color: var(--ok); font-weight: 600; }
+.el-log li.el-clean { color: var(--warn); font-weight: 600; }
+.el-log li.el-skip { color: var(--muted); }
+.rf-tree { margin-top: 10px; }
+.rf-node { border: 1px solid var(--line-2); border-radius: 8px; padding: 6px 8px; margin: 6px 0 0 0; background: var(--surface); transition: background .3s; }
+.rf-node .rf-node { margin-left: 18px; }
+.rf-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.rf-cnt { margin-left: auto; font-family: var(--mono); font-size: .8rem; color: var(--muted); }
+.rf-node.on { border-color: var(--warn); background: var(--warn-soft); }
+.rf-node.skip { border-color: var(--ok); background: var(--ok-soft); }
+.rf-node.on > .rf-head .rf-cnt, .rf-node.on > .small .rf-why { color: var(--warn); }
+.rf-node.skip > .small .rf-why { color: var(--ok); }

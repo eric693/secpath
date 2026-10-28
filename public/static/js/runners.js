@@ -1,6 +1,7 @@
-/* SQL 與網頁課程的執行器：把講義中的程式碼區塊變成可編輯、可執行的區塊。
+/* SQL、網頁與 React 課程的執行器：把講義中的程式碼區塊變成可編輯、可執行的區塊。
    <pre class="sql" data-db="shop">  在瀏覽器中以 SQLite 執行查詢，結果顯示為表格（每次執行都從範例資料重新開始）
    <pre class="web">                 HTML／CSS／JS 片段，在隔離的 iframe 中即時預覽，並顯示 console 輸出
+   <pre class="jsx">                 React 元件（JSX），以 Babel 轉譯後在隔離的 iframe 中渲染；未自行呼叫 createRoot 時自動渲染 App
    <pre class="js">                  純 JavaScript，在背景執行緒執行並顯示 console 輸出，可停止無限迴圈
    <pre class="c">／<pre class="cpp">  C／C++ 程式，送到 Compiler Explorer（godbolt.org）以 GCC 編譯並執行；data-input 為標準輸入 */
 (function () {
@@ -107,12 +108,12 @@
     else f.log(d.type, d.text);
   });
   // 注入到預覽頁的程式：把 console 與錯誤轉送給主畫面
-  const bridge = id => `<script>(function(){var I=${id};function f(v,t){if(typeof v==='string')return t?v:"'"+v+"'";try{if(v instanceof Element)return '<'+v.tagName.toLowerCase()+'>';return JSON.stringify(v)===undefined?String(v):JSON.stringify(v)}catch(e){return String(v)}}
+  const bridge = id => `<script>(function(){var I=${id};function f(v,t){if(typeof v==='string')return t?v:"'"+v+"'";try{if(v instanceof Error)return v.name+': '+v.message;if(v instanceof Element)return '<'+v.tagName.toLowerCase()+'>';return JSON.stringify(v)===undefined?String(v):JSON.stringify(v)}catch(e){return String(v)}}
 function s(type,a){parent.postMessage({__web:I,type:type,text:Array.prototype.map.call(a,function(v){return f(v,1)}).join(' ')},'*')}
 ['log','info','warn','error','table'].forEach(function(k){console[k]=function(){s(k==='error'?'error':k==='warn'?'warn':'log',arguments)}});
 addEventListener('error',function(e){s('error',[e.message])});addEventListener('unhandledrejection',function(e){s('error',['Uncaught (in promise) '+(e.reason&&e.reason.message||e.reason)])});
 function h(){parent.postMessage({__web:I,type:'h',h:document.documentElement.scrollHeight},'*')}addEventListener('load',h);new ResizeObserver(h).observe(document.documentElement);
-document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href]');if(a&&a.getAttribute('href').charAt(0)!=='#'){e.preventDefault();s('warn',['（預覽中不會開啟連結：'+a.getAttribute('href')+'）'])}});})();<\/script>`;
+document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href]');if(!a||e.defaultPrevented)return;var h=a.getAttribute('href');e.preventDefault();if(h.charAt(0)==='#')location.hash=h;else s('warn',['（預覽中不會開啟連結：'+h+'）'])});})();<\/script>`;
   const BASE_CSS = '<style>html{color-scheme:light}body{font-family:system-ui,-apple-system,"Noto Sans TC","Microsoft JhengHei",sans-serif;margin:12px;line-height:1.6;color:#16181d;background:#fff}</style>';
   function enhanceWeb(pre) {
     const { box, ta } = shell(pre, 'HTML', '<button type="button" class="py-btn run">更新預覽</button>');
@@ -132,6 +133,90 @@ document.addEventListener('click',function(e){var a=e.target.closest&&e.target.c
     box.addEventListener('reset', run);
     let t; ta.addEventListener('input', () => { clearTimeout(t); t = setTimeout(run, 600); }); // 輸入停頓後自動更新
     // 捲到附近才建立預覽，避免一次載入太多 iframe
+    const io = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) { io.disconnect(); run(); } }, { rootMargin: '300px' });
+    io.observe(box);
+  }
+
+  /* ---------- React（JSX 即時預覽） ---------- */
+  // Babel 約 3 MB，第一次遇到 React 區塊才載入；React 原始碼抓一次後內嵌到每個預覽頁
+  let babelP = null, reactP = null;
+  const loadBabel = () => babelP || (babelP = new Promise((ok, fail) => {
+    const s = document.createElement('script');
+    s.src = '/static/vendor/react/babel.min.js';
+    s.onload = () => ok(window.Babel);
+    s.onerror = () => { babelP = null; s.remove(); fail(new Error('babel')); };
+    document.head.appendChild(s);
+  }));
+  const loadReact = () => reactP || (reactP = Promise.all(['react', 'react-dom'].map(n => fetch(`/static/vendor/react/${n}.production.min.js`).then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })))
+    .then(a => a.join('\n').replace(/<\/script/gi, '<\\/script'))
+    .catch(e => { reactP = null; throw e; }));
+  const HOOKS = 'useState,useEffect,useRef,useMemo,useCallback,useReducer,useContext,createContext,useId,useLayoutEffect,useTransition,useDeferredValue,memo,forwardRef,Fragment,StrictMode,Suspense,lazy,Children';
+  const REACT_CSS = '<style>button{font:inherit;padding:4px 12px;margin:2px;border:1px solid #b9bec7;border-radius:6px;background:#f6f7f9;color:inherit;cursor:pointer}button:hover{background:#eceef2}button:disabled{opacity:.5;cursor:default}input,select,textarea{font:inherit;padding:4px 8px;border:1px solid #b9bec7;border-radius:6px;margin:2px}ul{padding-left:1.4em}</style>';
+  // React 正式版只回報錯誤代碼，這裡換成中文說明
+  const REACT_ERR = {
+    31: '物件不能直接放進 JSX 顯示：請改成顯示物件的某個屬性，或用 map 把陣列轉成元素。',
+    130: '元件型別無效（得到 undefined）：元件名稱可能打錯，或忘了定義這個元件。',
+    185: '更新次數超過上限：effect 裡更新了 state，而依賴陣列又包含這個 state，形成無限迴圈。',
+    300: 'Hook 的呼叫次數改變了：不能在 if、迴圈或提早 return 之後呼叫 Hook。',
+    301: '重新渲染次數過多：通常是在渲染時直接呼叫了 setState，例如 onClick={setCount(1)} 應寫成 onClick={() => setCount(1)}。',
+    310: 'Hook 的呼叫次數改變了：不能在 if、迴圈或提早 return 之後呼叫 Hook。',
+    321: 'Hook 呼叫位置錯誤：Hook 只能在函式元件或自訂 Hook 的最上層呼叫。'
+  };
+  const JSX_HINTS = [
+    [/Adjacent JSX elements/, '多個 JSX 元素必須包在同一個父元素裡，或用 Fragment <>…</> 包起來。'],
+    [/Expected corresponding JSX closing tag|Unterminated JSX contents/, '標籤沒有正確關閉：每個標籤都要成對，<img>、<input>、<br> 在 JSX 中要寫成 <img />。'],
+    [/is not defined/, '名稱未定義：檢查拼字與大小寫；自訂元件的名稱必須以大寫字母開頭。'],
+    [/Cannot read properties of (undefined|null)/, '讀取了 undefined 或 null 的屬性：資料可能還沒準備好，或 props 名稱打錯。'],
+    [/is not a function/, '不是函式：檢查名稱拼字，或確認這個值真的是函式（例如 map 只能用在陣列上）。'],
+    [/Unexpected token/, '語法錯誤：檢查括號、大括號是否成對，JSX 中的 JavaScript 運算式要用 { } 包起來。']
+  ];
+  // 把講義中的模組寫法轉成預覽中可執行的程式：拿掉 import／export，最後自動渲染 App
+  function toScript(src) {
+    const skipped = [];
+    const code = src
+      .replace(/^[ \t]*import\s+[^;\n]*?from\s+['"]([^'"]+)['"];?[ \t]*$/gm, (m, mod) => { if (!/^react(-dom(\/client)?)?$/.test(mod)) skipped.push(mod); return ''; })
+      .replace(/^[ \t]*import\s+['"]([^'"]+)['"];?[ \t]*$/gm, (m, mod) => { skipped.push(mod); return ''; })
+      .replace(/^export\s+default\s+(function|class)\b/gm, '$1')
+      .replace(/^export\s+default\s+[\w$]+;?[ \t]*$/gm, '')
+      .replace(/^export\s+(const|let|function|class)\b/gm, '$1');
+    const js = window.Babel.transform(code, { presets: [['react', { runtime: 'classic' }]], sourceType: 'script', filename: 'App.jsx' }).code;
+    const auto = /createRoot\s*\(/.test(src) ? '' : "\nif (typeof App === 'function') createRoot(document.getElementById('root')).render(React.createElement(App));\nelse console.warn('找不到名為 App 的元件，沒有東西可以顯示。');";
+    return { js: `(function(){var {${HOOKS}} = React; var createRoot = ReactDOM.createRoot;\n{\n${js}${auto}\n}\n})();`, skipped };
+  }
+  function enhanceJsx(pre) {
+    const { box, ta } = shell(pre, 'React', '<button type="button" class="py-btn run">更新預覽</button>');
+    const wrap = document.createElement('div');
+    wrap.className = 'web-out';
+    wrap.innerHTML = '<div class="web-label">預覽</div><iframe sandbox="allow-scripts allow-modals allow-forms" title="React 預覽"></iframe><pre class="web-console" hidden></pre>';
+    box.appendChild(wrap);
+    const frame = wrap.querySelector('iframe'), con = wrap.querySelector('.web-console');
+    const id = ++frameSeq;
+    const log = (type, text) => {
+      const m = /Minified React error #(\d+)/.exec(text);
+      if (m) text = (REACT_ERR[m[1]] || '程式執行時發生錯誤') + `（React 錯誤代碼 #${m[1]}）`;
+      else if (type === 'error') { const h = JSX_HINTS.find(([re]) => re.test(text)); if (h) text += '\n→ ' + h[1]; }
+      if (con.lastChild && con.lastChild.textContent === text + '\n') return; // React 會同時拋出與記錄同一個錯誤
+      con.hidden = false;
+      const s = document.createElement('span'); s.className = 'c-' + type; s.textContent = text + '\n'; con.appendChild(s);
+    };
+    frames.set(id, { frame, log });
+    let seq = 0;
+    async function run() {
+      const my = ++seq;
+      let react, r;
+      try { [, react] = await Promise.all([loadBabel(), loadReact()]); }
+      catch (e) { con.textContent = ''; log('error', '無法載入 React 執行環境，請檢查網路連線後按「更新預覽」再試一次。'); return; }
+      if (my !== seq) return;
+      con.textContent = ''; con.hidden = true;
+      try { r = toScript(ta.value); }
+      catch (e) { log('error', '語法錯誤：' + String(e.message).replace(/^\/?App\.jsx: /, '')); frame.srcdoc = ''; return; }
+      r.skipped.forEach(m => log('warn', `（預覽環境不支援匯入 ${m}，已略過這一行）`));
+      frame.srcdoc = `<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">${BASE_CSS}${REACT_CSS}${bridge(id)}<script>${react}<\/script></head><body><div id="root"></div><script>${r.js.replace(/<\/script/gi, '<\\/script')}<\/script></body></html>`;
+    }
+    box.addEventListener('run', run);
+    box.querySelector('.run').addEventListener('click', run);
+    box.addEventListener('reset', run);
+    let t; ta.addEventListener('input', () => { clearTimeout(t); t = setTimeout(run, 800); });
     const io = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) { io.disconnect(); run(); } }, { rootMargin: '300px' });
     io.observe(box);
   }
@@ -309,6 +394,7 @@ self.addEventListener('unhandledrejection', e => { e.preventDefault(); postMessa
     view.querySelectorAll('pre.cpp').forEach(p => enhanceCompiled(p, 'cpp'));
     view.querySelectorAll('pre.sql').forEach(enhanceSql);
     view.querySelectorAll('pre.web').forEach(enhanceWeb);
+    view.querySelectorAll('pre.jsx').forEach(enhanceJsx);
     view.querySelectorAll('pre.js').forEach(enhanceJs);
   };
   new MutationObserver(scan).observe(view, { childList: true, subtree: true });

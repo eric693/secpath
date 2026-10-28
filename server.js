@@ -32,7 +32,8 @@ const LEVELS = {
   c: { name: 'C 語言', title: 'C 語言程式設計：從基礎到指標與嵌入式', hashEnv: 'PASS_C', org: '資工與韌體必修・C 語言 × 指標 × 記憶體', foot: '語法以 C17 與 GCC 為準；範例透過 Compiler Explorer 編譯執行', labels: ['基礎篇', '進階篇'], subjects: ['語法、流程控制、函式與陣列', '指標、記憶體、檔案與嵌入式'] },
   cpp: { name: 'C++', title: 'C++ 程式設計：STL、物件導向與現代 C++', hashEnv: 'PASS_CPP', org: 'APCS 與高效能開發・C++ × STL × 物件導向', foot: '語法以 C++17 與 G++ 為準；範例透過 Compiler Explorer 編譯執行', labels: ['基礎篇', '物件導向篇'], subjects: ['語法、函式與 STL', '類別、記憶體管理與現代 C++'] },
   ds: { name: '資料結構', title: '資料結構：陣列、鏈結串列、樹、圖與雜湊', hashEnv: 'PASS_DS', org: '資工核心與面試必備・資料結構 × C++ 實作', foot: '以 C++17 實作；範例透過 Compiler Explorer 編譯執行', labels: ['線性結構篇', '非線性結構篇'], subjects: ['陣列、串列、堆疊、佇列與雜湊', '樹、堆積、圖與進階結構'] },
-  algo: { name: '演算法', title: '演算法：排序、搜尋、動態規劃與圖論', hashEnv: 'PASS_ALGO', org: '面試與 APCS 核心・演算法 × C++ 實作', foot: '以 C++17 實作；範例透過 Compiler Explorer 編譯執行', labels: ['基礎技巧篇', '進階演算法篇'], subjects: ['分析、遞迴、排序、搜尋與回溯', '貪心、動態規劃與圖論'] }
+  algo: { name: '演算法', title: '演算法：排序、搜尋、動態規劃與圖論', hashEnv: 'PASS_ALGO', org: '面試與 APCS 核心・演算法 × C++ 實作', foot: '以 C++17 實作；範例透過 Compiler Explorer 編譯執行', labels: ['基礎技巧篇', '進階演算法篇'], subjects: ['分析、遞迴、排序、搜尋與回溯', '貪心、動態規劃與圖論'] },
+  react: { name: 'React', title: 'React 前端框架：元件、Hooks 與實戰專案', hashEnv: 'PASS_REACT', org: '前端職缺最常要求・React 18 × Hooks × 即時預覽', foot: '以 React 18 函式元件與 Hooks 撰寫；範例在瀏覽器中即時預覽', labels: ['基礎篇', '進階篇'], subjects: ['JSX、元件、state、列表與表單', 'Hooks、狀態管理、路由與專案實戰'] }
 };
 const IPAS = { org: 'iPAS 資訊安全工程師能力鑑定', foot: '考試資訊以 iPAS 經濟部產業人才能力鑑定官網公告為準', labels: ['科目一', '科目二'] };
 for (const [k, v] of Object.entries(LEVELS)) {
