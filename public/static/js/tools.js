@@ -60,12 +60,141 @@
     bitops: { name: '位元運算視覺化', desc: '輸入兩個數字，逐位元觀察 AND、OR、XOR、NOT 與位移的結果，並練習設定、清除、切換第 n 個位元。' },
     ptrmem: { name: '指標與記憶體圖', desc: '以 int 陣列的記憶體圖逐步執行 p++、p += 2、*p = 99 等操作，觀察指標存放的位址與指向的值如何變化。' },
     bigo: { name: '時間複雜度比較', desc: '輸入資料量 n，比較 O(1) 到 O(n!) 各需要多少次運算、以每秒 10⁸ 次估算的執行時間，判斷會不會超時。' },
-    stlpick: { name: 'STL 容器選擇', desc: '依需求情境找出最適合的 STL 容器，查看常用操作的時間複雜度與範例程式。' }
+    stlpick: { name: 'STL 容器選擇', desc: '依需求情境找出最適合的 STL 容器，查看常用操作的時間複雜度與範例程式。' },
+    stackq: { name: '堆疊與佇列模擬', desc: '切換 stack、queue、deque，逐一執行 push、pop 等操作，觀察元素從哪一端進出，並對照 C++ STL 寫法。' },
+    hashsim: { name: '雜湊表碰撞模擬', desc: '以 h(k) = k mod m 插入與搜尋鍵值，比較鏈結法與線性探測如何處理碰撞，觀察負載因子與探測次數。' },
+    bstviz: { name: '二元搜尋樹視覺化', desc: '插入、搜尋、刪除節點並即時畫出二元搜尋樹，查看前序、中序、後序與層序走訪，以及退化成鏈結串列的情況。' },
+    heapviz: { name: '堆積操作視覺化', desc: '對最小堆積或最大堆積執行 push、pop 與建堆積，同時觀察陣列與樹狀圖，看元素如何上浮與下沉。' },
+    sortviz: { name: '排序過程逐步播放', desc: '選擇氣泡、插入、選擇、快速或合併排序，逐步觀察每次比較與交換，並統計比較與交換次數。' },
+    bsearch: { name: '二分搜尋逐步追蹤', desc: '在已排序陣列中逐步追蹤 lo、mid、hi 的變化，比較「找 x」與 lower_bound 兩種寫法。' },
+    dpgrid: { name: 'DP 表格逐格填寫', desc: '以 0/1 背包、LCS、編輯距離為例，逐格填寫 DP 表格並標出轉移方程用到的格子，最後回溯出答案。' },
+    graphpath: { name: '最短路徑逐步執行', desc: '在範例圖上逐步執行 Dijkstra 或 BFS，觀察每一步取出的頂點與距離更新，以及最後的最短路徑樹。' },
+    jsxconv: { name: 'JSX 轉換器', desc: '輸入 JSX，看它被 Babel 轉成 React.createElement 或新版 jsx() 呼叫後的樣子，理解 JSX 其實就是 JavaScript。' },
+    immut: { name: '不可變更新練習', desc: '對待辦清單與使用者物件做新增、刪除、修改、排序，比較各種寫法：React 能否偵測到改變、原本的 state 有沒有被偷偷修改。' },
+    effectlab: { name: 'useEffect 執行順序', desc: '切換依賴陣列與 StrictMode，模擬掛載、更新 state、改變 props、卸載，觀察 effect 與清除函式的執行時機。' },
+    renderflow: { name: '重新渲染追蹤', desc: '在一棵元件樹上觸發 state 更新，切換 memo 與 useCallback，觀察哪些元件重新渲染、哪些被跳過以及原因。' }
   };
   const fmtN = (x, d = 4) => Number.isFinite(x) ? (+x.toFixed(d)).toString() : '—';
 
+  // 樹狀圖：nodes 為 [{ id, x（中序位置）, d（深度）, label, cls }]，edges 為 [[父 id, 子 id]]
+  const treeSvg = (nodes, edges) => {
+    if (!nodes.length) return '<p class="small muted" style="margin:0">（目前是空的）</p>';
+    const cols = Math.max(...nodes.map(n => n.x)) + 1, rows = Math.max(...nodes.map(n => n.d)) + 1;
+    const W = Math.max(cols * 46, 140), H = rows * 58, at = {};
+    nodes.forEach(n => { at[n.id] = n; n.cx = (n.x + .5) * W / cols; n.cy = n.d * 58 + 29; });
+    return `<svg class="tv-svg" viewBox="0 0 ${W} ${H}" style="max-width:${W}px">${edges.map(([a, b]) => `<line x1="${at[a].cx}" y1="${at[a].cy}" x2="${at[b].cx}" y2="${at[b].cy}"/>`).join('')}${nodes.map(n => `<g class="${n.cls || ''}"><circle cx="${n.cx}" cy="${n.cy}" r="18"/><text x="${n.cx}" y="${n.cy}">${esc(n.label)}</text></g>`).join('')}</svg>`;
+  };
+  // 逐步播放：stepBar(p) 產生按鈕列，stepCtl 綁定行為；total() 回傳步驟數、draw(i) 繪製第 i 步，回傳跳到第 k 步的函式
+  const stepBar = p => `<div class="row small st-bar"><button class="btn sm outline" type="button" data-${p}="first" title="第一步">⏮</button><button class="btn sm outline" type="button" data-${p}="prev">◀ 上一步</button><button class="btn sm" type="button" data-${p}="next">下一步 ▶</button><button class="btn sm outline" type="button" data-${p}="last" title="最後一步">⏭</button><button class="btn sm outline" type="button" data-${p}="play">自動播放</button><span class="spacer"></span><span class="muted" data-${p}-pos></span></div>`;
+  const stepCtl = (root, p, total, draw, ms = 700) => {
+    let i = 0, timer = null;
+    const playBtn = () => root.querySelector(`[data-${p}="play"]`);
+    const stop = () => { clearInterval(timer); timer = null; playBtn().textContent = '自動播放'; };
+    const go = k => {
+      const n = total(); i = Math.max(0, Math.min(n - 1, k)); draw(i);
+      root.querySelector(`[data-${p}-pos]`).textContent = `第 ${i + 1} / ${n} 步`;
+      if (timer && i >= n - 1) stop();
+    };
+    root.addEventListener('click', e => {
+      const b = e.target.closest(`[data-${p}]`); if (!b) return;
+      const a = b.dataset[p];
+      if (a === 'play') {
+        if (timer) return stop();
+        if (i >= total() - 1) go(0);
+        timer = setInterval(() => root.isConnected ? go(i + 1) : stop(), ms);
+        playBtn().textContent = '暫停';
+        return;
+      }
+      stop();
+      go(a === 'first' ? 0 : a === 'last' ? total() - 1 : a === 'prev' ? i - 1 : i + 1);
+    });
+    return k => { stop(); go(k); };
+  };
+
   function render(id) {
     switch (id) {
+      case 'jsxconv': return `
+        <div class="row small" style="flex-wrap:wrap;gap:6px"><div class="tabs" id="jcEx" style="flex-wrap:wrap"><button type="button" data-v="0" class="on">基本元素</button><button type="button" data-v="1">屬性與運算式</button><button type="button" data-v="2">元件與 children</button><button type="button" data-v="3">條件與列表</button><button type="button" data-v="4">Fragment</button></div></div>
+        <textarea class="input mono" id="jcIn" rows="6" spellcheck="false" style="width:100%;margin-top:8px;font-size:.85rem"></textarea>
+        <div class="row small" style="margin-top:6px;flex-wrap:wrap;gap:6px"><div class="tabs" id="jcRt"><button type="button" data-v="classic" class="on">傳統：React.createElement</button><button type="button" data-v="automatic">新版：jsx-runtime</button></div><span class="spacer"></span><span class="muted" id="jcSt"></span></div>
+        <pre class="out" id="jcOut" style="margin-top:8px;min-height:80px"></pre>
+        <p class="small muted" id="jcNote" style="margin:6px 0 0"></p>`;
+      case 'immut': return `
+        <div class="tabs" id="imOp" style="flex-wrap:wrap"><button type="button" data-v="add" class="on">新增項目</button><button type="button" data-v="del">刪除項目</button><button type="button" data-v="toggle">切換完成</button><button type="button" data-v="nested">修改巢狀物件</button><button type="button" data-v="sort">排序</button></div>
+        <p class="small" id="imGoal" style="margin:10px 0 6px"></p>
+        <div id="imOpts" class="im-opts"></div>
+        <div id="imOut"></div>`;
+      case 'effectlab': return `
+        <div class="row small" style="flex-wrap:wrap;gap:8px"><div class="tabs" id="elDeps"><button type="button" data-v="none">沒有依賴陣列</button><button type="button" data-v="empty">[]</button><button type="button" data-v="uid" class="on">[userId]</button></div><label class="small"><input type="checkbox" id="elStrict"> StrictMode（開發模式）</label></div>
+        <pre class="out" id="elCode" style="margin-top:8px"></pre>
+        <div class="row small" style="flex-wrap:wrap;gap:6px;margin-top:8px">
+          <button class="btn sm" type="button" data-el="mount">掛載元件</button><button class="btn sm outline" type="button" data-el="count">setCount（自己的 state）</button><button class="btn sm outline" type="button" data-el="uid">父元件改變 userId</button><button class="btn sm outline" type="button" data-el="parent">父元件重新渲染（props 不變）</button><button class="btn sm outline" type="button" data-el="unmount">卸載元件</button><button class="btn sm outline" type="button" data-el="clear">清空紀錄</button>
+        </div>
+        <div class="el-state small muted" id="elState"></div>
+        <ol class="el-log" id="elLog"></ol>`;
+      case 'renderflow': return `
+        <div class="row small" style="flex-wrap:wrap;gap:6px">
+          <button class="btn sm" type="button" data-rf="app">App：setCount</button><button class="btn sm outline" type="button" data-rf="counter">Counter：自己的 state</button><button class="btn sm outline" type="button" data-rf="sidebar">Sidebar：自己的 state</button><button class="btn sm outline" type="button" data-rf="reset">重設計數</button>
+        </div>
+        <div class="row small" style="flex-wrap:wrap;gap:12px;margin-top:8px">
+          <label><input type="checkbox" id="rfFn"> App 傳 onSelect 函式給 Sidebar</label><label><input type="checkbox" id="rfCb" disabled> 用 useCallback 包住 onSelect</label>
+        </div>
+        <div class="rf-tree" id="rfTree"></div>
+        <p class="small" id="rfMsg" style="margin:8px 0 0;min-height:2.4em"></p>`;
+      case 'stackq': return `
+        <div class="tabs" id="sqMode"><button type="button" data-v="stack" class="on">堆疊 stack</button><button type="button" data-v="queue">佇列 queue</button><button type="button" data-v="deque">雙端佇列 deque</button></div>
+        <div class="row small" style="margin-top:10px;flex-wrap:wrap;gap:6px"><label class="small">值 <input class="input num" type="number" id="sqVal" value="10" style="width:80px"></label><span id="sqBtns" class="row" style="gap:6px;flex-wrap:wrap"></span></div>
+        <div id="sqOut"></div>`;
+      case 'hashsim': return `
+        <div class="tabs" id="hsMode"><button type="button" data-v="chain" class="on">鏈結法（chaining）</button><button type="button" data-v="probe">線性探測（linear probing）</button></div>
+        <div class="row small" style="margin-top:10px;flex-wrap:wrap;gap:6px">
+          <label class="small">表格大小 m <select class="input" id="hsM">${[5, 7, 10, 11, 13].map(m => `<option${m === 7 ? ' selected' : ''}>${m}</option>`).join('')}</select></label>
+          <label class="small">鍵 k <input class="input num" type="number" id="hsK" value="15" style="width:80px"></label>
+          <button class="btn sm" type="button" data-hs="ins">插入</button><button class="btn sm outline" type="button" data-hs="find">搜尋</button>
+        </div>
+        <div class="row small" style="margin-top:6px;flex-wrap:wrap;gap:6px"><button class="btn sm outline" type="button" data-hs="demo">插入範例 15 22 8 29 36 1 43</button><button class="btn sm outline" type="button" data-hs="clear">清空</button></div>
+        <div id="hsOut"></div>`;
+      case 'bstviz': return `
+        <div class="row small" style="flex-wrap:wrap;gap:6px">
+          <input class="input mono" id="bvVal" value="45" style="width:150px" placeholder="例如 45 或 5 3 8">
+          <button class="btn sm" type="button" data-bv="ins">插入</button><button class="btn sm outline" type="button" data-bv="find">搜尋</button><button class="btn sm outline" type="button" data-bv="del">刪除</button>
+        </div>
+        <div class="row small" style="flex-wrap:wrap;gap:6px;margin-top:6px">
+          <button class="btn sm outline" type="button" data-bv="demo">範例 50 30 70 20 40 60 80</button><button class="btn sm outline" type="button" data-bv="line">依序插入 10 20 30 40 50</button><button class="btn sm outline" type="button" data-bv="rand">隨機 8 個</button><button class="btn sm outline" type="button" data-bv="clear">清空</button>
+        </div>
+        <div id="bvOut"></div>`;
+      case 'heapviz': return `
+        <div class="tabs" id="hpMode"><button type="button" data-v="min" class="on">最小堆積</button><button type="button" data-v="max">最大堆積</button></div>
+        <div class="row small" style="margin-top:10px;flex-wrap:wrap;gap:6px">
+          <input class="input mono" id="hpVal" value="1" style="width:150px" placeholder="例如 1 或 5 3 8">
+          <button class="btn sm" type="button" data-hp="push">push</button><button class="btn sm outline" type="button" data-hp="pop">pop</button><button class="btn sm outline" type="button" data-hp="build">用輸入的數字建堆積</button><button class="btn sm outline" type="button" data-hp="clear">清空</button>
+        </div>
+        <div id="hpOut"></div>`;
+      case 'sortviz': return `
+        <div class="tabs" id="svAlgo" style="flex-wrap:wrap"><button type="button" data-v="bubble" class="on">氣泡排序</button><button type="button" data-v="insert">插入排序</button><button type="button" data-v="select">選擇排序</button><button type="button" data-v="quick">快速排序</button><button type="button" data-v="merge">合併排序</button></div>
+        <div class="row small" style="margin-top:10px;flex-wrap:wrap;gap:6px"><input class="input mono" id="svArr" value="38 27 43 3 9 82 10" style="flex:1;min-width:180px"><button class="btn sm outline" type="button" data-svx="apply">套用</button><button class="btn sm outline" type="button" data-svx="rand">隨機</button><button class="btn sm outline" type="button" data-svx="sorted">幾乎排好</button></div>
+        <div class="sv-bars" id="svBars"></div>
+        <p class="small" id="svMsg" style="margin:8px 0 0;min-height:3.2em"></p>
+        ${stepBar('sv')}`;
+      case 'bsearch': return `
+        <div class="tabs" id="bsMode"><button type="button" data-v="find" class="on">找 x 的位置</button><button type="button" data-v="lb">lower_bound（第一個 ≥ x）</button></div>
+        <div class="row small" style="margin-top:10px;flex-wrap:wrap;gap:6px"><input class="input mono" id="bsArr" value="2 5 8 12 16 23 38 56 72 91" style="flex:1;min-width:200px"><label class="small">x <input class="input num" type="number" id="bsT" value="23" style="width:80px"></label><button class="btn sm outline" type="button" data-bsx="apply">開始</button><button class="btn sm outline" type="button" data-bsx="rand">隨機陣列</button></div>
+        <div class="bs-arr" id="bsCells"></div>
+        <div class="out" id="bsVars" style="margin-top:8px;min-height:0"></div>
+        <p class="small" id="bsMsg" style="margin:8px 0 0;min-height:2.4em"></p>
+        ${stepBar('bs')}`;
+      case 'dpgrid': return `
+        <div class="tabs" id="dgMode"><button type="button" data-v="knap" class="on">0/1 背包</button><button type="button" data-v="lcs">最長共同子序列 LCS</button><button type="button" data-v="edit">編輯距離</button></div>
+        <div class="row small" id="dgIn" style="margin-top:10px;flex-wrap:wrap;gap:6px"></div>
+        <div class="dg-wrap" id="dgTbl"></div>
+        <p class="small" id="dgMsg" style="margin:8px 0 0;min-height:3.2em"></p>
+        ${stepBar('dg')}`;
+      case 'graphpath': return `
+        <div class="row small" style="flex-wrap:wrap;gap:8px"><div class="tabs" id="gpAlgo"><button type="button" data-v="dij" class="on">Dijkstra（看權重）</button><button type="button" data-v="bfs">BFS（只看邊數）</button></div><label class="small">起點 <select class="input" id="gpSrc">${[0, 1, 2, 3, 4, 5].map(i => `<option>${i}</option>`).join('')}</select></label></div>
+        <div class="gp-wrap" id="gpSvg"></div>
+        <div id="gpTbl"></div>
+        <p class="small" id="gpMsg" style="margin:8px 0 0;min-height:3.2em"></p>
+        ${stepBar('gp')}`;
       case 'ctypes': return `
         <div class="grid g2" style="gap:10px">
           <label class="field"><span>型別</span><select class="input" id="ctType">
@@ -1541,10 +1670,10 @@ print('平均：', round(sum(scores.values()) / len(scores), 1))</pre>
       const run = () => {
         const n = Math.max(1, Math.floor(+$('#bgN', root).value || 1));
         const rows = [['O(1)', 1, '陣列索引、雜湊表查詢'], ['O(log n)', Math.log2(n), '二分搜尋、set／map 操作'], ['O(n)', n, '單層迴圈、前綴和'], ['O(n log n)', n * Math.log2(n), 'sort、合併排序'], ['O(n²)', n * n, '雙層迴圈、氣泡排序'], ['O(n³)', n ** 3, '三層迴圈'], ['O(2ⁿ)', 2 ** n, '列舉所有子集合'], ['O(n!)', fact(n), '列舉所有排列']];
-        $('#bgOut', root).innerHTML = `<table class="tbl" style="margin-top:12px"><tr><th>複雜度</th><th>運算次數</th><th>估計時間</th><th></th><th class="small">常見情況</th></tr>${rows.map(([k, ops, d]) => {
+        $('#bgOut', root).innerHTML = `<div class="table-wrap"><table class="tbl" style="margin-top:12px"><tr><th>複雜度</th><th>運算次數</th><th>估計時間</th><th></th><th class="small">常見情況</th></tr>${rows.map(([k, ops, d]) => {
           const t = ops / 1e8, ok = t <= 1;
           return `<tr><td class="mono"><b>${k}</b></td><td class="mono">${fmtOps(ops)}</td><td>${fmtTime(t)}</td><td>${ok ? '<span class="tag ok">1 秒內</span>' : '<span class="tag bad">超時</span>'}</td><td class="small muted">${d}</td></tr>`;
-        }).join('')}</table><p class="small muted" style="margin:6px 0 0">以 C++ 每秒約 10⁸ 次簡單運算估算，實際時間依運算內容與電腦而定。線上解題通常限制 1～2 秒。</p>`;
+        }).join('')}</table></div><p class="small muted" style="margin:6px 0 0">以 C++ 每秒約 10⁸ 次簡單運算估算，實際時間依運算內容與電腦而定。線上解題通常限制 1～2 秒。</p>`;
       };
       root.addEventListener('input', run);
       root.addEventListener('click', e => { const b = e.target.closest('[data-bg]'); if (b) { $('#bgN', root).value = b.dataset.bg; run(); } });
@@ -1571,6 +1700,766 @@ print('平均：', round(sum(scores.values()) / len(scores), 1))</pre>
       };
       tabsSelect(root, (t, v) => run(+v));
       run(0);
+    }
+    if (id === 'stackq') {
+      let mode = 'stack', items = [], hit = -1, msg = '';
+      const vn = { stack: 'st', queue: 'q', deque: 'd' };
+      const OPS = { stack: ['push', 'pop', 'top'], queue: ['push', 'pop', 'front'], deque: ['push_front', 'push_back', 'pop_front', 'pop_back'] };
+      const INTRO = { stack: '堆疊：後進先出（LIFO），只能在頂端加入與移除。', queue: '佇列：先進先出（FIFO），從後端加入、從前端移除。', deque: '雙端佇列：兩端都能 O(1) 加入與移除，也是 stack 與 queue 預設的底層容器。' };
+      const btns = () => { $('#sqBtns', root).innerHTML = OPS[mode].map(o => `<button class="btn sm outline mono" type="button" data-sq="${o}">${o}()</button>`).join('') + '<button class="btn sm outline" type="button" data-sq="clear">清空</button>'; };
+      const run = () => {
+        const v = vn[mode], n = items.length;
+        const ends = mode === 'stack' ? ['底（bottom）', '頂（top）：從這裡進出'] : mode === 'queue' ? ['前端 front：從這裡出', '後端 back：從這裡進'] : ['front：可進可出', 'back：可進可出'];
+        $('#sqOut', root).innerHTML = `
+          <div class="sq-row">${n ? items.map((x, i) => `<div class="sq-cell${i === hit ? ' on' : ''}">${x}</div>`).join('') : '<div class="sq-empty">（空的）</div>'}</div>
+          <div class="sq-ends small muted"><span>${ends[0]}</span><span>${ends[1]}</span></div>
+          <p class="small" style="margin:8px 0 0">${msg}</p>
+          <p class="small muted mono" style="margin:4px 0 0">${v}.size() = ${n}　${v}.empty() = ${n ? 'false' : 'true'}</p>`;
+      };
+      root.addEventListener('click', e => {
+        const b = e.target.closest('[data-sq]'); if (!b) return;
+        const op = b.dataset.sq, v = vn[mode], inp = $('#sqVal', root), x = Math.trunc(+inp.value || 0);
+        hit = -1;
+        if (op === 'clear') { items = []; msg = '已清空。'; return run(); }
+        if (op.startsWith('push')) {
+          if (items.length >= 10) { msg = '示範最多放 10 個元素。'; return run(); }
+          if (op === 'push_front') { items.unshift(x); hit = 0; } else { items.push(x); hit = items.length - 1; }
+          msg = `<code>${v}.${op}(${x});</code> ${op === 'push_front' ? '從前端加入' : mode === 'stack' ? '放到頂端' : '從後端加入'}，O(1)。`;
+          inp.value = x + 10;
+          return run();
+        }
+        if (!items.length) { msg = `<code>${v}.${op}()</code>：容器是空的！對空容器呼叫 ${op}() 是未定義行為，使用前要先檢查 <code>${v}.empty()</code>。`; return run(); }
+        if (op === 'top' || op === 'front') { hit = op === 'top' ? items.length - 1 : 0; msg = `<code>${v}.${op}()</code> 回傳 <b>${items[hit]}</b>，只查看、不移除。`; return run(); }
+        const fromFront = op === 'pop_front' || (op === 'pop' && mode === 'queue');
+        const got = fromFront ? items.shift() : items.pop();
+        msg = `<code>${v}.${op}();</code> 移除${fromFront ? '前端' : mode === 'stack' ? '頂端' : '後端'}的 <b>${got}</b>。` + (op === 'pop' ? `注意 STL 的 pop() 不會回傳值，要先用 ${mode === 'stack' ? 'top()' : 'front()'} 取值。` : '');
+        run();
+      });
+      tabsSelect(root, (t, v) => { mode = v; items = []; hit = -1; msg = INTRO[v]; btns(); run(); });
+      msg = INTRO.stack; btns(); run();
+    }
+    if (id === 'hashsim') {
+      let mode = 'chain', m = 7, tab = [], keys = [], path = [], hitAt = -1, msg = '', coll = 0;
+      const h = k => ((k % m) + m) % m;
+      const INTRO = { chain: '鏈結法：每個桶子是一條串列，碰撞的元素接在同一個桶子裡。', probe: '線性探測：位置被佔用就往下一格找，直到找到空位（開放定址法）。' };
+      const reset = () => { tab = mode === 'chain' ? Array.from({ length: m }, () => []) : Array(m).fill(null); keys = []; path = []; hitAt = -1; coll = 0; };
+      const insert = k => {
+        const i0 = h(k);
+        if (keys.includes(k)) { path = []; hitAt = -1; return `${k} 已經在表中，雜湊表不存重複的鍵。`; }
+        if (mode === 'chain') {
+          path = [i0]; hitAt = i0;
+          const c = tab[i0].length; if (c) coll++;
+          tab[i0].push(k); keys.push(k);
+          return `h(${k}) = ${k} mod ${m} = <b>${i0}</b>` + (c ? `，桶子 ${i0} 已有 ${c} 個元素（碰撞），接在串列後面。` : '，放進空的桶子。');
+        }
+        if (keys.length >= m) { path = []; hitAt = -1; return `插入 ${k}：表格已滿，線性探測無法再插入（實務上負載因子過高前就要擴充表格並重新雜湊）。`; }
+        path = []; let i = i0;
+        while (tab[i] !== null) { path.push(i); i = (i + 1) % m; }
+        path.push(i); hitAt = i; tab[i] = k; keys.push(k);
+        if (path.length > 1) coll++;
+        return `h(${k}) = ${k} mod ${m} = <b>${i0}</b>` + (path.length > 1 ? `，位置被佔用，依序探測 ${path.join(' → ')}，放進索引 <b>${i}</b>（探測 ${path.length} 次）。` : '，位置是空的，直接放入。');
+      };
+      const find = k => {
+        const i0 = h(k);
+        if (mode === 'chain') {
+          path = [i0]; const pos = tab[i0].indexOf(k); hitAt = pos >= 0 ? i0 : -1;
+          return `h(${k}) = ${i0}，在桶子 ${i0} 的串列中` + (pos >= 0 ? `第 ${pos + 1} 個找到 ${k}。` : `比較了 ${tab[i0].length} 個元素，找不到 ${k}。`);
+        }
+        path = []; let i = i0;
+        for (let c = 0; c < m; c++) {
+          path.push(i);
+          if (tab[i] === null) { hitAt = -1; return `h(${k}) = ${i0}，探測 ${path.join(' → ')}，遇到空位就停止：${k} 不在表中。`; }
+          if (tab[i] === k) { hitAt = i; return `h(${k}) = ${i0}，探測 ${path.join(' → ')}，在索引 ${i} 找到 ${k}（探測 ${path.length} 次）。`; }
+          i = (i + 1) % m;
+        }
+        hitAt = -1; return `探測完整個表格都沒有找到 ${k}。`;
+      };
+      const run = () => {
+        const n = keys.length, lf = n / m;
+        const cls = i => `${path.includes(i) ? ' path' : ''}${i === hitAt ? ' on' : ''}`;
+        const body = mode === 'chain'
+          ? `<div class="hs-chain">${tab.map((b, i) => `<div class="hs-bucket${cls(i)}"><span class="hs-idx">[${i}]</span>${b.map(k => `<span class="hs-key">${k}</span>`).join('<span class="hs-arrow">→</span>') || '<span class="muted">∅</span>'}</div>`).join('')}</div>`
+          : `<div class="hs-probe">${tab.map((k, i) => `<div class="hs-slot${cls(i)}"><small>${i}</small><b>${k === null ? '' : k}</b></div>`).join('')}</div>`;
+        const warn = mode === 'probe' && lf > 0.7 ? '　<span class="tag warn">α > 0.7，探測會越來越長</span>' : mode === 'chain' && lf > 1 ? '　<span class="tag warn">α > 1，平均每個桶子超過一個元素</span>' : '';
+        $('#hsOut', root).innerHTML = body + `<p class="small" style="margin:8px 0 0">${msg}</p><p class="small muted" style="margin:4px 0 0">元素 ${n} 個，負載因子 α = ${n}/${m} = ${lf.toFixed(2)}，碰撞 ${coll} 次${warn}</p>`;
+      };
+      root.addEventListener('click', e => {
+        const b = e.target.closest('[data-hs]'); if (!b) return;
+        const k = Math.trunc(+$('#hsK', root).value || 0), a = b.dataset.hs;
+        if (a === 'ins') msg = insert(k);
+        if (a === 'find') msg = find(k);
+        if (a === 'clear') { reset(); msg = '已清空。'; }
+        if (a === 'demo') { reset(); const log = [15, 22, 8, 29, 36, 1, 43].map(insert); path = []; hitAt = -1; msg = `依序插入 15 22 8 29 36 1 43（m = ${m}）：<br>` + log.join('<br>') + (m === 7 ? '<br><b>這組鍵值除以 7 都餘 1，全部擠在同一處，是雜湊的最壞情況。改成 m = 10 或 11 再試一次。</b>' : ''); }
+        run();
+      });
+      $('#hsM', root).addEventListener('change', e => { m = +e.target.value; reset(); msg = `表格大小改為 ${m}。表格大小通常選質數，鍵值會分布得比較平均。`; run(); });
+      tabsSelect(root, (t, v) => { mode = v; reset(); msg = INTRO[v]; run(); });
+      reset(); msg = INTRO.chain; run();
+    }
+    if (id === 'bstviz') {
+      let top = null, path = [], hit = null, msg = '';
+      const count = n => n ? 1 + count(n.l) + count(n.r) : 0;
+      const height = n => n ? 1 + Math.max(height(n.l), height(n.r)) : 0;
+      const dir = (v, c) => `${v} ${v < c ? '<' : '>'} ${c} 往${v < c ? '左' : '右'}`;
+      const ins = v => {
+        if (!top) { top = { v, l: null, r: null }; path = [v]; return `${v} 成為根節點。`; }
+        if (count(top) >= 31) return '示範最多 31 個節點。';
+        let cur = top; path = []; const steps = [];
+        for (;;) {
+          path.push(cur.v);
+          if (v === cur.v) return `${v} 已經存在，二元搜尋樹不存重複的值。`;
+          const side = v < cur.v ? 'l' : 'r';
+          steps.push(dir(v, cur.v));
+          if (!cur[side]) { cur[side] = { v, l: null, r: null }; path.push(v); return `插入 ${v}：${steps.join('，')}，放在空位。`; }
+          cur = cur[side];
+        }
+      };
+      const find = v => {
+        let cur = top; path = []; const steps = [];
+        while (cur) {
+          path.push(cur.v);
+          if (v === cur.v) { hit = v; return `搜尋 ${v}：${steps.concat(`找到 ${v}`).join('，')}，共比較 ${path.length} 次。`; }
+          steps.push(dir(v, cur.v));
+          cur = v < cur.v ? cur.l : cur.r;
+        }
+        return `搜尋 ${v}：${steps.join('，') || '樹是空的'}，走到空的位置，${v} 不在樹中。`;
+      };
+      const del = v => {
+        let parent = null, cur = top;
+        while (cur && cur.v !== v) { parent = cur; cur = v < cur.v ? cur.l : cur.r; }
+        if (!cur) return `${v} 不在樹中，無法刪除。`;
+        if (cur.l && cur.r) {
+          let sp = cur, s = cur.r;
+          while (s.l) { sp = s; s = s.l; }
+          cur.v = s.v;
+          if (sp === cur) sp.r = s.r; else sp.l = s.r;
+          path = [s.v];
+          return `${v} 有兩個子節點：用右子樹中最小的 ${s.v}（中序後繼者）取代它，再刪除原本的 ${s.v}。`;
+        }
+        const child = cur.l || cur.r;
+        if (!parent) top = child; else if (parent.l === cur) parent.l = child; else parent.r = child;
+        return child ? `${v} 只有一個子節點，讓子節點 ${child.v} 接到它的位置。` : `${v} 是葉節點，直接移除。`;
+      };
+      const walk = (n, order, out) => { if (!n) return out; if (order === 'pre') out.push(n.v); walk(n.l, order, out); if (order === 'in') out.push(n.v); walk(n.r, order, out); if (order === 'post') out.push(n.v); return out; };
+      const level = () => { const out = [], q = top ? [top] : []; while (q.length) { const n = q.shift(); out.push(n.v); if (n.l) q.push(n.l); if (n.r) q.push(n.r); } return out; };
+      const run = () => {
+        const nodes = [], edges = []; let x = 0;
+        const lay = (n, d) => { if (!n) return; lay(n.l, d + 1); nodes.push({ id: n.v, x: x++, d, label: n.v, cls: n.v === hit ? 'on' : path.includes(n.v) ? 'path' : '' }); lay(n.r, d + 1); if (n.l) edges.push([n.v, n.l.v]); if (n.r) edges.push([n.v, n.r.v]); };
+        lay(top, 0);
+        const cnt = nodes.length, hgt = height(top);
+        $('#bvOut', root).innerHTML = `<div class="tv-wrap">${treeSvg(nodes, edges)}</div>
+          <p class="small" style="margin:8px 0 0">${msg}</p>
+          <table class="tbl" style="margin-top:8px">
+            <tr><td>前序（根左右）</td><td class="mono">${walk(top, 'pre', []).join(' ') || '—'}</td></tr>
+            <tr><td>中序（左根右）</td><td class="mono">${walk(top, 'in', []).join(' ') || '—'}</td></tr>
+            <tr><td>後序（左右根）</td><td class="mono">${walk(top, 'post', []).join(' ') || '—'}</td></tr>
+            <tr><td>層序（BFS）</td><td class="mono">${level().join(' ') || '—'}</td></tr>
+          </table>
+          <p class="small muted" style="margin:6px 0 0">節點 ${cnt} 個、共 ${hgt} 層（最少可以只有 ${cnt ? Math.ceil(Math.log2(cnt + 1)) : 0} 層）。中序走訪一定由小到大。${cnt >= 4 && hgt === cnt ? '　<span class="tag warn">已退化成鏈結串列，搜尋變成 O(n)</span>' : ''}</p>`;
+      };
+      root.addEventListener('click', e => {
+        const b = e.target.closest('[data-bv]'); if (!b) return;
+        const a = b.dataset.bv, nums = ($('#bvVal', root).value.match(/-?\d+/g) || []).map(Number).slice(0, 20);
+        const many = list => { top = null; list.forEach(ins); path = []; };
+        hit = null; path = [];
+        if (a === 'ins') { if (!nums.length) msg = '請輸入數字。'; else { msg = nums.map(ins).join('<br>'); if (nums.length > 1) path = []; } }
+        if (a === 'find') msg = nums.length ? find(nums[0]) : '請輸入要搜尋的數字。';
+        if (a === 'del') msg = nums.length ? del(nums[0]) : '請輸入要刪除的數字。';
+        if (a === 'demo') { many([50, 30, 70, 20, 40, 60, 80]); msg = '平衡的範例：7 個節點只有 3 層，搜尋最多比較 3 次。'; }
+        if (a === 'line') { many([10, 20, 30, 40, 50]); msg = '依遞增順序插入，每個節點都只有右子節點，退化成鏈結串列。'; }
+        if (a === 'rand') { const s = new Set(); while (s.size < 8) s.add(1 + Math.floor(Math.random() * 99)); many([...s]); msg = `隨機依序插入：${[...s].join(' ')}`; }
+        if (a === 'clear') { top = null; msg = '已清空。'; }
+        run();
+      });
+      [50, 30, 70, 20, 40, 60, 80].forEach(ins); path = [];
+      msg = '已插入範例 50 30 70 20 40 60 80。輸入數字後按「插入」「搜尋」或「刪除」。'; run();
+    }
+    if (id === 'heapviz') {
+      let mode = 'min', a = [], mark = [], msg = '';
+      const better = (x, y) => mode === 'min' ? x < y : x > y;
+      const word = () => mode === 'min' ? '最小' : '最大';
+      const swap = (i, j) => { [a[i], a[j]] = [a[j], a[i]]; };
+      const up = i => { const log = []; while (i > 0) { const p = (i - 1) >> 1; if (!better(a[i], a[p])) break; log.push(`與父節點 ${a[p]} 交換`); swap(i, p); i = p; mark.push(i); } return log; };
+      const down = i => {
+        const log = [];
+        for (;;) {
+          const l = 2 * i + 1, r = l + 1; let b = i;
+          if (l < a.length && better(a[l], a[b])) b = l;
+          if (r < a.length && better(a[r], a[b])) b = r;
+          if (b === i) return log;
+          log.push(`與${b === l ? '左' : '右'}子節點 ${a[b]} 交換`); swap(i, b); i = b; mark.push(i);
+        }
+      };
+      const push = x => {
+        if (a.length >= 15) return '示範最多 15 個元素。';
+        a.push(x); mark = [a.length - 1];
+        const log = up(a.length - 1);
+        return `push(${x})：先放在陣列最後（索引 ${mark[0]}），` + (log.length ? `${log.join('，')}，上浮 ${log.length} 層。` : `不比父節點${mode === 'min' ? '小' : '大'}，不用移動。`);
+      };
+      const build = list => {
+        a = list.slice(0, 15); mark = []; let k = 0;
+        for (let i = (a.length >> 1) - 1; i >= 0; i--) k += down(i).length;
+        mark = [];
+        return `由下而上建堆積：從最後一個非葉節點（索引 ${Math.max(0, (a.length >> 1) - 1)}）往前逐一下沉，共交換 ${k} 次，時間複雜度 O(n)。`;
+      };
+      const run = () => {
+        const nodes = a.map((v, i) => ({ id: i, d: Math.floor(Math.log2(i + 1)), label: v, cls: mark.includes(i) ? 'path' : i === 0 ? 'top' : '' }));
+        let x = 0; const lay = i => { if (i >= a.length) return; lay(2 * i + 1); nodes[i].x = x++; lay(2 * i + 2); }; lay(0);
+        const edges = a.map((_, i) => i ? [(i - 1) >> 1, i] : null).filter(Boolean);
+        $('#hpOut', root).innerHTML = `
+          <div class="hp-arr">${a.map((v, i) => `<div class="hp-cell${mark.includes(i) ? ' path' : ''}${i === 0 ? ' top' : ''}"><small>${i}</small><b>${v}</b></div>`).join('') || '<span class="small muted">（空的）</span>'}</div>
+          <div class="tv-wrap">${treeSvg(nodes, edges)}</div>
+          <p class="small" style="margin:8px 0 0">${msg}</p>
+          <p class="small muted" style="margin:4px 0 0">${word()}堆積：每個節點都${mode === 'min' ? '小於' : '大於'}或等於子節點，頂端 a[0] 就是${word()}值。索引 i 的父節點是 (i - 1) / 2，子節點是 2i + 1 與 2i + 2。</p>`;
+      };
+      root.addEventListener('click', e => {
+        const b = e.target.closest('[data-hp]'); if (!b) return;
+        const act = b.dataset.hp, nums = ($('#hpVal', root).value.match(/-?\d+/g) || []).map(Number).slice(0, 15);
+        if (act === 'push') msg = nums.length ? nums.map(push).join('<br>') : '請輸入數字。';
+        if (act === 'pop') {
+          if (!a.length) { mark = []; msg = '堆積是空的，不能 pop。'; }
+          else {
+            const t = a[0], last = a.pop();
+            if (a.length) { a[0] = last; mark = [0]; const log = down(0); msg = `pop()：取出頂端的 ${t}，把最後一個元素 ${last} 移到根，` + (log.length ? `${log.join('，')}，下沉 ${log.length} 層。` : '不用移動。'); }
+            else { mark = []; msg = `pop()：取出 ${t}，堆積變成空的。`; }
+          }
+        }
+        if (act === 'build') msg = nums.length ? build(nums) : '請輸入數字，例如 5 3 8 1 9 2。';
+        if (act === 'clear') { a = []; mark = []; msg = '已清空。'; }
+        run();
+      });
+      tabsSelect(root, (t, v) => { mode = v; msg = `切換為${word()}堆積，重新建堆積。` + build(a); run(); });
+      [5, 3, 8, 1, 9, 2].forEach(push); mark = [];
+      msg = '已依序 push 5 3 8 1 9 2。試試 push 一個很小的數，或按 pop 取出頂端。'; run();
+    }
+    if (id === 'sortviz') {
+      let algo = 'bubble', src = [38, 27, 43, 3, 9, 82, 10], steps = [];
+      const gen = () => {
+        const a = [...src], n = a.length, S = [], done = new Set(); let cmp = 0, swp = 0;
+        const snap = (hl, msg) => S.push({ a: [...a], hl, done: new Set(done), msg, cmp, swp });
+        const sw = (i, j) => { [a[i], a[j]] = [a[j], a[i]]; swp++; };
+        snap({}, '初始陣列。按「下一步」開始。');
+        if (algo === 'bubble') {
+          for (let i = 0; i < n - 1; i++) {
+            let any = false;
+            for (let j = 0; j < n - 1 - i; j++) {
+              cmp++;
+              const x = a[j], y = a[j + 1];
+              if (x > y) { sw(j, j + 1); any = true; snap({ [j]: 'swap', [j + 1]: 'swap' }, `第 ${i + 1} 輪：${x} > ${y}，交換。`); }
+              else snap({ [j]: 'cmp', [j + 1]: 'cmp' }, `第 ${i + 1} 輪：比較 ${x} 與 ${y}，順序正確，不交換。`);
+            }
+            done.add(n - 1 - i);
+            if (!any) { snap({}, `第 ${i + 1} 輪沒有發生任何交換，表示已經排好，提早結束。`); break; }
+            snap({}, `第 ${i + 1} 輪結束：這一輪最大的 ${a[n - 1 - i]} 浮到位置 ${n - 1 - i}。`);
+          }
+        }
+        if (algo === 'insert') {
+          for (let i = 1; i < n; i++) {
+            let j = i;
+            snap({ [i]: 'key' }, `取出 a[${i}] = ${a[i]}，往左插入前面已排好的部分。`);
+            while (j > 0) {
+              cmp++;
+              const x = a[j - 1], y = a[j];
+              if (x > y) { sw(j - 1, j); snap({ [j - 1]: 'swap', [j]: 'swap' }, `${x} > ${y}，${y} 往左移一格。`); j--; }
+              else { snap({ [j - 1]: 'cmp', [j]: 'key' }, `${x} ≤ ${y}，停止：${y} 已插入正確位置。`); break; }
+            }
+            if (j === 0) snap({ 0: 'key' }, `${a[0]} 是目前最小的，放到最前面。`);
+          }
+        }
+        if (algo === 'select') {
+          for (let i = 0; i < n - 1; i++) {
+            let mi = i;
+            for (let j = i + 1; j < n; j++) {
+              cmp++;
+              if (a[j] < a[mi]) { mi = j; snap({ [i]: 'cur', [j]: 'key' }, `${a[j]} 更小，記為目前的最小值。`); }
+              else snap({ [i]: 'cur', [j]: 'cmp', [mi]: 'key' }, `比較 ${a[j]} 與目前最小值 ${a[mi]}。`);
+            }
+            done.add(i);
+            if (mi !== i) { const x = a[i], y = a[mi]; sw(i, mi); snap({ [i]: 'swap', [mi]: 'swap' }, `把最小值 ${y} 與位置 ${i} 的 ${x} 交換。`); }
+            else snap({ [i]: 'key' }, `${a[i]} 已經是最小值，不用交換。`);
+          }
+        }
+        if (algo === 'quick') {
+          const qs = (lo, hi) => {
+            if (lo > hi) return;
+            if (lo === hi) { done.add(lo); return; }
+            const p = a[hi], rng = {}; let i = lo;
+            for (let k = lo; k <= hi; k++) rng[k] = 'range';
+            snap({ ...rng, [hi]: 'pivot' }, `處理區間 [${lo}, ${hi}]，選最後一個元素 ${p} 當樞紐。`);
+            for (let j = lo; j < hi; j++) {
+              cmp++;
+              if (a[j] < p) {
+                const x = a[i], y = a[j];
+                if (i !== j) sw(i, j);
+                snap({ ...rng, [hi]: 'pivot', [i]: 'swap', [j]: 'swap' }, i !== j ? `${y} < ${p}，與位置 ${i} 的 ${x} 交換，放到左邊。` : `${y} < ${p}，留在左邊。`);
+                i++;
+              } else snap({ ...rng, [hi]: 'pivot', [j]: 'cmp' }, `${a[j]} ≥ ${p}，留在右邊。`);
+            }
+            if (i !== hi) sw(i, hi);
+            done.add(i);
+            snap({ [i]: 'pivot' }, `把樞紐 ${p} 放到位置 ${i}：左邊都比它小，右邊都不小於它。`);
+            qs(lo, i - 1); qs(i + 1, hi);
+          };
+          qs(0, n - 1);
+        }
+        if (algo === 'merge') {
+          const ms = (l, r) => {
+            if (r - l <= 1) return;
+            const m = (l + r) >> 1; ms(l, m); ms(m, r);
+            const rng = {}; for (let k = l; k < r; k++) rng[k] = 'range';
+            snap(rng, `合併 [${l}, ${m - 1}] 與 [${m}, ${r - 1}] 兩段已排好的部分。`);
+            const L = a.slice(l, m), R = a.slice(m, r); let i = 0, j = 0, k = l;
+            while (i < L.length || j < R.length) {
+              let v;
+              if (j >= R.length || (i < L.length && L[i] <= R[j])) { if (j < R.length) cmp++; v = L[i++]; }
+              else { if (i < L.length) cmp++; v = R[j++]; }
+              a[k] = v; swp++;
+              snap({ ...rng, [k]: 'swap' }, `取兩段開頭中較小的 ${v}，寫到位置 ${k}。`);
+              k++;
+            }
+          };
+          ms(0, n);
+        }
+        for (let k = 0; k < n; k++) done.add(k);
+        snap({}, `排序完成！共比較 ${cmp} 次、${algo === 'merge' ? '寫入' : '交換'} ${swp} 次。`);
+        return S;
+      };
+      const draw = i => {
+        const s = steps[i], mx = Math.max(...s.a, 1);
+        $('#svBars', root).innerHTML = s.a.map((v, k) => `<div class="sv-bar ${s.hl[k] || (s.done.has(k) ? 'done' : '')}"><i style="height:${Math.max(3, v / mx * 85)}%"></i><span>${v}</span></div>`).join('');
+        $('#svMsg', root).innerHTML = `${esc(s.msg)}<br><span class="muted">比較 ${s.cmp} 次、${algo === 'merge' ? '寫入' : '交換'} ${s.swp} 次</span>`;
+      };
+      const go = stepCtl(root, 'sv', () => steps.length, draw, 600);
+      const rebuild = () => { steps = gen(); go(0); };
+      root.addEventListener('click', e => {
+        const b = e.target.closest('[data-svx]'); if (!b) return;
+        const inp = $('#svArr', root);
+        if (b.dataset.svx === 'rand') inp.value = Array.from({ length: 8 }, () => 1 + Math.floor(Math.random() * 99)).join(' ');
+        if (b.dataset.svx === 'sorted') inp.value = '3 9 10 27 82 38 43 50';
+        const nums = (inp.value.match(/\d+/g) || []).map(Number).filter(x => x <= 999).slice(0, 12);
+        if (nums.length < 2) { $('#svMsg', root).textContent = '請輸入 2～12 個 0～999 的整數。'; return; }
+        src = nums; inp.value = nums.join(' '); rebuild();
+      });
+      tabsSelect(root, (t, v) => { algo = v; rebuild(); });
+      rebuild();
+    }
+    if (id === 'bsearch') {
+      let mode = 'find', arr = [], t = 0, steps = [];
+      const gen = () => {
+        const S = [], n = arr.length;
+        if (mode === 'find') {
+          let lo = 0, hi = n - 1;
+          S.push({ lo, hi, mid: -1, msg: `閉區間寫法：lo = 0、hi = n - 1 = ${hi}，答案若存在，一定在 [lo, hi] 之內。` });
+          while (lo <= hi) {
+            const mid = lo + ((hi - lo) >> 1);
+            if (arr[mid] === t) { S.push({ lo, hi, mid, found: mid, msg: `mid = ${lo} + (${hi} - ${lo}) / 2 = ${mid}，a[${mid}] = ${arr[mid]} 等於 ${t}，找到了！回傳 ${mid}，共比較 ${S.length} 次。` }); return S; }
+            if (arr[mid] < t) { S.push({ lo, hi, mid, msg: `mid = ${lo} + (${hi} - ${lo}) / 2 = ${mid}，a[${mid}] = ${arr[mid]} < ${t}，答案在右半：lo = mid + 1 = ${mid + 1}。` }); lo = mid + 1; }
+            else { S.push({ lo, hi, mid, msg: `mid = ${lo} + (${hi} - ${lo}) / 2 = ${mid}，a[${mid}] = ${arr[mid]} > ${t}，答案在左半：hi = mid - 1 = ${mid - 1}。` }); hi = mid - 1; }
+          }
+          S.push({ lo, hi, mid: -1, msg: `lo = ${lo} > hi = ${hi}，區間已經空了，${t} 不在陣列中，回傳 -1。共比較 ${S.length - 1} 次。` });
+        } else {
+          let lo = 0, hi = n;
+          S.push({ lo, hi, mid: -1, half: 1, msg: `半開區間寫法：lo = 0、hi = n = ${n}，答案在 [lo, hi) 之內（答案可能是 n，代表全部都比 x 小）。` });
+          while (lo < hi) {
+            const mid = lo + ((hi - lo) >> 1);
+            if (arr[mid] >= t) { S.push({ lo, hi, mid, half: 1, msg: `mid = ${mid}，a[${mid}] = ${arr[mid]} ≥ ${t}，mid 可能就是答案，要保留：hi = mid = ${mid}。` }); hi = mid; }
+            else { S.push({ lo, hi, mid, half: 1, msg: `mid = ${mid}，a[${mid}] = ${arr[mid]} < ${t}，答案在 mid 的右邊：lo = mid + 1 = ${mid + 1}。` }); lo = mid + 1; }
+          }
+          S.push({ lo, hi, mid: -1, half: 1, found: lo < n ? lo : -1, end: lo === n, msg: lo < n ? `lo = hi = ${lo}，第一個 ≥ ${t} 的位置是 ${lo}（a[${lo}] = ${arr[lo]}）。` + (arr[lo] === t ? `${t} 存在於陣列中。` : `陣列中沒有 ${t}，${lo} 是它應該插入的位置。`) : `lo = hi = ${n}（等於 n），陣列中所有元素都比 ${t} 小。` });
+        }
+        return S;
+      };
+      const draw = i => {
+        const s = steps[i], n = arr.length, inR = k => s.half ? k >= s.lo && k < s.hi : k >= s.lo && k <= s.hi;
+        const tags = k => [k === s.lo && 'lo', k === s.mid && 'mid', k === s.hi && 'hi'].filter(Boolean).join(' ');
+        const cells = arr.map((v, k) => `<div class="bs-cell${inR(k) ? '' : ' out'}${k === s.mid ? ' mid' : ''}${k === s.found ? ' on' : ''}"><small>${k}</small><b>${v}</b><span>${tags(k)}</span></div>`);
+        if (s.half) cells.push(`<div class="bs-cell end${s.end ? ' on' : ''}"><small>${n}</small><b>·</b><span>${tags(n)}</span></div>`);
+        $('#bsCells', root).innerHTML = cells.join('');
+        $('#bsVars', root).textContent = `lo = ${s.lo}   hi = ${s.hi}${s.mid >= 0 ? `   mid = ${s.mid}   a[mid] = ${arr[s.mid]}` : ''}   x = ${t}`;
+        $('#bsMsg', root).textContent = s.msg;
+      };
+      const go = stepCtl(root, 'bs', () => steps.length, draw, 1000);
+      const rebuild = () => {
+        arr = ($('#bsArr', root).value.match(/-?\d+/g) || []).map(Number).slice(0, 16).sort((x, y) => x - y);
+        if (!arr.length) arr = [1];
+        $('#bsArr', root).value = arr.join(' ');
+        t = Math.trunc(+$('#bsT', root).value || 0); steps = gen(); go(0);
+      };
+      root.addEventListener('click', e => {
+        const b = e.target.closest('[data-bsx]'); if (!b) return;
+        if (b.dataset.bsx === 'rand') {
+          const s = []; let v = 1;
+          for (let k = 0; k < 12; k++) { v += (mode === 'lb' ? 0 : 1) + Math.floor(Math.random() * 6); s.push(v); }
+          $('#bsArr', root).value = s.join(' '); $('#bsT', root).value = s[Math.floor(Math.random() * 12)] + (Math.random() < .3 ? 1 : 0);
+        }
+        rebuild();
+      });
+      root.addEventListener('change', e => { if (e.target.id === 'bsT' || e.target.id === 'bsArr') rebuild(); });
+      tabsSelect(root, (tb, v) => {
+        mode = v;
+        if (v === 'lb' && $('#bsArr', root).value === '2 5 8 12 16 23 38 56 72 91') { $('#bsArr', root).value = '1 3 3 3 5 8 13'; $('#bsT', root).value = 3; }
+        rebuild();
+      });
+      rebuild();
+    }
+    if (id === 'dpgrid') {
+      let mode = 'knap', M;
+      const INPUTS = {
+        knap: [['dgW', '重量', '1 3 4 5'], ['dgV', '價值', '15 20 30 55'], ['dgC', '容量 W', '8']],
+        lcs: [['dgA', '字串 A', 'ABCBDAB'], ['dgB', '字串 B', 'BDCABA']],
+        edit: [['dgA', '字串 A', 'kitten'], ['dgB', '字串 B', 'sitting']]
+      };
+      const INTRO = {
+        knap: 'dp[i][j]：只考慮前 i 個物品、背包容量為 j 時的最大價值。第 0 列（沒有物品）全部是 0。',
+        lcs: 'dp[i][j]：A 的前 i 個字元與 B 的前 j 個字元的 LCS 長度。第 0 列與第 0 欄代表空字串，值為 0。',
+        edit: 'dp[i][j]：把 A 的前 i 個字元變成 B 的前 j 個字元的最少操作數。第 0 列要插入 j 次、第 0 欄要刪除 i 次。'
+      };
+      const inputs = () => { $('#dgIn', root).innerHTML = INPUTS[mode].map(([k, l, v]) => `<label class="small">${l} <input class="input mono" id="${k}" value="${v}" style="width:${k === 'dgC' ? 60 : 130}px"></label>`).join('') + '<button class="btn sm outline" type="button" data-dgx="apply">重新計算</button>'; };
+      const build = () => {
+        const g = k => ($('#' + k, root) || {}).value || '';
+        let R, C, val, rh, ch, base, info, after;
+        if (mode === 'knap') {
+          const w = (g('dgW').match(/\d+/g) || []).map(Number).slice(0, 6), v = (g('dgV').match(/\d+/g) || []).map(Number);
+          const n = Math.min(w.length, v.length), W = Math.min(15, Math.max(1, +(g('dgC').match(/\d+/) || [8])[0]));
+          R = n + 1; C = W + 1;
+          val = Array.from({ length: R }, () => Array(C).fill(0));
+          rh = ['0 個物品'].concat(w.slice(0, n).map((x, i) => `物品 ${i + 1}（w=${x}, v=${v[i]}）`));
+          ch = Array.from({ length: C }, (_, j) => j);
+          base = i => i === 0;
+          info = (i, j) => {
+            const wi = w[i - 1], vi = v[i - 1], skip = val[i - 1][j];
+            if (j < wi) { val[i][j] = skip; return { deps: [[i - 1, j]], msg: `dp[${i}][${j}]：容量 ${j} 放不下物品 ${i}（重量 ${wi}），只能不選 = dp[${i - 1}][${j}] = ${skip}。` }; }
+            const take = val[i - 1][j - wi] + vi; val[i][j] = Math.max(skip, take);
+            return { deps: [[i - 1, j], [i - 1, j - wi]], msg: `dp[${i}][${j}] = max(不選：dp[${i - 1}][${j}] = ${skip}，選物品 ${i}：dp[${i - 1}][${j - wi}] + ${vi} = ${take}) = ${val[i][j]}。` };
+          };
+          after = path => {
+            let j = W; const pick = [];
+            for (let i = n; i >= 1; i--) { path.push([i, j]); if (val[i][j] !== val[i - 1][j]) { pick.unshift(i); j -= w[i - 1]; } }
+            path.push([0, j]);
+            return `最大價值 dp[${n}][${W}] = ${val[n][W]}。由右下角回溯：值和上一列不同就代表選了該物品，所以選擇物品 ${pick.join('、') || '（無）'}。`;
+          };
+        } else {
+          const A = [...g('dgA')].slice(0, 10), B = [...g('dgB')].slice(0, 10), n = A.length, m = B.length, ed = mode === 'edit';
+          R = n + 1; C = m + 1;
+          val = Array.from({ length: R }, (_, i) => Array.from({ length: C }, (_, j) => ed ? (i === 0 ? j : j === 0 ? i : 0) : 0));
+          rh = ['∅'].concat(A); ch = ['∅'].concat(B);
+          base = (i, j) => i === 0 || j === 0;
+          info = (i, j) => {
+            const a = A[i - 1], b = B[j - 1];
+            if (!ed) {
+              if (a === b) { val[i][j] = val[i - 1][j - 1] + 1; return { deps: [[i - 1, j - 1]], msg: `'${a}' = '${b}'，字元相同：dp[${i}][${j}] = 左上 dp[${i - 1}][${j - 1}] + 1 = ${val[i][j]}。` }; }
+              val[i][j] = Math.max(val[i - 1][j], val[i][j - 1]);
+              return { deps: [[i - 1, j], [i, j - 1]], msg: `'${a}' ≠ '${b}'：dp[${i}][${j}] = max(上方 ${val[i - 1][j]}，左方 ${val[i][j - 1]}) = ${val[i][j]}。` };
+            }
+            if (a === b) { val[i][j] = val[i - 1][j - 1]; return { deps: [[i - 1, j - 1]], msg: `'${a}' = '${b}'，不需要操作：dp[${i}][${j}] = 左上 ${val[i][j]}。` }; }
+            const del = val[i - 1][j], ins = val[i][j - 1], rep = val[i - 1][j - 1];
+            val[i][j] = 1 + Math.min(del, ins, rep);
+            return { deps: [[i - 1, j], [i, j - 1], [i - 1, j - 1]], msg: `'${a}' ≠ '${b}'：dp[${i}][${j}] = 1 + min(刪除：上方 ${del}，插入：左方 ${ins}，替換：左上 ${rep}) = ${val[i][j]}。` };
+          };
+          after = path => {
+            let i = n, j = m;
+            if (!ed) {
+              let s = '';
+              while (i > 0 && j > 0) {
+                path.push([i, j]);
+                if (A[i - 1] === B[j - 1]) { s = A[i - 1] + s; i--; j--; } else if (val[i - 1][j] >= val[i][j - 1]) i--; else j--;
+              }
+              path.push([i, j]);
+              return `LCS 長度 dp[${n}][${m}] = ${val[n][m]}。由右下角回溯（字元相同就往左上並記下字元），得到其中一組 LCS：${s || '（空）'}。`;
+            }
+            const ops = [];
+            while (i > 0 || j > 0) {
+              path.push([i, j]);
+              if (i > 0 && j > 0 && A[i - 1] === B[j - 1]) { i--; j--; }
+              else if (i > 0 && j > 0 && val[i][j] === val[i - 1][j - 1] + 1) { ops.unshift(`替換 ${A[i - 1]}→${B[j - 1]}`); i--; j--; }
+              else if (i > 0 && val[i][j] === val[i - 1][j] + 1) { ops.unshift(`刪除 ${A[i - 1]}`); i--; }
+              else { ops.unshift(`插入 ${B[j - 1]}`); j--; }
+            }
+            path.push([0, 0]);
+            return `編輯距離 dp[${n}][${m}] = ${val[n][m]}。回溯得到的操作：${ops.join('、') || '（兩字串相同）'}。`;
+          };
+        }
+        const cells = [];
+        for (let i = 0; i < R; i++) for (let j = 0; j < C; j++) if (!base(i, j)) cells.push({ i, j, ...info(i, j) });
+        const path = [], answer = after(path);
+        return { R, C, val, rh, ch, base, cells, path, answer };
+      };
+      const draw = k => {
+        const { R, C, val, rh, ch, base, cells, path } = M;
+        const filled = new Set(cells.slice(0, Math.min(k, cells.length)).map(c => c.i + ',' + c.j));
+        const cur = k >= 1 && k <= cells.length ? cells[k - 1] : null;
+        const dep = new Set((cur ? cur.deps : []).map(([i, j]) => i + ',' + j));
+        const onPath = new Set(k > cells.length ? path.map(([i, j]) => i + ',' + j) : []);
+        let h = `<table class="dg-t"><tr><th>${mode === 'knap' ? '物品＼容量' : 'A＼B'}</th>${ch.map(c => `<th>${esc(c)}</th>`).join('')}</tr>`;
+        for (let i = 0; i < R; i++) {
+          h += `<tr><th>${esc(rh[i])}</th>`;
+          for (let j = 0; j < C; j++) {
+            const key = i + ',' + j, show = base(i, j) || filled.has(key);
+            const cls = cur && cur.i === i && cur.j === j ? 'cur' : dep.has(key) ? 'dep' : onPath.has(key) ? 'path' : base(i, j) ? 'base' : '';
+            h += `<td class="${cls}">${show ? val[i][j] : ''}</td>`;
+          }
+          h += '</tr>';
+        }
+        $('#dgTbl', root).innerHTML = h + '</table>';
+        $('#dgMsg', root).textContent = k === 0 ? INTRO[mode] : cur ? cur.msg : M.answer;
+      };
+      const go = stepCtl(root, 'dg', () => M.cells.length + 2, draw, 350);
+      const rebuild = () => { M = build(); go(0); };
+      root.addEventListener('click', e => { if (e.target.closest('[data-dgx]')) rebuild(); });
+      tabsSelect(root, (t, v) => { mode = v; inputs(); rebuild(); });
+      inputs(); rebuild();
+    }
+    if (id === 'graphpath') {
+      const POS = [[40, 120], [130, 35], [150, 125], [280, 40], [320, 170], [160, 205]];
+      const E = [[0, 1, 7], [0, 2, 9], [0, 5, 14], [1, 2, 10], [1, 3, 15], [2, 3, 11], [2, 5, 2], [3, 4, 6], [4, 5, 9]];
+      const adj = POS.map(() => []);
+      E.forEach(([u, v, w]) => { adj[u].push([v, w]); adj[v].push([u, w]); });
+      adj.forEach(l => l.sort((x, y) => x[0] - y[0]));
+      let algo = 'dij', src = 0, steps = [];
+      const gen = () => {
+        const n = POS.length, d = Array(n).fill(Infinity), prev = Array(n).fill(-1), fin = Array(n).fill(false), S = [];
+        const snap = (cur, relax, msg, q) => S.push({ d: [...d], prev: [...prev], fin: [...fin], cur, relax, msg, q });
+        d[src] = 0;
+        if (algo === 'dij') {
+          snap(-1, [], `起點 ${src} 的距離設為 0，其他頂點設為 ∞。每一步取出「尚未確定、目前距離最小」的頂點。`);
+          for (;;) {
+            let u = -1;
+            for (let i = 0; i < n; i++) if (!fin[i] && d[i] < Infinity && (u < 0 || d[i] < d[u])) u = i;
+            if (u < 0) break;
+            fin[u] = true; const relax = [], log = [];
+            for (const [v, w] of adj[u]) {
+              if (fin[v]) continue;
+              if (d[u] + w < d[v]) { log.push(`${v}：${d[v] === Infinity ? '∞' : d[v]} → ${d[u]} + ${w} = ${d[u] + w}`); d[v] = d[u] + w; prev[v] = u; relax.push([u, v]); }
+              else log.push(`${v}：${d[u]} + ${w} = ${d[u] + w} 沒有比 ${d[v]} 短，不更新`);
+            }
+            snap(u, relax, `取出頂點 ${u}（距離 ${d[u]}，已確定是最短）。鬆弛相鄰的邊：${log.join('；') || '沒有尚未確定的鄰居'}。`);
+          }
+        } else {
+          const q = [src], seen = Array(n).fill(false); seen[src] = true;
+          snap(-1, [], `起點 ${src} 放入佇列，距離為 0。BFS 忽略權重，求的是「最少經過幾條邊」。`, [...q]);
+          while (q.length) {
+            const u = q.shift(), relax = [], add = [];
+            fin[u] = true;
+            for (const [v] of adj[u]) if (!seen[v]) { seen[v] = true; d[v] = d[u] + 1; prev[v] = u; q.push(v); relax.push([u, v]); add.push(v); }
+            snap(u, relax, `取出頂點 ${u}（${d[u]} 條邊）。${add.length ? `把還沒拜訪過的鄰居 ${add.join('、')} 加入佇列，距離設為 ${d[u] + 1}。` : '沒有新的鄰居。'}`, [...q]);
+          }
+        }
+        S.push({ ...S[S.length - 1], cur: -1, relax: [], final: true, msg: algo === 'dij' ? '完成！綠色粗線是最短路徑樹，下方列出到每個頂點的最短路徑。' : '完成！BFS 找到的是邊數最少的路徑，不一定是權重總和最小的路徑（可切換到 Dijkstra 比較）。' });
+        return S;
+      };
+      const draw = i => {
+        const s = steps[i];
+        const isT = (u, v) => s.prev[v] === u || s.prev[u] === v;
+        const isR = (u, v) => s.relax.some(([x, y]) => (x === u && y === v) || (x === v && y === u));
+        $('#gpSvg', root).innerHTML = `<svg class="gp-svg" viewBox="0 0 360 240">${E.map(([u, v, w]) => {
+          const [x1, y1] = POS[u], [x2, y2] = POS[v];
+          return `<g class="${isR(u, v) ? 'relax' : isT(u, v) ? 'tree' : ''}"><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>${algo === 'dij' ? `<text class="w" x="${(x1 + x2) / 2}" y="${(y1 + y2) / 2}">${w}</text>` : ''}</g>`;
+        }).join('')}${POS.map(([x, y], k) => `<g class="nd ${k === s.cur ? 'cur' : s.fin[k] ? 'done' : s.d[k] < Infinity ? 'front' : ''}"><circle cx="${x}" cy="${y}" r="17"/><text x="${x}" y="${y}">${k}</text><text class="dl" x="${x}" y="${y - 26}">${s.d[k] === Infinity ? '∞' : s.d[k]}</text></g>`).join('')}</svg>`;
+        const pathTo = k => { const p = []; for (let x = k; x !== -1; x = s.prev[x]) p.unshift(x); return p.join(' → '); };
+        $('#gpTbl', root).innerHTML = `<div class="table-wrap"><table class="tbl small" style="margin-top:8px"><tr><th>頂點</th>${POS.map((_, k) => `<th>${k}</th>`).join('')}</tr><tr><td>${algo === 'dij' ? '距離' : '邊數'}</td>${s.d.map((x, k) => `<td class="mono${s.fin[k] ? ' gp-fin' : ''}">${x === Infinity ? '∞' : x}</td>`).join('')}</tr>${s.q ? `<tr><td>佇列</td><td colspan="${POS.length}" class="mono">${s.q.join(' ') || '（空）'}</td></tr>` : ''}</table></div>`
+          + (s.final ? `<div class="out" style="margin-top:8px">${POS.map((_, k) => `${k}：${pathTo(k)}（${algo === 'dij' ? '距離' : '邊數'} ${s.d[k]}）`).join('\n')}</div>` : '');
+        $('#gpMsg', root).textContent = s.msg;
+      };
+      const go = stepCtl(root, 'gp', () => steps.length, draw, 1100);
+      const rebuild = () => { steps = gen(); go(0); };
+      $('#gpSrc', root).addEventListener('change', e => { src = +e.target.value; rebuild(); });
+      tabsSelect(root, (t, v) => { algo = v; rebuild(); });
+      rebuild();
+    }
+    if (id === 'jsxconv') {
+      const EX = [
+        '<h1 className="title">Hello, React!</h1>',
+        'const user = { name: \'小明\', avatar: \'me.png\' };\nconst el = (\n  <div style={{ color: \'red\' }} onClick={() => alert(1)}>\n    <img src={user.avatar} alt="" />\n    你好，{user.name}，今天 {2 + 3} 度\n  </div>\n);',
+        'function Card({ title, children }) {\n  return <section><h2>{title}</h2>{children}</section>;\n}\n\nconst el = <Card title="公告"><p>明天放假</p></Card>;',
+        'const el = (\n  <ul>\n    {isLoggedIn ? <li>歡迎</li> : <li>請登入</li>}\n    {items.map(item => <li key={item.id}>{item.name}</li>)}\n  </ul>\n);',
+        'const el = (\n  <>\n    <h2>標題</h2>\n    <p>內文</p>\n  </>\n);'
+      ];
+      let rt = 'classic', timer = null, babel = null;
+      const load = () => babel || (babel = new Promise((ok, fail) => {
+        if (window.Babel) return ok(window.Babel);
+        const s = document.createElement('script');
+        s.src = '/static/vendor/react/babel.min.js';
+        s.onload = () => ok(window.Babel);
+        s.onerror = () => { babel = null; s.remove(); fail(new Error('load')); };
+        document.head.appendChild(s);
+      }));
+      const run = async () => {
+        const st = $('#jcSt', root), out = $('#jcOut', root);
+        if (!window.Babel) st.textContent = '第一次使用，正在載入 Babel（約 3 MB）…';
+        try { await load(); } catch { st.textContent = ''; out.textContent = '無法載入 Babel，請檢查網路連線後再試一次。'; return; }
+        st.textContent = '';
+        try {
+          out.textContent = window.Babel.transform($('#jcIn', root).value, { presets: [['react', { runtime: rt }]], sourceType: 'module', filename: 'App.jsx' }).code;
+          out.classList.remove('bad');
+        } catch (e) { out.textContent = '語法錯誤：' + String(e.message).replace(/^\/?App\.jsx: /, ''); out.classList.add('bad'); }
+        $('#jcNote', root).textContent = rt === 'classic'
+          ? '傳統轉換：每個 JSX 元素變成 React.createElement(類型, 屬性物件, ...子元素)。小寫的標籤變成字串，大寫的元件直接傳入函式本身。'
+          : '新版轉換（React 17 起，Vite 預設）：自動從 react/jsx-runtime 匯入 jsx()，children 放進屬性物件，所以檔案開頭不用再寫 import React。';
+      };
+      $('#jcIn', root).value = EX[0];
+      $('#jcIn', root).addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(run, 400); });
+      $('#jcIn', root).addEventListener('keydown', e => e.stopPropagation());
+      tabsSelect(root, (tabs, v) => {
+        if (tabs.id === 'jcEx') $('#jcIn', root).value = EX[+v];
+        if (tabs.id === 'jcRt') rt = v;
+        run();
+      });
+      run();
+    }
+    if (id === 'immut') {
+      const base = () => ({
+        todos: [{ id: 1, title: '寫作業', done: false }, { id: 2, title: '買牛奶', done: true }],
+        user: { name: '小明', address: { city: '台北', zip: '100' } }
+      });
+      const byTitle = (a, b) => a.title.localeCompare(b.title, 'zh-Hant');
+      const OPS = {
+        add: ['todos', '在待辦清單最後新增 { id: 3, title: \'運動\', done: false }', [
+          ['todos.push(newTodo);\nsetTodos(todos);', s => { s.push({ id: 3, title: '運動', done: false }); return s; }, 'push 修改了原陣列，又把同一個陣列傳回去。'],
+          ['setTodos([...todos, newTodo]);', s => [...s, { id: 3, title: '運動', done: false }], '展開運算子建立新陣列，原陣列不變。'],
+          ['setTodos(todos.concat(newTodo));', s => s.concat({ id: 3, title: '運動', done: false }), 'concat 會回傳新陣列，也是正確寫法。'],
+          ['const copy = todos;\ncopy.push(newTodo);\nsetTodos(copy);', s => { const c = s; c.push({ id: 3, title: '運動', done: false }); return c; }, 'copy 只是指向同一個陣列的另一個名字，並沒有複製。']
+        ]],
+        del: ['todos', '刪除 id 為 1 的項目', [
+          ['todos.splice(0, 1);\nsetTodos(todos);', s => { s.splice(0, 1); return s; }, 'splice 直接修改原陣列。'],
+          ['setTodos(todos.filter(t => t.id !== 1));', s => s.filter(t => t.id !== 1), 'filter 回傳新陣列，最常用的刪除寫法。'],
+          ['delete todos[0];\nsetTodos([...todos]);', s => { delete s[0]; return [...s]; }, '雖然傳入新陣列，但原陣列被修改了，而且留下 undefined 的空位。']
+        ]],
+        toggle: ['todos', '把 id 為 1 的項目切換成已完成', [
+          ['todos[0].done = !todos[0].done;\nsetTodos(todos);', s => { s[0].done = !s[0].done; return s; }, '直接修改項目又傳回同一個陣列。'],
+          ['todos[0].done = !todos[0].done;\nsetTodos([...todos]);', s => { s[0].done = !s[0].done; return [...s]; }, '外層陣列是新的，但裡面的物件被直接修改。用 memo 的子元件收到同一個物件，會以為沒變而不更新。'],
+          ['setTodos(todos.map(t =>\n  t.id === 1 ? { ...t, done: !t.done } : t\n));', s => s.map(t => t.id === 1 ? { ...t, done: !t.done } : t), 'map 建立新陣列，只為被修改的項目建立新物件，其他項目保持原參考。']
+        ]],
+        nested: ['user', '把 user.address.city 改成「高雄」', [
+          ['user.address.city = \'高雄\';\nsetUser({ ...user });', s => { s.address.city = '高雄'; return { ...s }; }, '展開運算子是淺拷貝：外層是新物件，但 address 仍是同一個物件，而且被直接修改了。'],
+          ['setUser({\n  ...user,\n  address: { ...user.address, city: \'高雄\' }\n});', s => ({ ...s, address: { ...s.address, city: '高雄' } }), '每一層被修改的物件都要建立新的副本。'],
+          ['setUser({ ...user, city: \'高雄\' });', s => ({ ...s, city: '高雄' }), '會重新渲染，但改錯地方：在最外層多了一個 city，address.city 仍是台北。']
+        ]],
+        sort: ['todos', '依標題排序', [
+          ['setTodos(todos.sort(byTitle));', s => s.sort(byTitle), 'sort 會修改原陣列並回傳同一個陣列。'],
+          ['setTodos([...todos].sort(byTitle));', s => [...s].sort(byTitle), '先複製再排序。'],
+          ['setTodos(todos.toSorted(byTitle));', s => [...s].sort(byTitle), 'toSorted（ES2023）回傳排序後的新陣列。']
+        ]]
+      };
+      let op = 'add', pick = -1;
+      const J = v => JSON.stringify(v, null, 1).replace(/\n\s*/g, ' ');
+      const run = () => {
+        const [key, goal, cands] = OPS[op];
+        $('#imGoal', root).innerHTML = `目標：${esc(goal)}。選一種寫法，看看會發生什麼事：`;
+        $('#imOpts', root).innerHTML = cands.map(([code], i) => `<button type="button" class="im-opt${i === pick ? ' on' : ''}" data-im="${i}"><pre>${esc(code)}</pre></button>`).join('');
+        if (pick < 0) { $('#imOut', root).innerHTML = `<p class="small muted" style="margin:8px 0 0">目前的 ${key}：<code>${esc(J(base()[key]))}</code></p>`; return; }
+        const prev = base()[key], before = J(prev);
+        const next = cands[pick][1](prev);
+        const same = Object.is(prev, next), mutated = J(prev) !== before;
+        const tag = same ? '<span class="tag bad">不會重新渲染</span>' : '<span class="tag ok">會重新渲染</span>';
+        const tag2 = mutated ? '<span class="tag bad">原本的 state 被修改了</span>' : '<span class="tag ok">原本的 state 沒有被修改</span>';
+        const good = !same && !mutated && !/改錯/.test(cands[pick][2]);
+        $('#imOut', root).innerHTML = `<div class="im-res">
+          <p style="margin:0 0 6px">${tag} ${tag2} ${good ? '<span class="tag ok">✓ 正確寫法</span>' : ''}</p>
+          <table class="tbl small"><tr><td>Object.is(舊, 新)</td><td class="mono">${same}</td></tr><tr><td>更新前的 ${key}</td><td class="mono">${esc(before)}</td></tr><tr><td>執行後，舊的參考</td><td class="mono">${esc(J(prev))}</td></tr><tr><td>傳給 set 的新值</td><td class="mono">${esc(J(next))}</td></tr></table>
+          <p class="small" style="margin:6px 0 0">${esc(cands[pick][2])}${same ? ' React 用 Object.is 比較新舊 state，參考相同就認為沒有改變，跳過重新渲染。' : ''}</p></div>`;
+      };
+      root.addEventListener('click', e => { const b = e.target.closest('[data-im]'); if (b) { pick = +b.dataset.im; run(); } });
+      tabsSelect(root, (t, v) => { op = v; pick = -1; run(); });
+      run();
+    }
+    if (id === 'effectlab') {
+      let deps = 'uid', strict = false, mounted = false, uid = 1, count = 0, renders = 0, active = null, lastDeps = null, log = [];
+      const DEPS = { none: '', empty: ', []', uid: ', [userId]' };
+      const code = () => `function Profile({ userId }) {\n  const [count, setCount] = useState(0);\n  useEffect(() => {\n    console.log('執行 effect，userId =', userId);\n    return () => console.log('清除，userId =', userId);\n  }${DEPS[deps]});\n  return …;\n}`;
+      const add = (type, text) => log.push([type, text]);
+      const runEffect = () => { if (active !== null) add('clean', `清除函式（上一次的 userId = ${active}）`); active = uid; add('eff', `執行 effect（userId = ${uid}）`); };
+      const render = (why, first) => {
+        renders++;
+        add('render', `渲染 #${renders}：${why}（userId = ${uid}, count = ${count}）${strict ? '　※ 開發模式會渲染兩次' : ''}`);
+        const now = deps === 'uid' ? [uid] : deps === 'empty' ? [] : null;
+        const changed = first || now === null || now.some((v, i) => !Object.is(v, lastDeps[i]));
+        lastDeps = now;
+        if (changed) {
+          runEffect();
+          if (first && strict) { add('clean', `清除函式（StrictMode 模擬卸載，userId = ${active}）`); active = null; add('eff', `執行 effect（StrictMode 重新掛載，userId = ${uid}）`); active = uid; }
+        } else add('skip', `依賴沒有改變，跳過 effect`);
+      };
+      const draw = () => {
+        $('#elCode', root).textContent = code();
+        $('#elState', root).textContent = mounted ? `元件已掛載　userId = ${uid}　count = ${count}　effect 執行中的 userId = ${active ?? '—'}` : '元件尚未掛載';
+        $('#elLog', root).innerHTML = log.length ? log.map(([t, s]) => `<li class="el-${t}">${esc(s)}</li>`).join('') : '<li class="el-skip">按「掛載元件」開始。</li>';
+        const ol = $('#elLog', root); ol.scrollTop = ol.scrollHeight;
+        root.querySelectorAll('[data-el]').forEach(b => { const a = b.dataset.el; if (a !== 'clear') b.disabled = a === 'mount' ? mounted : !mounted; });
+      };
+      root.addEventListener('click', e => {
+        const b = e.target.closest('[data-el]'); if (!b) return;
+        const a = b.dataset.el;
+        if (a === 'mount') { mounted = true; count = 0; renders = 0; active = null; add('mark', '— 掛載 —'); render('第一次渲染', true); }
+        if (a === 'count') { count++; add('mark', '— setCount(count + 1) —'); render('自己的 state 改變'); }
+        if (a === 'uid') { uid++; add('mark', `— 父元件傳入新的 userId = ${uid} —`); render('props 改變'); }
+        if (a === 'parent') { add('mark', '— 父元件重新渲染，userId 沒變 —'); render('父元件重新渲染'); }
+        if (a === 'unmount') { add('mark', '— 卸載 —'); if (active !== null) add('clean', `清除函式（userId = ${active}）`); active = null; mounted = false; }
+        if (a === 'clear') log = [];
+        draw();
+      });
+      $('#elStrict', root).addEventListener('change', e => { strict = e.target.checked; draw(); });
+      tabsSelect(root, (t, v) => { deps = v; log = []; mounted = false; active = null; uid = 1; draw(); });
+      draw();
+    }
+    if (id === 'renderflow') {
+      // 元件樹：[名稱, 父, 預設是否 memo, 說明]
+      const N = { App: [null, '擁有 count'], Header: ['App', 'props：title（固定字串）'], Counter: ['App', 'props：count；自己也有 state'], Display: ['Counter', 'props：value = count'], Sidebar: ['App', 'props：onSelect（可選）；自己也有 state'], Ad: ['Sidebar', '沒有 props'] };
+      const kids = p => Object.keys(N).filter(k => N[k][0] === p);
+      let count = 0, cLocal = 0, sLocal = 0, fnSeq = 0;
+      const memo = { Header: false, Counter: false, Display: false, Sidebar: false, Ad: false };
+      const renders = Object.fromEntries(Object.keys(N).map(k => [k, 1])), last = {}, why = {};
+      let prevProps = {};
+      const stable = { fn: 'fn#0' };
+      const propsOf = (k, appRendered) => {
+        if (k === 'Header') return { title: '我的網站' };
+        if (k === 'Counter') return { count };
+        if (k === 'Display') return { value: count };
+        if (k === 'Sidebar') {
+          if (!$('#rfFn', root).checked) return {};
+          if ($('#rfCb', root).checked) return { onSelect: stable.fn };
+          if (appRendered) fnSeq++;
+          return { onSelect: 'fn#' + fnSeq };
+        }
+        return {};
+      };
+      const same = (a, b) => a && b && Object.keys(a).length === Object.keys(b).length && Object.keys(a).every(k => Object.is(a[k], b[k]));
+      Object.keys(N).forEach(k => { prevProps[k] = propsOf(k, false); });
+      const pass = start => {
+        Object.keys(N).forEach(k => { last[k] = ''; why[k] = ''; });
+        const visit = (k, reason, appRendered) => {
+          renders[k]++; last[k] = 'on'; why[k] = reason;
+          for (const c of kids(k)) {
+            const np = propsOf(c, k === 'App');
+            if (memo[c] && same(prevProps[c], np)) { last[c] = 'skip'; why[c] = 'memo：props 沒變，跳過'; prevProps[c] = np; continue; }
+            const changed = !same(prevProps[c], np);
+            prevProps[c] = np;
+            visit(c, memo[c] ? 'memo，但 props 改變了' : changed ? '父元件重新渲染（props 也改變）' : '父元件重新渲染（props 沒變也會跟著渲染）');
+          }
+        };
+        visit(start, '自己的 state 改變');
+      };
+      const node = k => `<div class="rf-node ${last[k]}"><div class="rf-head"><b class="mono">&lt;${k} /&gt;</b>${k === 'App' ? '' : `<label class="small"><input type="checkbox" data-memo="${k}"${memo[k] ? ' checked' : ''}> memo</label>`}<span class="rf-cnt">渲染 ${renders[k]} 次</span></div><div class="small muted">${esc(N[k][1])}${why[k] ? `　<b class="rf-why">${esc(why[k])}</b>` : ''}</div>${kids(k).map(node).join('')}</div>`;
+      const draw = msg => {
+        $('#rfTree', root).innerHTML = node('App');
+        const on = Object.keys(N).filter(k => last[k] === 'on'), sk = Object.keys(N).filter(k => last[k] === 'skip');
+        $('#rfMsg', root).innerHTML = msg || (on.length ? `重新渲染：<b>${on.join('、')}</b>${sk.length ? `；被 memo 跳過：<b>${sk.join('、')}</b>` : ''}。` : '按上方按鈕觸發 state 更新，觀察哪些元件重新渲染。');
+      };
+      root.addEventListener('click', e => {
+        const b = e.target.closest('[data-rf]'); if (!b) return;
+        const a = b.dataset.rf;
+        if (a === 'app') { count++; pass('App'); }
+        if (a === 'counter') { cLocal++; pass('Counter'); }
+        if (a === 'sidebar') { sLocal++; pass('Sidebar'); }
+        if (a === 'reset') { Object.keys(renders).forEach(k => { renders[k] = 1; last[k] = ''; why[k] = ''; }); }
+        draw();
+      });
+      root.addEventListener('change', e => {
+        const m = e.target.dataset && e.target.dataset.memo;
+        if (m) { memo[m] = e.target.checked; draw(`${m} ${e.target.checked ? '已用 memo 包起來' : '取消 memo'}。按「App：setCount」看看差別。`); return; }
+        if (e.target.id === 'rfFn') { $('#rfCb', root).disabled = !e.target.checked; if (!e.target.checked) $('#rfCb', root).checked = false; prevProps.Sidebar = propsOf('Sidebar', true); draw(e.target.checked ? 'App 每次渲染都會建立新的 onSelect 函式。把 Sidebar 設成 memo 後按「App：setCount」，會發現 memo 失效。' : ''); }
+        if (e.target.id === 'rfCb') { prevProps.Sidebar = propsOf('Sidebar', true); draw(e.target.checked ? 'useCallback 讓 onSelect 在每次渲染都是同一個函式，memo 的 Sidebar 就能跳過渲染。' : ''); }
+      });
+      draw();
     }
   }
 

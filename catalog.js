@@ -81,11 +81,29 @@ const courses = {
     audience: ['準備 APCS、程式競賽的高中生與大學生', '想從事遊戲、EDA、金融科技的工程師', '學完 C 語言、想學物件導向與 STL 的人'],
     highlights: ['40 個範例可在網頁上以 G++ 編譯執行', '輸出題皆以 G++ 實際編譯執行驗證', '時間複雜度比較與 STL 容器選擇互動工具']
   },
+  ds: {
+    cat: 'code', kind: 'skill', code: 'DS', level: '進階',
+    pitch: '資工系必修、面試第一關：從陣列、鏈結串列、堆疊、佇列、雜湊表，到二元搜尋樹、堆積、圖與並查集，每種結構都親手用 C++ 實作。',
+    audience: ['準備軟體工程師面試、刷 LeetCode 的人', '資工系學生與準備研究所、APCS 的考生', '會寫程式但不清楚該選哪種資料結構的工程師'],
+    highlights: ['26 個 C++ 實作範例可在網頁上編譯執行', '輸出題皆以 G++ 實際編譯執行驗證', '堆疊佇列、雜湊碰撞、二元搜尋樹與堆積視覺化工具']
+  },
+  algo: {
+    cat: 'code', kind: 'skill', code: 'Algo', level: '進階',
+    pitch: '面試與程式競賽的核心：複雜度分析、排序與二分搜尋、雙指標與回溯，再到貪心、動態規劃與 Dijkstra 等圖論演算法，最後整理解題策略。',
+    audience: ['準備軟體工程師面試、刷 LeetCode 的人', '準備 APCS、程式競賽的高中生與大學生', '學完資料結構、想提升解題能力的人'],
+    highlights: ['35 個 C++ 範例可在網頁上編譯執行', '輸出題皆以 G++ 實際編譯執行驗證', '排序過程、二分搜尋、DP 表格與最短路徑逐步視覺化']
+  },
   web: {
     cat: 'code', kind: 'skill', code: 'Web', level: '入門',
     pitch: '自學轉職最多人走的前端路線：HTML 結構、CSS 排版與響應式設計、JavaScript 互動與串接 API，範例都能即時預覽。',
     audience: ['想轉職前端或全端工程師的人', '想自己做網站、修改公司網頁的設計師與行銷', '準備學 React 或 Vue 的初學者'],
     highlights: ['HTML、CSS 範例即時預覽，JavaScript 範例可直接執行', 'JavaScript 輸出題皆以 Node.js 實際執行驗證', '選擇器權重、盒模型計算與 Flexbox 遊樂場']
+  },
+  react: {
+    cat: 'code', kind: 'skill', code: 'React', level: '中級',
+    pitch: '前端職缺最常要求的框架：JSX、元件與 props、state 與事件、表單、useEffect、Context 與自訂 Hook、路由與串接 API，最後完成待辦清單專案並部署上線。',
+    audience: ['學完 HTML、CSS、JavaScript，想轉職前端工程師的人', '想做出互動網頁作品集的學生', '要維護或開發 React 專案的後端與全端工程師'],
+    highlights: ['40 個 React 範例可在網頁上修改並即時預覽', '畫面結果題皆以 React 18 實際渲染並模擬點擊驗證', 'JSX 轉換、不可變更新、effect 執行順序與重新渲染追蹤互動工具']
   },
   'ai-apps': {
     cat: 'ai', kind: 'skill', code: 'RAG', level: '進階',
@@ -144,7 +162,8 @@ const paths = [
   { id: 'ai', name: 'AI 應用開發', desc: '從 Python 入門到考取 iPAS AI 證照，最後動手打造 RAG 與 AI 代理。', steps: ['py-basic', 'ai-beginner', 'py-practice', 'ai-apps', 'ai-intermediate'] },
   { id: 'auto', name: '辦公自動化與資料分析', desc: '不需資訊背景，從 Excel 與 SQL 開始，再用 Python 與 AI 自動化報表、分析資料並做出作品集。', steps: ['excel', 'sql', 'py-basic', 'py-practice', 'ai-apps'] },
   { id: 'firmware', name: '韌體與嵌入式工程師', desc: '從 C 語言打好指標與記憶體的基礎，學會 Linux 與網路，再用 C++ 與 Git 開發大型專案。', steps: ['c', 'linux', 'network', 'cpp', 'git'] },
-  { id: 'frontend', name: '前端工程師', desc: '從 HTML、CSS、JavaScript 打好基礎，學會版本控制與資料庫，再把作品自動部署上線。', steps: ['web', 'git', 'sql', 'devops'] }
+  { id: 'swe', name: '軟體工程師面試', desc: '用 C++ 打好程式基礎，系統學會資料結構與演算法，搭配 Git 與 SQL，準備科技公司的白板題與技術面試。', steps: ['cpp', 'ds', 'algo', 'git', 'sql'] },
+  { id: 'frontend', name: '前端工程師', desc: '從 HTML、CSS、JavaScript 打好基礎，用 React 做出互動作品，學會版本控制與資料庫，再把作品自動部署上線。', steps: ['web', 'react', 'git', 'sql', 'devops'] }
 ];
 
 module.exports = { categories, courses, paths };
