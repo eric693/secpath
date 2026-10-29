@@ -72,7 +72,19 @@
     jsxconv: { name: 'JSX 轉換器', desc: '輸入 JSX，看它被 Babel 轉成 React.createElement 或新版 jsx() 呼叫後的樣子，理解 JSX 其實就是 JavaScript。' },
     immut: { name: '不可變更新練習', desc: '對待辦清單與使用者物件做新增、刪除、修改、排序，比較各種寫法：React 能否偵測到改變、原本的 state 有沒有被偷偷修改。' },
     effectlab: { name: 'useEffect 執行順序', desc: '切換依賴陣列與 StrictMode，模擬掛載、更新 state、改變 props、卸載，觀察 effect 與清除函式的執行時機。' },
-    renderflow: { name: '重新渲染追蹤', desc: '在一棵元件樹上觸發 state 更新，切換 memo 與 useCallback，觀察哪些元件重新渲染、哪些被跳過以及原因。' }
+    renderflow: { name: '重新渲染追蹤', desc: '在一棵元件樹上觸發 state 更新，切換 memo 與 useCallback，觀察哪些元件重新渲染、哪些被跳過以及原因。' },
+    promptlab: { name: '提示詞產生器', desc: '依背景、任務、限制、輸出格式四要素填寫，加上範例與資料，自動組成以 XML 標籤分段的提示詞，並檢查還缺少哪些要素。' },
+    ccref: { name: 'Claude Code 指令速查', desc: '搜尋 Claude Code 的斜線指令、命令列參數、快捷鍵與輸入前綴，依類別篩選並查看用途與範例。' },
+    ccsetup: { name: 'CLAUDE.md 與權限設定產生器', desc: '選擇專案類型、填寫常用指令並勾選安全規則，產生專案的 CLAUDE.md 草稿與 .claude/settings.json 權限設定。' },
+    apicost: { name: 'API 費用試算', desc: '選擇模型並輸入每次的輸入／輸出 token 數、每日請求數、快取比例與是否批次處理，估算每次、每日與每月費用，並比較各模型。' },
+    tsinfer: { name: '型別推論探索', desc: '輸入 TypeScript 程式，用官方編譯器列出每個變數、函式與型別被推論成什麼，觀察 let 與 const、陣列、物件與函式回傳值的推論結果。' },
+    tsnarrow: { name: '型別縮小步驟', desc: '逐行執行 typeof、in、Array.isArray、可辨識聯合等判斷，觀察變數的型別在每個分支中如何被縮小。' },
+    tsutil: { name: '工具型別實驗室', desc: '以 User 介面為例，選擇 Partial、Required、Readonly、Pick、Omit 與要套用的欄位，看產生出來的型別與使用情境。' },
+    jsonts: { name: 'JSON 轉 TypeScript 型別', desc: '貼上 API 回應的 JSON，自動產生對應的 interface，處理巢狀物件、陣列、null 與部分項目缺少的欄位。' },
+    dfselect: { name: 'DataFrame 選取練習', desc: '在一個小表格上試試 loc、iloc、欄位選取與布林條件，被選到的儲存格會標示出來，並說明結果的形狀與型別。' },
+    missing: { name: '缺失值處理比較', desc: '同一欄有缺失值與一個異常值，比較 dropna、補 0、補平均數、補中位數、向前填補的結果，看平均與總和如何改變。' },
+    groupviz: { name: 'groupby 分組視覺化', desc: '選擇分組欄位與彙總函式，逐步觀察 split（分組）、apply（計算）、combine（組合）三個步驟。' },
+    chartpick: { name: '圖表選擇器', desc: '依分析目的（趨勢、比較、分布、關係、組成）找出合適的圖表，查看示意圖、使用時機與 matplotlib／pandas 程式碼。' }
   };
   const fmtN = (x, d = 4) => Number.isFinite(x) ? (+x.toFixed(d)).toString() : '—';
 
@@ -113,6 +125,111 @@
 
   function render(id) {
     switch (id) {
+      case 'dfselect': return `
+        <label class="field"><span>選取寫法</span><select class="input mono" id="dsExpr"></select></label>
+        <div class="table-wrap" style="margin-top:10px"><table class="tbl ds-t" id="dsTbl"></table></div>
+        <div class="out" id="dsInfo" style="margin-top:8px;min-height:0"></div>
+        <p class="small" id="dsNote" style="margin:6px 0 0"></p>`;
+      case 'missing': return `
+        <div class="tabs" id="msWay" style="flex-wrap:wrap"><button type="button" data-v="raw" class="on">原始資料</button><button type="button" data-v="drop">dropna()</button><button type="button" data-v="zero">fillna(0)</button><button type="button" data-v="mean">fillna(平均數)</button><button type="button" data-v="median">fillna(中位數)</button><button type="button" data-v="ffill">ffill()</button></div>
+        <div class="ms-wrap" id="msOut"></div>
+        <pre class="out" id="msCode" style="margin-top:8px"></pre>
+        <p class="small" id="msNote" style="margin:6px 0 0"></p>`;
+      case 'groupviz': return `
+        <div class="row small" style="flex-wrap:wrap;gap:8px">
+          <label class="small">分組欄位 <select class="input" id="gvBy"><option value="store">store（門市）</option><option value="cat">category（類別）</option></select></label>
+          <label class="small">彙總 <select class="input" id="gvFn"><option value="sum">sum</option><option value="mean">mean</option><option value="count">count</option><option value="max">max</option></select></label>
+        </div>
+        <pre class="out" id="gvCode" style="margin-top:8px"></pre>
+        <div class="gv-steps" id="gvOut"></div>`;
+      case 'chartpick': return `
+        <div class="tabs" id="cpGoal" style="flex-wrap:wrap"><button type="button" data-v="trend" class="on">看趨勢</button><button type="button" data-v="compare">比較類別</button><button type="button" data-v="dist">看分布</button><button type="button" data-v="rel">看關係</button><button type="button" data-v="part">看組成</button></div>
+        <div class="cp-card" id="cpOut"></div>`;
+      case 'tsinfer': return `
+        <div class="tabs" id="tiEx" style="flex-wrap:wrap"><button type="button" data-v="0" class="on">let 與 const</button><button type="button" data-v="1">陣列與物件</button><button type="button" data-v="2">函式</button><button type="button" data-v="3">as const</button></div>
+        <textarea class="input mono" id="tiCode" rows="8" spellcheck="false" style="width:100%;margin-top:8px;font-size:.84rem"></textarea>
+        <div class="row small" style="margin-top:6px"><button class="btn sm" type="button" id="tiRun">推論型別</button><span class="spacer"></span><span class="muted" id="tiSt"></span></div>
+        <div id="tiOut" class="table-wrap" style="margin-top:8px"></div>`;
+      case 'tsnarrow': return `
+        <div class="tabs" id="tnEx" style="flex-wrap:wrap"><button type="button" data-v="0" class="on">typeof 與 null</button><button type="button" data-v="1">可辨識聯合</button><button type="button" data-v="2">in 與 Array.isArray</button><button type="button" data-v="3">真值檢查</button></div>
+        <div class="tn-code" id="tnCode"></div>
+        <div class="row small" style="margin-top:8px;gap:6px"><button class="btn sm outline" type="button" data-tn="prev">◀ 上一行</button><button class="btn sm" type="button" data-tn="next">下一行 ▶</button><span class="spacer"></span><span class="muted" id="tnPos"></span></div>
+        <div class="out" id="tnType" style="margin-top:8px;min-height:0"></div>
+        <p class="small" id="tnNote" style="margin:6px 0 0"></p>`;
+      case 'tsutil': return `
+        <pre class="out" style="margin:0">interface User {
+  readonly id: number;
+  name: string;
+  email: string;
+  phone?: string;
+  role: 'admin' | 'user';
+}</pre>
+        <div class="tabs" id="tuOp" style="margin-top:8px;flex-wrap:wrap"><button type="button" data-v="Partial" class="on">Partial</button><button type="button" data-v="Required">Required</button><button type="button" data-v="Readonly">Readonly</button><button type="button" data-v="Pick">Pick</button><button type="button" data-v="Omit">Omit</button></div>
+        <div id="tuKeys" class="small" style="margin-top:8px"></div>
+        <pre class="out" id="tuOut" style="margin-top:8px"></pre>
+        <p class="small" id="tuNote" style="margin:6px 0 0"></p>`;
+      case 'jsonts': return `
+        <div class="grid g2" style="gap:8px">
+          <label class="field"><span>最外層型別名稱</span><input class="input mono" id="jtName" value="Order"></label>
+          <label class="field"><span>選項</span><span class="small"><label><input type="checkbox" id="jtRo"> 加上 readonly</label>　<label><input type="checkbox" id="jtType"> 使用 type 而非 interface</label></span></label>
+        </div>
+        <label class="field" style="margin-top:8px"><span>JSON</span><textarea class="input mono" id="jtIn" rows="9" spellcheck="false" style="font-size:.82rem"></textarea></label>
+        <pre class="out" id="jtOut" style="margin-top:8px"></pre>`;
+      case 'promptlab': return `
+        <div class="row small" style="flex-wrap:wrap;gap:6px"><span class="muted">範例：</span><div class="tabs" id="plEx"><button type="button" data-v="mail">延期通知信</button><button type="button" data-v="meet">會議記錄整理</button><button type="button" data-v="bug">程式除錯</button><button type="button" data-v="clear">清空</button></div></div>
+        <div class="grid g2" style="gap:8px;margin-top:8px">
+          <label class="field"><span>角色與讀者</span><input class="input" id="plRole" placeholder="例如：你是資深客服主管，讀者是一般消費者"></label>
+          <label class="field"><span>輸出格式</span><input class="input" id="plFmt" placeholder="例如：條列 3 點、Markdown 表格、JSON"></label>
+        </div>
+        <label class="field" style="margin-top:8px"><span>背景（為什麼要做、用在哪裡）</span><textarea class="input" id="plCtx" rows="2"></textarea></label>
+        <label class="field" style="margin-top:8px"><span>任務（具體要做什麼）</span><textarea class="input" id="plTask" rows="2"></textarea></label>
+        <label class="field" style="margin-top:8px"><span>限制（長度、語氣、不能做的事與原因）</span><textarea class="input" id="plLim" rows="2"></textarea></label>
+        <div class="grid g2" style="gap:8px;margin-top:8px">
+          <label class="field"><span>範例（選填）</span><textarea class="input" id="plEg" rows="3"></textarea></label>
+          <label class="field"><span>要處理的資料（選填）</span><textarea class="input" id="plData" rows="3"></textarea></label>
+        </div>
+        <label class="small" style="display:block;margin-top:6px"><input type="checkbox" id="plThink"> 複雜任務：要求先在 &lt;分析&gt; 中思考，再給出答案</label>
+        <div id="plCheck" class="small" style="margin-top:10px"></div>
+        <div class="row small" style="margin-top:8px"><b>產生的提示詞</b><span class="spacer"></span><button class="btn sm outline" type="button" id="plCopy">複製</button></div>
+        <pre class="out" id="plOut" style="margin-top:6px;white-space:pre-wrap"></pre>`;
+      case 'ccref': return `
+        <input class="input" id="crQ" placeholder="搜尋，例如：context、權限、模型、mcp、背景" style="width:100%">
+        <div class="tabs" id="crType" style="margin-top:8px;flex-wrap:wrap"><button type="button" data-v="" class="on">全部</button><button type="button" data-v="指令">斜線指令</button><button type="button" data-v="參數">命令列</button><button type="button" data-v="按鍵">快捷鍵</button><button type="button" data-v="前綴">輸入前綴</button></div>
+        <div id="crOut" class="table-wrap" style="margin-top:8px;max-height:460px;overflow:auto"></div>`;
+      case 'ccsetup': return `
+        <div class="grid g2" style="gap:8px">
+          <label class="field"><span>專案類型</span><select class="input" id="csType"><option value="node">Node.js／TypeScript</option><option value="react">React（Vite）</option><option value="python">Python</option><option value="other">其他</option></select></label>
+          <label class="field"><span>專案簡述</span><input class="input" id="csDesc" value="電商後台 API"></label>
+          <label class="field"><span>安裝指令</span><input class="input mono" id="csInstall"></label>
+          <label class="field"><span>開發／啟動指令</span><input class="input mono" id="csDev"></label>
+          <label class="field"><span>測試指令</span><input class="input mono" id="csTest"></label>
+          <label class="field"><span>Lint／型別檢查指令</span><input class="input mono" id="csLint"></label>
+        </div>
+        <label class="field" style="margin-top:8px"><span>專案慣例（一行一條）</span><textarea class="input" id="csRules" rows="3"></textarea></label>
+        <div class="cs-checks small" style="margin-top:8px">
+          <label><input type="checkbox" data-cs="test" checked> 測試、lint 指令免詢問（allow）</label>
+          <label><input type="checkbox" data-cs="gitread" checked> git status／diff／log 免詢問（allow）</label>
+          <label><input type="checkbox" data-cs="push" checked> git push 每次都要詢問（ask）</label>
+          <label><input type="checkbox" data-cs="env" checked> 禁止讀取 .env 與 secrets（deny）</label>
+          <label><input type="checkbox" data-cs="rm" checked> 禁止 rm -rf（deny）</label>
+          <label><input type="checkbox" data-cs="net"> 禁止 curl／wget 連線（deny）</label>
+          <label><input type="checkbox" data-cs="fmt"> 編輯檔案後自動格式化（PostToolUse hook）</label>
+        </div>
+        <div class="row small" style="margin-top:10px"><b>CLAUDE.md</b><span class="spacer"></span><button class="btn sm outline" type="button" data-cscopy="md">複製</button></div>
+        <pre class="out" id="csMd" style="margin-top:6px"></pre>
+        <div class="row small" style="margin-top:10px"><b>.claude/settings.json</b><span class="spacer"></span><button class="btn sm outline" type="button" data-cscopy="json">複製</button></div>
+        <pre class="out" id="csJson" style="margin-top:6px"></pre>`;
+      case 'apicost': return `
+        <div class="grid g2" style="gap:8px">
+          <label class="field"><span>模型</span><select class="input" id="acModel"></select></label>
+          <label class="field"><span>每日請求數</span><input class="input num" type="number" id="acN" value="2000" min="0"></label>
+          <label class="field"><span>每次輸入 token</span><input class="input num" type="number" id="acIn" value="3000" min="0"></label>
+          <label class="field"><span>每次輸出 token</span><input class="input num" type="number" id="acOut" value="800" min="0"></label>
+          <label class="field"><span>輸入中從快取讀取的比例（%）</span><input class="input num" type="number" id="acCache" value="0" min="0" max="100"></label>
+          <label class="field"><span>匯率（新台幣／美元）</span><input class="input num" type="number" id="acFx" value="32" min="1" step="0.1"></label>
+        </div>
+        <label class="small" style="display:block;margin-top:6px"><input type="checkbox" id="acBatch"> 使用 Batches API 批次處理（約 5 折，非即時）</label>
+        <div id="acOut"></div>`;
       case 'jsxconv': return `
         <div class="row small" style="flex-wrap:wrap;gap:6px"><div class="tabs" id="jcEx" style="flex-wrap:wrap"><button type="button" data-v="0" class="on">基本元素</button><button type="button" data-v="1">屬性與運算式</button><button type="button" data-v="2">元件與 children</button><button type="button" data-v="3">條件與列表</button><button type="button" data-v="4">Fragment</button></div></div>
         <textarea class="input mono" id="jcIn" rows="6" spellcheck="false" style="width:100%;margin-top:8px;font-size:.85rem"></textarea>
@@ -2460,6 +2577,403 @@ print('平均：', round(sum(scores.values()) / len(scores), 1))</pre>
         if (e.target.id === 'rfCb') { prevProps.Sidebar = propsOf('Sidebar', true); draw(e.target.checked ? 'useCallback 讓 onSelect 在每次渲染都是同一個函式，memo 的 Sidebar 就能跳過渲染。' : ''); }
       });
       draw();
+    }
+    if (id === 'promptlab') {
+      const EX = {
+        mail: { role: '你是專業、誠懇的業務窗口', fmt: '一封 email：主旨一行，內文 150 字以內，最後附聯絡電話', ctx: '我們是設計公司，委託大華印刷印製 500 本型錄，因為我們修改設計稿，必須延後交貨', task: '寫信給大華印刷的王經理，通知交貨日由 11/15 延到 11/22', lim: '語氣誠懇但專業，主動提出補償：下一筆訂單運費由我們負擔；對方是長期合作夥伴，所以不要過度道歉', eg: '', data: '', think: false },
+        meet: { role: '你是專案經理助理', fmt: 'Markdown 表格，欄位：事項、負責人、期限；表格後列出待追蹤問題', ctx: '這是產品週會的逐字稿，整理後要寄給沒參加的主管', task: '整理出所有決議事項與負責人，並列出還沒有結論的問題', lim: '只能使用會議記錄中有的資訊，不確定的負責人標示「未指定」，因為主管會依此分派工作', eg: '', data: '（貼上會議逐字稿）', think: false },
+        bug: { role: '你是資深的 Node.js 工程師', fmt: '先說明根本原因，再給修改後的程式碼與一個測試', ctx: '使用者在登入頁輸入錯誤密碼時，畫面沒有顯示錯誤訊息，只在 console 出現 401', task: '找出原因並修正，讓畫面顯示「帳號或密碼錯誤」', lim: '不要改動 API 的回應格式，因為手機 App 也在使用', eg: '', data: '（貼上相關程式碼與錯誤訊息）', think: true }
+      };
+      const F = { role: 'plRole', fmt: 'plFmt', ctx: 'plCtx', task: 'plTask', lim: 'plLim', eg: 'plEg', data: 'plData' };
+      const val = k => $('#' + F[k], root).value.trim();
+      const run = () => {
+        const v = Object.fromEntries(Object.keys(F).map(k => [k, val(k)])), think = $('#plThink', root).checked;
+        const parts = [];
+        if (v.role) parts.push(v.role + '。');
+        if (v.data) parts.push(`<資料>\n${v.data}\n</資料>`);
+        if (v.ctx) parts.push(`<背景>\n${v.ctx}\n</背景>`);
+        if (v.task) parts.push(`<任務>\n${v.task}\n</任務>`);
+        if (v.lim) parts.push(`<限制>\n${v.lim}\n</限制>`);
+        if (v.eg) parts.push(`<範例>\n${v.eg}\n</範例>`);
+        if (v.fmt) parts.push(`<輸出格式>\n${v.fmt}\n</輸出格式>`);
+        if (think) parts.push('請先在 <分析> 標籤中逐步思考，再在 <答案> 標籤中給出最後結果。');
+        $('#plOut', root).textContent = parts.join('\n\n') || '（填寫左側欄位後，這裡會出現組合好的提示詞）';
+        const checks = [
+          [!!v.ctx, '背景：說明為什麼、給誰用'], [!!v.task, '任務：具體要做什麼'], [!!v.lim, '限制：長度、語氣、不能做的事'], [!!v.fmt, '輸出格式'],
+          [/因為|所以|為了|由於/.test(v.lim + v.ctx), '有說明原因（Claude 能舉一反三）'], [!!v.eg, '有範例（選填，風格要求高時建議提供）']
+        ];
+        $('#plCheck', root).innerHTML = checks.map(([ok, t]) => `<span class="tag ${ok ? 'ok' : 'warn'}" style="margin:2px">${ok ? '✓' : '·'} ${esc(t)}</span>`).join('');
+      };
+      root.addEventListener('input', run);
+      root.addEventListener('change', run);
+      tabsSelect(root, (t, k) => {
+        const e = EX[k] || { role: '', fmt: '', ctx: '', task: '', lim: '', eg: '', data: '', think: false };
+        Object.keys(F).forEach(f => { $('#' + F[f], root).value = e[f]; });
+        $('#plThink', root).checked = e.think; run();
+      });
+      $('#plCopy', root).addEventListener('click', e => { try { navigator.clipboard.writeText($('#plOut', root).textContent); e.target.textContent = '已複製'; setTimeout(() => { e.target.textContent = '複製'; }, 1200); } catch {} });
+      Object.keys(F).forEach(f => { $('#' + F[f], root).value = EX.mail[f]; });
+      run();
+    }
+    if (id === 'ccref') {
+      const D = [
+        ['前綴', '/', '執行斜線指令或 Skill', '/clear'], ['前綴', '!', '直接執行終端機指令，輸出加入對話', '!npm test'], ['前綴', '@', '引用檔案或資料夾（有自動完成）', '@src/app.ts 這裡做什麼？'], ['前綴', '?', '在空白輸入框按下，顯示快捷鍵說明', '?'],
+        ['按鍵', 'Esc', '中斷目前的回應或工具執行，保留已完成的部分', ''], ['按鍵', 'Esc Esc', '清除輸入；輸入框空白時開啟回溯選單（/rewind）', ''], ['按鍵', 'Shift+Tab', '循環切換權限模式：default → acceptEdits → plan → auto', ''],
+        ['按鍵', 'Ctrl+C', '中斷或清除輸入；沒有執行中的動作時按兩次離開', ''], ['按鍵', 'Ctrl+D', '離開 Claude Code', ''], ['按鍵', 'Ctrl+O', '切換詳細的對話紀錄檢視（工具執行細節）', ''], ['按鍵', 'Ctrl+R', '搜尋輸入紀錄', ''],
+        ['按鍵', 'Ctrl+T', '顯示或隱藏 Claude 的待辦清單', ''], ['按鍵', 'Ctrl+B', '把執行中的指令或代理放到背景', ''], ['按鍵', 'Ctrl+G', '用文字編輯器編輯提示詞', ''], ['按鍵', 'Ctrl+V／Alt+V', '貼上剪貼簿中的圖片（Windows 用 Alt+V）', ''],
+        ['按鍵', 'Ctrl+S', '暫存目前輸入，空白時再按一次取回', ''], ['按鍵', 'Option+P／Alt+P', '切換模型', ''], ['按鍵', 'Option+O／Alt+O', '切換快速模式', ''], ['按鍵', '↑ ↓', '瀏覽輸入紀錄', ''], ['按鍵', 'Ctrl+L', '重新繪製畫面', ''],
+        ['指令', '/help', '顯示說明與所有可用指令', ''], ['指令', '/clear', '開始新的空白對話（換任務時使用）', ''], ['指令', '/compact [重點]', '摘要壓縮對話以釋放 context', '/compact 保留資料表設計的決定'], ['指令', '/context', '以色塊顯示 context 使用量與優化建議', ''],
+        ['指令', '/resume', '恢復先前的對話', ''], ['指令', '/rewind', '把對話及／或程式碼回溯到檢查點（別名 /undo、/checkpoint）', ''], ['指令', '/branch', '從目前位置分出新的對話分支', ''], ['指令', '/rename', '為目前對話命名', ''],
+        ['指令', '/export', '把對話匯出成文字檔', ''], ['指令', '/copy', '複製最後一個回答', ''], ['指令', '/btw 問題', '問一個不加入目前對話的旁支問題', ''], ['指令', '/model', '切換模型（opus、sonnet、haiku、fable）', '/model sonnet'],
+        ['指令', '/effort', '調整努力程度 low～max', '/effort high'], ['指令', '/fast', '切換快速模式', ''], ['指令', '/usage', '查看用量與花費（別名 /cost、/stats）', ''], ['指令', '/status', '版本、模型、帳號與連線狀態', ''],
+        ['指令', '/config', '設定介面：主題、模型、輸出風格等', ''], ['指令', '/init', '產生專案的 CLAUDE.md', ''], ['指令', '/memory', '編輯 CLAUDE.md、管理自動記憶', ''], ['指令', '/permissions', '管理 allow／ask／deny 權限規則', ''],
+        ['指令', '/plan [描述]', '進入計畫模式，只分析不修改', '/plan 新增訂單匯出'], ['指令', '/add-dir', '加入其他工作資料夾', '/add-dir ../shared'], ['指令', '/diff', '檢視工作目錄的變更', ''], ['指令', '/code-review', '審查目前變更或 PR（別名 /review）', ''],
+        ['指令', '/security-review', '檢查目前分支變更的安全漏洞', ''], ['指令', '/simplify', '找出變更中可以簡化的地方並修正', ''], ['指令', '/mcp', '管理 MCP 伺服器連線與 OAuth 授權', ''], ['指令', '/skills', '列出可用的 Skills', ''],
+        ['指令', '/agents', '建立與管理 Subagents', ''], ['指令', '/hooks', '檢視 hook 設定', ''], ['指令', '/plugin', '安裝與管理外掛', ''], ['指令', '/install-github-app', '為儲存庫安裝 Claude GitHub App 與 Actions', ''],
+        ['指令', '/ide', '管理 IDE 整合', ''], ['指令', '/sandbox', '切換沙箱模式', ''], ['指令', '/doctor', '診斷安裝與設定問題', ''], ['指令', '/tasks', '查看背景工作', ''], ['指令', '/batch', '把大規模修改拆成多個單元平行處理', ''],
+        ['指令', '/loop', '在工作階段中重複執行某個提示詞', ''], ['指令', '/schedule', '建立雲端排程任務', ''], ['指令', '/fewer-permission-prompts', '分析紀錄並產生常用唯讀指令的 allow 清單', ''], ['指令', '/terminal-setup', '設定 Shift+Enter 換行', ''],
+        ['指令', '/keybindings', '開啟快捷鍵設定檔', ''], ['指令', '/login、/logout', '登入／登出 Anthropic 帳號', ''], ['指令', '/exit', '離開 Claude Code', ''],
+        ['參數', 'claude', '在目前資料夾啟動互動模式', ''], ['參數', 'claude "問題"', '帶著第一個問題進入互動模式', 'claude "說明這個專案"'], ['參數', '-p, --print', '非互動模式：回答後結束', 'claude -p "列出 TODO"'],
+        ['參數', '-c, --continue', '繼續目前資料夾最近的對話', 'claude -c'], ['參數', '-r, --resume', '以 ID 或名稱恢復對話，或開啟選單', 'claude -r "auth-refactor"'], ['參數', '-n, --name', '為對話命名', 'claude -n "訂單匯出"'],
+        ['參數', '--model', '指定模型', 'claude --model opus'], ['參數', '--effort', '指定努力程度', 'claude --effort high'], ['參數', '--permission-mode', '指定起始權限模式：default、acceptEdits、plan、auto 等', 'claude --permission-mode plan'],
+        ['參數', '--add-dir', '加入其他工作資料夾', ''], ['參數', '-w, --worktree', '在獨立 git worktree 中工作', 'claude -w feature-x'], ['參數', '--output-format', '非互動模式輸出格式：text、json、stream-json', ''],
+        ['參數', '--allowedTools', '不需詢問即可使用的工具', '--allowedTools "Read,Bash(npm test *)"'], ['參數', '--disallowedTools', '禁止使用的工具', ''], ['參數', '--max-turns', '限制非互動模式的回合數', '--max-turns 10'],
+        ['參數', '--max-budget-usd', '非互動模式的估計花費上限', '--max-budget-usd 2'], ['參數', '--append-system-prompt', '在預設系統提示詞後追加內容', ''], ['參數', '--mcp-config', '從 JSON 載入 MCP 伺服器', ''],
+        ['參數', '--bare', '不載入 CLAUDE.md、hooks、MCP 等，適合腳本', ''], ['參數', '--bg', '以背景代理啟動', ''], ['參數', '--dangerously-skip-permissions', '略過所有權限詢問（只在隔離環境使用）', ''],
+        ['參數', 'claude update', '更新到最新版本', ''], ['參數', 'claude auth login／status／logout', '登入、查看狀態、登出', 'claude auth login --console'],
+        ['參數', 'claude mcp add', '新增 MCP 伺服器', 'claude mcp add --transport http notion https://mcp.notion.com/mcp'], ['參數', 'claude mcp list／get／remove', '列出、查看、移除 MCP 伺服器', '']
+      ];
+      let type = '';
+      const run = () => {
+        const q = $('#crQ', root).value.trim().toLowerCase();
+        const rows = D.filter(r => (!type || r[0] === type) && (!q || (r[1] + ' ' + r[2] + ' ' + r[3]).toLowerCase().includes(q)));
+        $('#crOut', root).innerHTML = rows.length ? `<table class="tbl small"><tr><th>類別</th><th>指令／按鍵</th><th>說明</th></tr>${rows.map(r => `<tr><td class="muted">${r[0]}</td><td class="mono" style="white-space:nowrap"><b>${esc(r[1])}</b></td><td>${esc(r[2])}${r[3] ? `<br><code>${esc(r[3])}</code>` : ''}</td></tr>`).join('')}</table>` : '<p class="small muted">找不到符合的項目。</p>';
+      };
+      $('#crQ', root).addEventListener('input', run);
+      tabsSelect(root, (t, v) => { type = v; run(); });
+      run();
+    }
+    if (id === 'ccsetup') {
+      const PRE = {
+        node: ['npm install', 'npm run dev', 'npm test', 'npm run lint && npm run typecheck', '使用 TypeScript，不要用 any\nAPI 回應格式統一為 { data, error }\n資料庫查詢放在 src/db/，不要在 route 中直接寫 SQL'],
+        react: ['npm install', 'npm run dev', 'npm test', 'npm run lint', '元件使用函式元件與 Hooks，一個元件一個檔案\n樣式使用 CSS Modules\n共用元件放在 src/components/'],
+        python: ['pip install -r requirements.txt', 'python -m app', 'pytest', 'ruff check . && mypy .', '遵循 PEP 8，函式加上型別提示\n設定值從環境變數讀取，不要寫死\n新功能都要有 pytest 測試'],
+        other: ['', '', '', '', '']
+      };
+      const cmdPrefix = c => c.split('&&')[0].trim();
+      const fill = t => { const p = PRE[t]; ['csInstall', 'csDev', 'csTest', 'csLint', 'csRules'].forEach((k, i) => { $('#' + k, root).value = p[i]; }); };
+      const on = k => root.querySelector(`[data-cs="${k}"]`).checked;
+      const run = () => {
+        const g = k => $('#' + k, root).value.trim();
+        const cmds = [['安裝', g('csInstall')], ['開發', g('csDev')], ['測試', g('csTest')], ['Lint／型別檢查', g('csLint')]].filter(c => c[1]);
+        const rules = g('csRules').split('\n').map(s => s.trim()).filter(Boolean);
+        const md = [`# 專案說明`, g('csDesc') || '（一句話描述這個專案）', '', '## 常用指令', ...cmds.map(([k, c]) => `- ${k}：${c}`), '', '## 程式碼慣例', ...(rules.length ? rules.map(r => '- ' + r) : ['- （補充團隊的慣例）']), '', '## 工作方式', '- 修改後執行測試' + (g('csLint') ? '與 lint，全部通過才算完成' : '，全部通過才算完成'), '- 不確定需求時先提問，大型修改先提出計畫'];
+        if (on('env')) md.push('- 不要讀取或輸出 .env 與任何金鑰');
+        $('#csMd', root).textContent = md.join('\n');
+        const allow = [], ask = [], deny = [];
+        if (on('test')) { if (g('csTest')) allow.push(`Bash(${cmdPrefix(g('csTest'))} *)`); if (g('csLint')) g('csLint').split('&&').forEach(c => allow.push(`Bash(${c.trim()})`)); }
+        if (on('gitread')) allow.push('Bash(git status)', 'Bash(git diff *)', 'Bash(git log *)');
+        if (on('push')) ask.push('Bash(git push *)');
+        if (on('env')) deny.push('Read(./.env)', 'Read(./.env.*)', 'Read(./secrets/**)');
+        if (on('rm')) deny.push('Bash(rm -rf *)');
+        if (on('net')) deny.push('Bash(curl *)', 'Bash(wget *)');
+        const conf = { permissions: { allow, ask, deny } };
+        Object.keys(conf.permissions).forEach(k => { if (!conf.permissions[k].length) delete conf.permissions[k]; });
+        if (on('fmt')) {
+          const fmt = $('#csType', root).value === 'python' ? 'ruff format' : 'npx prettier --write';
+          conf.hooks = { PostToolUse: [{ matcher: 'Edit|Write', hooks: [{ type: 'command', command: `jq -r '.tool_input.file_path' | xargs ${fmt}` }] }] };
+        }
+        $('#csJson', root).textContent = JSON.stringify(conf, null, 2);
+      };
+      root.addEventListener('input', run);
+      root.addEventListener('change', e => { if (e.target.id === 'csType') fill(e.target.value); run(); });
+      root.addEventListener('click', e => {
+        const b = e.target.closest('[data-cscopy]'); if (!b) return;
+        try { navigator.clipboard.writeText($(b.dataset.cscopy === 'md' ? '#csMd' : '#csJson', root).textContent); b.textContent = '已複製'; setTimeout(() => { b.textContent = '複製'; }, 1200); } catch {}
+      });
+      fill('node'); run();
+    }
+    if (id === 'apicost') {
+      // 2026 年 10 月官方定價（美元／每百萬 token）；Haiku 5.5 為提示詞 10 萬 token 以內的價格
+      const M = [['claude-fable-5-1', 'Claude Fable 5.1', 10, 50], ['claude-opus-5-5', 'Claude Opus 5.5', 4, 20], ['claude-sonnet-5-5', 'Claude Sonnet 5.5', 2, 10], ['claude-haiku-5-5', 'Claude Haiku 5.5', 0.1, 0.5]];
+      $('#acModel', root).innerHTML = M.map((m, i) => `<option value="${i}"${i === 1 ? ' selected' : ''}>${m[1]}（$${m[2]}／$${m[3]}）</option>`).join('');
+      const usd = x => x >= 100 ? '$' + Math.round(x).toLocaleString() : x >= 1 ? '$' + x.toFixed(2) : '$' + x.toFixed(4);
+      const cost = (m, inT, outT, cache, batch) => {
+        const inCost = inT * (1 - cache) * m[2] + inT * cache * m[2] * 0.1;
+        return (inCost + outT * m[3]) / 1e6 * (batch ? 0.5 : 1);
+      };
+      const run = () => {
+        const n = Math.max(0, +$('#acN', root).value || 0), inT = Math.max(0, +$('#acIn', root).value || 0), outT = Math.max(0, +$('#acOut', root).value || 0);
+        const cache = Math.min(100, Math.max(0, +$('#acCache', root).value || 0)) / 100, fx = +$('#acFx', root).value || 32, batch = $('#acBatch', root).checked;
+        const m = M[+$('#acModel', root).value];
+        const per = cost(m, inT, outT, cache, batch), day = per * n, month = day * 30;
+        const share = outT * m[3] / (inT * m[2] + outT * m[3] || 1);
+        $('#acOut', root).innerHTML = `
+          <div class="ac-big"><div><small>每次</small><b>${usd(per)}</b></div><div><small>每日</small><b>${usd(day)}</b></div><div><small>每月（30 天）</small><b>${usd(month)}</b><span>約 NT$ ${Math.round(month * fx).toLocaleString()}</span></div></div>
+          <p class="small muted" style="margin:6px 0 0">輸出約占費用的 ${Math.round(share * 100)}%（未計快取與批次折扣時）。快取讀取以輸入價格的 1／10 計算，未計首次寫入快取的費用（約 1.25 倍）。</p>
+          <div class="table-wrap"><table class="tbl small" style="margin-top:8px"><tr><th>模型</th><th>每次</th><th>每月</th><th>新台幣／月</th></tr>${M.map(x => { const c = cost(x, inT, outT, cache, batch) * n * 30; return `<tr${x === m ? ' style="font-weight:700"' : ''}><td>${x[1]}</td><td class="mono">${usd(cost(x, inT, outT, cache, batch))}</td><td class="mono">${usd(c)}</td><td class="mono">${Math.round(c * fx).toLocaleString()}</td></tr>`; }).join('')}</table></div>
+          <p class="small muted" style="margin:6px 0 0">依 2026 年 10 月官方定價估算，實際費用以官方定價頁與帳單為準。</p>`;
+      };
+      root.addEventListener('input', run);
+      root.addEventListener('change', run);
+      run();
+    }
+    if (id === 'tsinfer') {
+      const EX = [
+        "let city = '台北';\nconst country = '台灣';\nlet score = 95;\nconst pi = 3.14;\nlet maybe = Math.random() > 0.5 ? 'yes' : 0;\nlet nothing = null;",
+        "const nums = [1, 2, 3];\nconst mixed = [1, 'a', true];\nconst user = { name: '小明', age: 20, tags: ['新會員'] };\nconst point = [10, 20] as [number, number];\nconst empty: string[] = [];\nconst first = nums[0];",
+        "function add(a: number, b: number) {\n  return a + b;\n}\nfunction greet(name?: string) {\n  return name ? 'Hi ' + name : null;\n}\nconst double = (n: number) => n * 2;\nconst lengths = ['a', 'bbb'].map(s => s.length);\nasync function load() { return { ok: true }; }",
+        "const colors = ['red', 'green'];\nconst colors2 = ['red', 'green'] as const;\nconst config = { mode: 'dark', size: 12 };\nconst config2 = { mode: 'dark', size: 12 } as const;\ntype Color = typeof colors2[number];"
+      ];
+      let w = null, seq = 0;
+      const pending = {};
+      const worker = () => {
+        if (w) return w;
+        w = new Worker('/static/js/ts-worker.js');
+        w.onmessage = e => { const d = e.data; if (d.id && pending[d.id]) { pending[d.id](d); delete pending[d.id]; } };
+        w.onerror = e => { e.preventDefault(); $('#tiSt', root).textContent = '無法載入 TypeScript 編譯器，請檢查網路連線。'; w = null; };
+        return w;
+      };
+      const run = () => {
+        const id = ++seq, code = $('#tiCode', root).value;
+        $('#tiSt', root).textContent = '推論中…（第一次需要載入編譯器）';
+        pending[id] = d => {
+          if (id !== seq) return;
+          $('#tiSt', root).textContent = '';
+          const rows = (d.items || []).map(it => `<tr><td class="num">${it.line}</td><td class="muted">${esc(it.kind)}</td><td class="mono"><b>${esc(it.name)}</b></td><td class="mono ti-type">${esc(it.type)}</td></tr>`).join('');
+          const errs = (d.diags || []).map(x => `<li>第 ${x.line} 行：${esc(x.text)} (TS${x.code})</li>`).join('');
+          $('#tiOut', root).innerHTML = (rows ? `<table class="tbl small"><tr><th>行</th><th>種類</th><th>名稱</th><th>推論出的型別</th></tr>${rows}</table>` : '<p class="small muted">沒有找到最上層的宣告。</p>') + (errs ? `<ul class="small" style="color:var(--bad);margin:8px 0 0">${errs}</ul>` : '');
+        };
+        worker().postMessage({ id, code, mode: 'infer' });
+      };
+      $('#tiCode', root).value = EX[0];
+      $('#tiCode', root).addEventListener('keydown', e => e.stopPropagation());
+      $('#tiRun', root).addEventListener('click', run);
+      tabsSelect(root, (t, v) => { $('#tiCode', root).value = EX[+v]; run(); });
+      $('#tiOut', root).innerHTML = '<p class="small muted">按「推論型別」開始（會載入 TypeScript 編譯器，約 1.6 MB）。</p>';
+    }
+    if (id === 'tsnarrow') {
+      // 每一行：[程式碼, 這一行之後（或這個區塊內）x 的型別, 說明]
+      const S = [
+        [['function show(x: string | number | null) {', 'string | number | null', '參數宣告為三種型別的聯合。'],
+         ['  if (x === null) return \'（無）\';', 'string | number', '排除 null 之後，剩下的程式中 x 不可能是 null。'],
+         ['  if (typeof x === \'string\') {', 'string', 'typeof 檢查成立的區塊內，x 是 string。'],
+         ['    return x.toUpperCase();', 'string', '可以安全呼叫字串方法。'],
+         ['  }', 'number', '字串的情況已經 return，所以之後 x 只剩 number。'],
+         ['  return x.toFixed(2);', 'number', '可以安全呼叫數字方法。'],
+         ['}', '—', '每一條路徑都處理完畢。']],
+        [['type Shape = { kind: \'circle\'; r: number } | { kind: \'rect\'; w: number; h: number };', 'Shape', '兩種形狀都有 kind 屬性，值是不同的字面值。'],
+         ['function area(s: Shape) {', 'Shape', '一開始 s 可能是任一種。'],
+         ['  switch (s.kind) {', 'Shape', '依 kind 分支。'],
+         ['    case \'circle\': return Math.PI * s.r ** 2;', '{ kind: \'circle\'; r: number }', 'kind 為 circle 時，TypeScript 知道 s 有 r 屬性。'],
+         ['    case \'rect\': return s.w * s.h;', '{ kind: \'rect\'; w: number; h: number }', 'kind 為 rect 時，s 有 w 與 h。'],
+         ['    default: const never_: never = s;', 'never', '所有情況都處理了，剩下的型別是 never；漏掉某種形狀時這裡會報錯。'],
+         ['  }', '—', ''], ['}', '—', '']],
+        [['function count(x: string | string[] | { items: string[] }) {', 'string | string[] | { items: string[] }', '三種可能的輸入。'],
+         ['  if (Array.isArray(x)) return x.length;', 'string[]', 'Array.isArray 成立時是陣列。'],
+         ['  if (\'items\' in x) return x.items.length;', '{ items: string[] }', 'in 檢查有 items 屬性的物件。'],
+         ['  return x.length;', 'string', '前兩種都已 return，剩下的是 string。'],
+         ['}', '—', '']],
+        [['function greet(name: string | undefined) {', 'string | undefined', '名字可能沒有提供。'],
+         ['  if (name) {', 'string', '真值檢查排除了 undefined，但也排除了空字串 \'\'。'],
+         ['    return \'Hi \' + name.trim();', 'string', '區塊內可以安全使用字串方法。'],
+         ['  }', 'string | undefined', '注意：區塊外 name 可能是 undefined，也可能是空字串 \'\'。'],
+         ['  return \'Hi 訪客\';', 'string | undefined', '若要區分空字串，改用 name !== undefined。'],
+         ['}', '—', '']]
+      ];
+      let sc = 0, line = 0;
+      const draw = () => {
+        const L = S[sc];
+        $('#tnCode', root).innerHTML = L.map((l, i) => `<div class="tn-line${i === line ? ' on' : ''}" data-tl="${i}"><span>${i + 1}</span><code>${esc(l[0])}</code></div>`).join('');
+        $('#tnType', root).textContent = `第 ${line + 1} 行，變數型別：${L[line][1]}`;
+        $('#tnNote', root).textContent = L[line][2];
+        $('#tnPos', root).textContent = `${line + 1} / ${L.length}`;
+      };
+      root.addEventListener('click', e => {
+        const b = e.target.closest('[data-tn]');
+        if (b) { line = Math.max(0, Math.min(S[sc].length - 1, line + (b.dataset.tn === 'next' ? 1 : -1))); draw(); return; }
+        const l = e.target.closest('[data-tl]'); if (l) { line = +l.dataset.tl; draw(); }
+      });
+      tabsSelect(root, (t, v) => { sc = +v; line = 0; draw(); });
+      draw();
+    }
+    if (id === 'tsutil') {
+      const F = [['id', 'number', false, true], ['name', 'string', false, false], ['email', 'string', false, false], ['phone', 'string', true, false], ['role', "'admin' | 'user'", false, false]];
+      const NOTE = {
+        Partial: '所有屬性變成可選。常用於「更新部分欄位」的函式參數：updateUser(id, changes: Partial<User>)。',
+        Required: '所有屬性變成必填（phone 的 ? 被移除）。常用於「補齊預設值後」的完整設定物件。',
+        Readonly: '所有屬性變成唯讀，物件建立後不能修改。常用於設定值或不可變的狀態。',
+        Pick: '只挑出勾選的屬性。常用於列表預覽、下拉選單等只需要少數欄位的地方。',
+        Omit: '移除勾選的屬性。常用於建立資料時省略 id 這類由伺服器產生的欄位，或回傳時移除敏感欄位。'
+      };
+      let op = 'Partial', sel = new Set(['id', 'name']);
+      const run = () => {
+        const needKeys = op === 'Pick' || op === 'Omit';
+        $('#tuKeys', root).innerHTML = needKeys ? '選擇欄位：' + F.map(f => `<label style="margin-right:10px"><input type="checkbox" data-tu="${f[0]}"${sel.has(f[0]) ? ' checked' : ''}> ${f[0]}</label>`).join('') : '';
+        let rows = F.map(f => ({ n: f[0], t: f[1], opt: f[2], ro: f[3] }));
+        if (op === 'Partial') rows.forEach(r => { r.opt = true; });
+        if (op === 'Required') rows.forEach(r => { r.opt = false; });
+        if (op === 'Readonly') rows.forEach(r => { r.ro = true; });
+        if (op === 'Pick') rows = rows.filter(r => sel.has(r.n));
+        if (op === 'Omit') rows = rows.filter(r => !sel.has(r.n));
+        const keys = [...sel].filter(k => F.some(f => f[0] === k)).map(k => `'${k}'`).join(' | ') || 'never';
+        const expr = needKeys ? `${op}<User, ${keys}>` : `${op}<User>`;
+        $('#tuOut', root).textContent = `type Result = ${expr};\n\n// 等同於：\ntype Result = {\n${rows.map(r => `  ${r.ro ? 'readonly ' : ''}${r.n}${r.opt ? '?' : ''}: ${r.t};`).join('\n')}\n}`;
+        $('#tuNote', root).textContent = NOTE[op];
+      };
+      root.addEventListener('change', e => { const k = e.target.dataset && e.target.dataset.tu; if (k) { e.target.checked ? sel.add(k) : sel.delete(k); run(); } });
+      tabsSelect(root, (t, v) => { op = v; run(); });
+      run();
+    }
+    if (id === 'jsonts') {
+      const SAMPLE = JSON.stringify({ id: 1024, status: 'paid', total: 1290.5, paidAt: null, customer: { name: '王小明', email: 'ming@example.com', vip: true }, items: [{ sku: 'A-1', qty: 2, price: 590 }, { sku: 'B-7', qty: 1, price: 110, note: '禮品包裝' }], tags: ['網購', '首購'] }, null, 2);
+      const pascal = s => (s.replace(/[^A-Za-z0-9]+(.)?/g, (m, c) => (c ? c.toUpperCase() : '')).replace(/^./, c => c.toUpperCase()) || 'Item');
+      const singular = s => s.endsWith('ies') ? s.slice(0, -3) + 'y' : s.endsWith('s') && s.length > 1 ? s.slice(0, -1) : s + 'Item';
+      const key = k => /^[A-Za-z_$][\w$]*$/.test(k) ? k : JSON.stringify(k);
+      const run = () => {
+        const out = [], names = new Set(), ro = $('#jtRo', root).checked ? 'readonly ' : '', asType = $('#jtType', root).checked;
+        const uniq = n => { let x = n, i = 2; while (names.has(x)) x = n + i++; names.add(x); return x; };
+        const typeOf = (v, hint) => {
+          if (v === null) return 'null';
+          if (Array.isArray(v)) {
+            if (!v.length) return 'unknown[]';
+            const objs = v.filter(x => x && typeof x === 'object' && !Array.isArray(x));
+            const parts = new Set(v.filter(x => !(x && typeof x === 'object' && !Array.isArray(x))).map(x => typeOf(x, hint)));
+            if (objs.length) parts.add(objType(objs, singular(hint)));
+            const t = [...parts].join(' | ');
+            return parts.size > 1 ? `(${t})[]` : `${t}[]`;
+          }
+          if (typeof v === 'object') return objType([v], hint);
+          return typeof v === 'number' ? 'number' : typeof v === 'boolean' ? 'boolean' : 'string';
+        };
+        const objType = (list, hint) => {
+          const name = uniq(pascal(hint));
+          const keys = [...new Set(list.flatMap(o => Object.keys(o)))];
+          const lines = keys.map(k => {
+            const vals = list.filter(o => k in o).map(o => o[k]);
+            const types = [...new Set(vals.map(v => typeOf(v, k)))];
+            const opt = vals.length < list.length ? '?' : '';
+            return `  ${ro}${key(k)}${opt}: ${types.join(' | ')};`;
+          });
+          out.push(asType ? `type ${name} = {\n${lines.join('\n')}\n};` : `interface ${name} {\n${lines.join('\n')}\n}`);
+          return name;
+        };
+        let data;
+        try { data = JSON.parse($('#jtIn', root).value); }
+        catch (e) { $('#jtOut', root).textContent = 'JSON 格式錯誤：' + e.message; return; }
+        const rootName = $('#jtName', root).value.trim() || 'Root';
+        if (data && typeof data === 'object' && !Array.isArray(data)) objType([data], rootName);
+        else out.push(`type ${uniq(pascal(rootName))} = ${typeOf(data, rootName + 'Item')};`);
+        $('#jtOut', root).textContent = out.reverse().join('\n\n') + '\n\n// 提醒：型別只描述格式，實際收到的 API 資料仍要在執行時驗證（例如使用 Zod）。';
+      };
+      $('#jtIn', root).value = SAMPLE;
+      $('#jtIn', root).addEventListener('keydown', e => e.stopPropagation());
+      root.addEventListener('input', run);
+      root.addEventListener('change', run);
+      run();
+    }
+    if (id === 'dfselect') {
+      const COLS = ['product', 'store', 'qty', 'price', 'member'];
+      const ROWS = [['拿鐵', '台北', 2, 110, true], ['司康', '高雄', 1, 70, false], ['美式咖啡', '台北', 3, 80, true], ['奶茶', '台中', 1, 75, true], ['起司蛋糕', '台北', 4, 130, false], ['紅茶', '高雄', 2, 60, true], ['布朗尼', '台中', 3, 90, false], ['抹茶拿鐵', '台北', 1, 120, true]];
+      const C = c => COLS.indexOf(c);
+      const all = (r, c) => ({ r, c });
+      // [寫法, 選到的列, 選到的欄, 結果說明, 補充, 篩選條件, 取列函式, 結果型別]
+      const EX = [
+        ["df.loc[2, 'qty']", [2], [C('qty')], '單一值：3', '列標籤 2、欄名 qty 交會的那一格。'],
+        ["df['product']", [0, 1, 2, 3, 4, 5, 6, 7], [C('product')], 'Series，長度 8', '一層中括號選一欄，得到 Series。'],
+        ["df[['product', 'price']]", [0, 1, 2, 3, 4, 5, 6, 7], [C('product'), C('price')], 'DataFrame，形狀 (8, 2)', '兩層中括號（傳入串列）得到 DataFrame。'],
+        ["df.loc[1:3, ['store', 'qty']]", [1, 2, 3], [C('store'), C('qty')], 'DataFrame，形狀 (3, 2)', 'loc 依標籤，1:3 包含結尾 3，所以是列 1、2、3。'],
+        ['df.iloc[1:3, 0:2]', [1, 2], [0, 1], 'DataFrame，形狀 (2, 2)', 'iloc 依位置，1:3 不含 3，所以是列 1、2；欄 0、1。'],
+        ['df.iloc[-1]', [7], [0, 1, 2, 3, 4], 'Series（最後一列），長度 5', '負數位置從最後面算起。'],
+        ["df[df['qty'] >= 3]", null, [0, 1, 2, 3, 4], '', '布林條件篩選列，保留全部欄位。', r => r[2] >= 3],
+        ["df[(df['store'] == '台北') & (df['qty'] > 1)]", null, [0, 1, 2, 3, 4], '', '多條件用 &，每個條件加括號。', r => r[1] === '台北' && r[2] > 1],
+        ["df.loc[df['price'] > 100, 'product']", null, [C('product')], '', 'loc 的列位置也可以放布林條件，同時指定欄。', r => r[3] > 100, null, 'series'],
+        ["df[df['member']].head(3)", null, [0, 1, 2, 3, 4], '', '先篩選會員，再取前 3 筆。', null, () => ROWS.map((r, i) => r[4] ? i : -1).filter(i => i >= 0).slice(0, 3)]
+      ];
+      $('#dsExpr', root).innerHTML = EX.map((e, i) => `<option value="${i}">${esc(e[0])}</option>`).join('');
+      const run = () => {
+        const e = EX[+$('#dsExpr', root).value];
+        let rows = e[1];
+        if (!rows && e[5]) rows = ROWS.map((r, i) => e[5](r) ? i : -1).filter(i => i >= 0);
+        if (!rows && e[6]) rows = e[6]();
+        const rs = new Set(rows), cs = new Set(e[2]);
+        $('#dsTbl', root).innerHTML = `<tr><th></th>${COLS.map((c, j) => `<th class="${cs.has(j) ? 'sel' : ''}">${c}<small>${j}</small></th>`).join('')}</tr>` +
+          ROWS.map((r, i) => `<tr><th class="${rs.has(i) ? 'sel' : ''}">${i}</th>${r.map((v, j) => `<td class="${rs.has(i) && cs.has(j) ? 'hit' : ''}">${v === true ? 'True' : v === false ? 'False' : esc(v)}</td>`).join('')}</tr>`).join('');
+        const info = e[3] || (e[7] === 'series' ? `Series，長度 ${rows.length}` : `DataFrame，形狀 (${rows.length}, ${e[2].length})`);
+        $('#dsInfo', root).textContent = `${e[0]}\n→ ${info}`;
+        $('#dsNote', root).textContent = e[4] + '（表頭與列號下方的小數字是位置，給 iloc 使用。）';
+      };
+      $('#dsExpr', root).addEventListener('change', run);
+      run();
+    }
+    if (id === 'missing') {
+      const V = [120, null, 95, 110, null, 980, 105, 90];
+      const known = V.filter(v => v !== null);
+      const mean = known.reduce((a, b) => a + b, 0) / known.length;
+      const sorted = [...known].sort((a, b) => a - b);
+      const median = sorted.length % 2 ? sorted[(sorted.length - 1) / 2] : (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2;
+      const WAY = {
+        raw: [V, "df['amount']", '原始資料有 2 個缺失值（NaN）與 1 個異常值 980。pandas 計算平均與總和時會自動略過 NaN。'],
+        drop: [V.filter(v => v !== null), "df['amount'].dropna()", '刪除缺失的列。統計結果與原始資料相同，但少了 2 筆資料；如果是 df.dropna()，那兩列的其他欄位也一起消失了。'],
+        zero: [V.map(v => v ?? 0), "df['amount'].fillna(0)", '補 0 會把平均拉低。只有當「缺失代表沒有」（例如沒有銷售）時才適合。'],
+        mean: [V.map(v => v ?? +mean.toFixed(1)), "df['amount'].fillna(df['amount'].mean())", `補平均數 ${mean.toFixed(1)}：受到異常值 980 影響，補進去的值比大部分資料都大很多。`],
+        median: [V.map(v => v ?? median), "df['amount'].fillna(df['amount'].median())", `補中位數 ${median}：不受異常值影響，補進去的值比較接近一般情況。`],
+        ffill: [V.map((v, i) => { let j = i; while (j >= 0 && V[j] === null) j--; return j >= 0 ? V[j] : null; }), "df['amount'].ffill()", '向前填補：用前一筆的值補上，適合時間序列中「沒有變化就不記錄」的資料，例如庫存或價格。']
+      };
+      const fmt = x => Number.isInteger(x) ? String(x) : x.toFixed(1);
+      const run = way => {
+        const [vals, code, note] = WAY[way];
+        const nums = vals.filter(v => v !== null);
+        const sum = nums.reduce((a, b) => a + b, 0), avg = sum / nums.length;
+        const s2 = [...nums].sort((a, b) => a - b), med = s2.length % 2 ? s2[(s2.length - 1) / 2] : (s2[s2.length / 2 - 1] + s2[s2.length / 2]) / 2;
+        const cells = way === 'drop' ? V.map(v => v === null ? '<td class="ms-gone">（刪除）</td>' : `<td>${v}</td>`) : vals.map((v, i) => `<td class="${V[i] === null ? (v === null ? 'ms-na' : 'ms-fill') : v === 980 ? 'ms-out' : ''}">${v === null ? 'NaN' : fmt(v)}</td>`);
+        $('#msOut', root).innerHTML = `<div class="table-wrap"><table class="tbl small"><tr><th>索引</th>${V.map((_, i) => `<th>${i}</th>`).join('')}</tr><tr><th>amount</th>${cells.join('')}</tr></table></div>
+          <div class="ms-stats"><div><small>筆數</small><b>${nums.length}</b></div><div><small>總和</small><b>${fmt(sum)}</b></div><div><small>平均</small><b>${avg.toFixed(1)}</b></div><div><small>中位數</small><b>${fmt(med)}</b></div></div>`;
+        $('#msCode', root).textContent = code;
+        $('#msNote', root).textContent = note;
+      };
+      tabsSelect(root, (t, v) => run(v));
+      run('raw');
+    }
+    if (id === 'groupviz') {
+      const D = [['台北', '咖啡', 220], ['高雄', '甜點', 140], ['台北', '甜點', 130], ['台中', '咖啡', 110], ['台北', '茶飲', 75], ['台中', '甜點', 260], ['高雄', '咖啡', 80], ['台中', '茶飲', 120]];
+      const COLOR = { 台北: 'g1', 台中: 'g2', 高雄: 'g3', 咖啡: 'g1', 甜點: 'g2', 茶飲: 'g3' };
+      const F = { sum: a => a.reduce((x, y) => x + y, 0), mean: a => +(a.reduce((x, y) => x + y, 0) / a.length).toFixed(1), count: a => a.length, max: a => Math.max(...a) };
+      const run = () => {
+        const by = $('#gvBy', root).value, fn = $('#gvFn', root).value, k = by === 'store' ? 0 : 1, col = by === 'store' ? 'store' : 'category';
+        const groups = {};
+        D.forEach(r => (groups[r[k]] = groups[r[k]] || []).push(r[2]));
+        const keys = Object.keys(groups).sort();   // 與 pandas 相同：依字元碼排序
+        $('#gvCode', root).textContent = `df.groupby('${col}')['amount'].${fn}()`;
+        $('#gvOut', root).innerHTML = `
+          <div class="gv-step"><b>原始資料</b><table class="tbl small">${D.map(r => `<tr class="${COLOR[r[k]]}"><td>${r[0]}</td><td>${r[1]}</td><td class="num">${r[2]}</td></tr>`).join('')}</table></div>
+          <div class="gv-step"><b>① split：依 ${col} 分組</b>${keys.map(g => `<div class="gv-group ${COLOR[g]}"><span>${g}</span>${groups[g].map(v => `<i>${v}</i>`).join('')}</div>`).join('')}</div>
+          <div class="gv-step"><b>② apply：每組計算 ${fn}</b>${keys.map(g => `<div class="gv-group ${COLOR[g]}"><span>${g}</span>${fn}(${groups[g].join(', ')}) = <strong>${F[fn](groups[g])}</strong></div>`).join('')}</div>
+          <div class="gv-step"><b>③ combine：組合成結果</b><pre class="out" style="margin:0">${col}\n${keys.map(g => g.padEnd(4, '　') + String(F[fn](groups[g])).padStart(7)).join('\n')}\nName: amount</pre></div>`;
+      };
+      root.addEventListener('change', run);
+      run();
+    }
+    if (id === 'chartpick') {
+      const svg = inner => `<svg viewBox="0 0 160 90" class="cp-svg">${inner}</svg>`;
+      const G = {
+        trend: ['折線圖', '資料隨時間的變化：每月營業額、每日訂單數。時間放在橫軸，點很多時不用加標記。', svg('<polyline points="10,70 35,55 60,60 85,35 110,40 135,20 150,25" fill="none" stroke="currentColor" stroke-width="3"/>'),
+          "monthly.plot(marker='o', title='每月營業額')\n\n# matplotlib\nplt.plot(months, revenue, marker='o')\nplt.title('每月營業額')", '多條線比較時（例如各門市）不要超過 4～5 條，太多可改用小多圖（subplots）。'],
+        compare: ['長條圖／橫條圖', '比較不同類別的數值：各門市營業額、各商品銷量。類別名稱長或類別很多時用橫條圖，並依數值排序。', svg('<rect x="15" y="20" width="25" height="60" fill="currentColor"/><rect x="50" y="40" width="25" height="40" fill="currentColor" opacity=".7"/><rect x="85" y="55" width="25" height="25" fill="currentColor" opacity=".5"/><rect x="120" y="65" width="25" height="15" fill="currentColor" opacity=".35"/>'),
+          "s.sort_values().plot(kind='barh', title='各商品營業額')\n\n# matplotlib\nplt.barh(names, values)", '縱軸（數值軸）一定要從 0 開始，否則會誇大差異。'],
+        dist: ['直方圖／箱形圖', '看一個數值的分布：訂單金額集中在哪裡、有沒有異常值。箱形圖適合比較多組的分布。', svg('<rect x="10" y="60" width="20" height="20" fill="currentColor" opacity=".6"/><rect x="32" y="35" width="20" height="45" fill="currentColor" opacity=".6"/><rect x="54" y="15" width="20" height="65" fill="currentColor" opacity=".6"/><rect x="76" y="30" width="20" height="50" fill="currentColor" opacity=".6"/><rect x="98" y="55" width="20" height="25" fill="currentColor" opacity=".6"/><rect x="120" y="70" width="20" height="10" fill="currentColor" opacity=".6"/>'),
+          "df['amount'].plot(kind='hist', bins=12)\ndf.boxplot(column='amount', by='store')\n\n# matplotlib\nplt.hist(df['amount'], bins=12)", 'bins（區間數）會影響形狀，可以多試幾個值。'],
+        rel: ['散佈圖', '看兩個數值變數的關係：訂單數與營業額、年齡與消費金額。點太多時加上透明度 alpha。', svg('<g fill="currentColor" opacity=".7"><circle cx="20" cy="70" r="4"/><circle cx="35" cy="62" r="4"/><circle cx="50" cy="58" r="4"/><circle cx="62" cy="45" r="4"/><circle cx="80" cy="48" r="4"/><circle cx="95" cy="35" r="4"/><circle cx="112" cy="30" r="4"/><circle cx="130" cy="22" r="4"/><circle cx="145" cy="15" r="4"/></g>'),
+          "df.plot(kind='scatter', x='orders', y='amount', alpha=0.5)\n\n# matplotlib\nplt.scatter(x, y, alpha=0.5)", '看到明顯趨勢時，可以計算相關係數或畫出迴歸線，但要記得相關不等於因果。'],
+        part: ['堆疊長條圖（類別少時可用圓餅圖）', '看整體由哪些部分組成：付款方式佔比、各類別營業額佔比。要比較多個群體的組成時，用百分比堆疊長條圖。', svg('<rect x="20" y="15" width="30" height="25" fill="currentColor"/><rect x="20" y="40" width="30" height="20" fill="currentColor" opacity=".6"/><rect x="20" y="60" width="30" height="20" fill="currentColor" opacity=".35"/><rect x="65" y="15" width="30" height="35" fill="currentColor"/><rect x="65" y="50" width="30" height="15" fill="currentColor" opacity=".6"/><rect x="65" y="65" width="30" height="15" fill="currentColor" opacity=".35"/><rect x="110" y="15" width="30" height="20" fill="currentColor"/><rect x="110" y="35" width="30" height="30" fill="currentColor" opacity=".6"/><rect x="110" y="65" width="30" height="15" fill="currentColor" opacity=".35"/>'),
+          "ct = pd.crosstab(df['store'], df['payment'], normalize='index')\nct.plot(kind='bar', stacked=True)", '圓餅圖只適合 2～4 個類別；類別多或要比較多個群體時，人眼很難比較角度大小。']
+      };
+      const run = k => {
+        const [name, when, pic, code, tip] = G[k];
+        $('#cpOut', root).innerHTML = `<div class="cp-head">${pic}<div><div class="cp-name">${esc(name)}</div><p class="small" style="margin:4px 0 0">${esc(when)}</p></div></div><pre class="out" style="margin-top:8px">${esc(code)}</pre><p class="small muted" style="margin:6px 0 0">${esc(tip)}</p>`;
+      };
+      tabsSelect(root, (t, v) => run(v));
+      run('trend');
     }
   }
 

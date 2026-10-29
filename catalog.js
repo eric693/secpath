@@ -93,6 +93,12 @@ const courses = {
     audience: ['準備軟體工程師面試、刷 LeetCode 的人', '準備 APCS、程式競賽的高中生與大學生', '學完資料結構、想提升解題能力的人'],
     highlights: ['35 個 C++ 範例可在網頁上編譯執行', '輸出題皆以 G++ 實際編譯執行驗證', '排序過程、二分搜尋、DP 表格與最短路徑逐步視覺化']
   },
+  ts: {
+    cat: 'code', kind: 'skill', code: 'TS', level: '中級',
+    pitch: '現代前端與 Node.js 專案的標準配備：基本型別、interface、聯合型別與型別縮小、泛型、工具型別，到非同步錯誤處理與在 React、Express 中實戰。',
+    audience: ['會 JavaScript、想寫出更可靠程式的前端與全端工程師', '專案正從 JavaScript 遷移到 TypeScript 的團隊', '學完 React、準備求職的人'],
+    highlights: ['36 個範例以官方編譯器型別檢查後在網頁上執行', '錯誤訊息附中文說明，題目皆以 tsc 實際編譯驗證', '型別推論探索、型別縮小、工具型別與 JSON 轉型別工具']
+  },
   web: {
     cat: 'code', kind: 'skill', code: 'Web', level: '入門',
     pitch: '自學轉職最多人走的前端路線：HTML 結構、CSS 排版與響應式設計、JavaScript 互動與串接 API，範例都能即時預覽。',
@@ -105,6 +111,12 @@ const courses = {
     audience: ['學完 HTML、CSS、JavaScript，想轉職前端工程師的人', '想做出互動網頁作品集的學生', '要維護或開發 React 專案的後端與全端工程師'],
     highlights: ['40 個 React 範例可在網頁上修改並即時預覽', '畫面結果題皆以 React 18 實際渲染並模擬點擊驗證', 'JSX 轉換、不可變更新、effect 執行順序與重新渲染追蹤互動工具']
   },
+  claude: {
+    cat: 'ai', kind: 'skill', code: 'Claude', level: '入門',
+    pitch: '把 Claude 用在真實工作：提示詞技巧與 claude.ai 的專案、Artifacts，再到工程師必學的 Claude Code 指令、權限、CLAUDE.md、Skills、Hooks、MCP 與自動化，最後用 SDK 呼叫 Claude API。',
+    audience: ['想用 AI 提升工作效率的上班族與學生', '想用 Claude Code 加速開發的工程師', '要把 Claude 整合進產品或自動化流程的開發者'],
+    highlights: ['依 2026 年 10 月官方文件整理的 Claude Code 指令與設定', '指令速查、提示詞產生器與 CLAUDE.md 設定產生器', 'API 費用試算與工具呼叫範例可在網頁上執行']
+  },
   'ai-apps': {
     cat: 'ai', kind: 'skill', code: 'RAG', level: '進階',
     pitch: '從會用 AI 聊天進階到能打造 AI 應用：提示工程、API、RAG、工具呼叫與代理流程。',
@@ -116,6 +128,12 @@ const courses = {
     pitch: '資料分析、後端、MIS 職缺最常要求的技能。從 SELECT、JOIN、分組統計到視窗函式，每個查詢都能在網頁上直接執行。',
     audience: ['想從事資料分析、商業分析的上班族', '準備後端或 MIS 職缺的求職者', '常被 Excel 資料量卡住、想更有效率處理資料的人'],
     highlights: ['77 個 SQL 範例在網頁上以 SQLite 直接執行', '查詢結果題皆以 SQLite 實際執行驗證', '執行順序練習與 JOIN 結果視覺化']
+  },
+  pydata: {
+    cat: 'data', kind: 'skill', code: 'pandas', level: '中級',
+    pitch: '資料分析師最常被要求的 Python 技能：用 NumPy 與 pandas 讀取、清理、篩選、分組、合併資料，用 matplotlib 畫出中文圖表，最後完成一份銷售分析報告並匯出 Excel。',
+    audience: ['想轉職資料分析師、商業分析師的人', '每天整理大量 Excel 報表、想自動化的上班族', '學完 Python 入門、想實際處理資料的人'],
+    highlights: ['用一整年的咖啡店銷售資料實作，範例可在網頁上執行並顯示中文圖表', '輸出題以與網頁相同版本的 pandas 實際執行驗證', 'DataFrame 選取、缺失值處理、groupby 與圖表選擇互動工具']
   },
   excel: {
     cat: 'data', kind: 'skill', code: 'Excel', level: '入門',
@@ -159,11 +177,12 @@ const courses = {
 const paths = [
   { id: 'soc', name: '資安分析師', desc: '從網路與系統基礎開始，取得國內外資安證照，準備 SOC 與資安工程師職缺。', steps: ['network', 'linux', 'beginner', 'secplus', 'intermediate'] },
   { id: 'cloud', name: '雲端工程師', desc: '打好網路與 Linux 基礎，取得 AWS 證照，再學會容器與自動化部署。', steps: ['network', 'linux', 'git', 'aws-clf', 'aws-saa', 'devops'] },
-  { id: 'ai', name: 'AI 應用開發', desc: '從 Python 入門到考取 iPAS AI 證照，最後動手打造 RAG 與 AI 代理。', steps: ['py-basic', 'ai-beginner', 'py-practice', 'ai-apps', 'ai-intermediate'] },
+  { id: 'ai', name: 'AI 應用開發', desc: '從 Python 入門到考取 iPAS AI 證照，學會用 Claude 與 Claude Code 工作，最後動手打造 RAG 與 AI 代理。', steps: ['py-basic', 'ai-beginner', 'claude', 'py-practice', 'ai-apps', 'ai-intermediate'] },
   { id: 'auto', name: '辦公自動化與資料分析', desc: '不需資訊背景，從 Excel 與 SQL 開始，再用 Python 與 AI 自動化報表、分析資料並做出作品集。', steps: ['excel', 'sql', 'py-basic', 'py-practice', 'ai-apps'] },
+  { id: 'analyst', name: '資料分析師', desc: '從 Excel 與 SQL 開始，學會 Python 與 pandas 處理資料、畫出圖表，完成能放進作品集的分析報告。', steps: ['excel', 'sql', 'py-basic', 'pydata'] },
   { id: 'firmware', name: '韌體與嵌入式工程師', desc: '從 C 語言打好指標與記憶體的基礎，學會 Linux 與網路，再用 C++ 與 Git 開發大型專案。', steps: ['c', 'linux', 'network', 'cpp', 'git'] },
   { id: 'swe', name: '軟體工程師面試', desc: '用 C++ 打好程式基礎，系統學會資料結構與演算法，搭配 Git 與 SQL，準備科技公司的白板題與技術面試。', steps: ['cpp', 'ds', 'algo', 'git', 'sql'] },
-  { id: 'frontend', name: '前端工程師', desc: '從 HTML、CSS、JavaScript 打好基礎，用 React 做出互動作品，學會版本控制與資料庫，再把作品自動部署上線。', steps: ['web', 'react', 'git', 'sql', 'devops'] }
+  { id: 'frontend', name: '前端工程師', desc: '從 HTML、CSS、JavaScript 打好基礎，用 React 與 TypeScript 做出互動作品，學會版本控制與資料庫，再把作品自動部署上線。', steps: ['web', 'react', 'ts', 'git', 'sql', 'devops'] }
 ];
 
 module.exports = { categories, courses, paths };

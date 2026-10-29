@@ -1,4 +1,4 @@
-/* 設定或變更某一級的登入密碼：node scripts/set-password.js <beginner|intermediate|ai-beginner|ai-intermediate|ai-invest|linux|secplus|aws-clf|aws-saa|py-basic|py-practice|ai-apps|git|devops|network|sql|web|excel|c|cpp|ds|algo|react> <新密碼>
+/* 設定或變更某一級的登入密碼：node scripts/set-password.js <beginner|intermediate|ai-beginner|ai-intermediate|ai-invest|linux|secplus|aws-clf|aws-saa|py-basic|py-practice|ai-apps|git|devops|network|sql|web|excel|c|cpp|ds|algo|react|claude|ts|pydata> <新密碼>
    密碼以 scrypt 雜湊寫入 .env，變更後需重啟服務（pm2 restart secpath），舊的登入狀態會自動失效。 */
 'use strict';
 const fs = require('fs');
@@ -6,8 +6,8 @@ const path = require('path');
 const crypto = require('crypto');
 
 const [level, pw] = process.argv.slice(2);
-const KEY = { beginner: 'PASS_BEGINNER', intermediate: 'PASS_INTERMEDIATE', 'ai-beginner': 'PASS_AI_BEGINNER', 'ai-intermediate': 'PASS_AI_INTERMEDIATE', 'ai-invest': 'PASS_AI_INVEST', linux: 'PASS_LINUX', secplus: 'PASS_SECPLUS', 'aws-clf': 'PASS_AWS_CLF', 'aws-saa': 'PASS_AWS_SAA', 'py-basic': 'PASS_PY_BASIC', 'py-practice': 'PASS_PY_PRACTICE', 'ai-apps': 'PASS_AI_APPS', git: 'PASS_GIT', devops: 'PASS_DEVOPS', network: 'PASS_NETWORK', sql: 'PASS_SQL', web: 'PASS_WEB', excel: 'PASS_EXCEL', c: 'PASS_C', cpp: 'PASS_CPP', ds: 'PASS_DS', algo: 'PASS_ALGO', react: 'PASS_REACT' }[level];
-if (!KEY || !pw) { console.error('用法：node scripts/set-password.js <beginner|intermediate|ai-beginner|ai-intermediate|ai-invest|linux|secplus|aws-clf|aws-saa|py-basic|py-practice|ai-apps|git|devops|network|sql|web|excel|c|cpp|ds|algo|react> <新密碼>'); process.exit(1); }
+const KEY = { beginner: 'PASS_BEGINNER', intermediate: 'PASS_INTERMEDIATE', 'ai-beginner': 'PASS_AI_BEGINNER', 'ai-intermediate': 'PASS_AI_INTERMEDIATE', 'ai-invest': 'PASS_AI_INVEST', linux: 'PASS_LINUX', secplus: 'PASS_SECPLUS', 'aws-clf': 'PASS_AWS_CLF', 'aws-saa': 'PASS_AWS_SAA', 'py-basic': 'PASS_PY_BASIC', 'py-practice': 'PASS_PY_PRACTICE', 'ai-apps': 'PASS_AI_APPS', git: 'PASS_GIT', devops: 'PASS_DEVOPS', network: 'PASS_NETWORK', sql: 'PASS_SQL', web: 'PASS_WEB', excel: 'PASS_EXCEL', c: 'PASS_C', cpp: 'PASS_CPP', ds: 'PASS_DS', algo: 'PASS_ALGO', react: 'PASS_REACT', claude: 'PASS_CLAUDE', ts: 'PASS_TS', pydata: 'PASS_PYDATA' }[level];
+if (!KEY || !pw) { console.error('用法：node scripts/set-password.js <beginner|intermediate|ai-beginner|ai-intermediate|ai-invest|linux|secplus|aws-clf|aws-saa|py-basic|py-practice|ai-apps|git|devops|network|sql|web|excel|c|cpp|ds|algo|react|claude|ts|pydata> <新密碼>'); process.exit(1); }
 if (pw.length < 8) { console.error('密碼至少 8 個字元'); process.exit(1); }
 
 const salt = crypto.randomBytes(16);

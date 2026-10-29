@@ -33,7 +33,10 @@ const LEVELS = {
   cpp: { name: 'C++', title: 'C++ 程式設計：STL、物件導向與現代 C++', hashEnv: 'PASS_CPP', org: 'APCS 與高效能開發・C++ × STL × 物件導向', foot: '語法以 C++17 與 G++ 為準；範例透過 Compiler Explorer 編譯執行', labels: ['基礎篇', '物件導向篇'], subjects: ['語法、函式與 STL', '類別、記憶體管理與現代 C++'] },
   ds: { name: '資料結構', title: '資料結構：陣列、鏈結串列、樹、圖與雜湊', hashEnv: 'PASS_DS', org: '資工核心與面試必備・資料結構 × C++ 實作', foot: '以 C++17 實作；範例透過 Compiler Explorer 編譯執行', labels: ['線性結構篇', '非線性結構篇'], subjects: ['陣列、串列、堆疊、佇列與雜湊', '樹、堆積、圖與進階結構'] },
   algo: { name: '演算法', title: '演算法：排序、搜尋、動態規劃與圖論', hashEnv: 'PASS_ALGO', org: '面試與 APCS 核心・演算法 × C++ 實作', foot: '以 C++17 實作；範例透過 Compiler Explorer 編譯執行', labels: ['基礎技巧篇', '進階演算法篇'], subjects: ['分析、遞迴、排序、搜尋與回溯', '貪心、動態規劃與圖論'] },
-  react: { name: 'React', title: 'React 前端框架：元件、Hooks 與實戰專案', hashEnv: 'PASS_REACT', org: '前端職缺最常要求・React 18 × Hooks × 即時預覽', foot: '以 React 18 函式元件與 Hooks 撰寫；範例在瀏覽器中即時預覽', labels: ['基礎篇', '進階篇'], subjects: ['JSX、元件、state、列表與表單', 'Hooks、狀態管理、路由與專案實戰'] }
+  react: { name: 'React', title: 'React 前端框架：元件、Hooks 與實戰專案', hashEnv: 'PASS_REACT', org: '前端職缺最常要求・React 18 × Hooks × 即時預覽', foot: '以 React 18 函式元件與 Hooks 撰寫；範例在瀏覽器中即時預覽', labels: ['基礎篇', '進階篇'], subjects: ['JSX、元件、state、列表與表單', 'Hooks、狀態管理、路由與專案實戰'] },
+  claude: { name: 'Claude 實戰', title: 'Claude 實戰：提示詞、Claude Code 與 API 開發', hashEnv: 'PASS_CLAUDE', org: 'AI 工作流程實戰・Claude × Claude Code × API', foot: '內容依 2026 年 10 月官方文件整理；產品更新頻繁，請以官方文件為準', labels: ['使用篇', '進階篇'], subjects: ['提示詞、claude.ai 與 Claude Code 指令', '專案記憶、擴充、自動化與 API 開發'] },
+  ts: { name: 'TypeScript', title: 'TypeScript：型別系統、泛型與實戰開發', hashEnv: 'PASS_TS', org: '前端與 Node.js 專案標配・TypeScript × 型別檢查 × 即時執行', foot: '以 TypeScript 5.6 strict 模式為準；範例在瀏覽器中以官方編譯器檢查後執行', labels: ['基礎篇', '進階篇'], subjects: ['型別、物件、函式、聯合型別與類別', '泛型、型別操作、非同步、工具鏈與實戰'] },
+  pydata: { name: 'Python 資料分析', title: 'Python 資料分析：NumPy、pandas 與視覺化', hashEnv: 'PASS_PYDATA', org: '資料分析師必備・pandas × matplotlib × 實際資料', foot: '以 pandas 2.2、NumPy 1.26、matplotlib 3.5 為準；範例在瀏覽器中以 Pyodide 執行', labels: ['基礎篇', '進階篇'], subjects: ['NumPy、DataFrame、篩選、清理與分組', '合併、視覺化、時間序列、統計與實戰'] }
 };
 const IPAS = { org: 'iPAS 資訊安全工程師能力鑑定', foot: '考試資訊以 iPAS 經濟部產業人才能力鑑定官網公告為準', labels: ['科目一', '科目二'] };
 for (const [k, v] of Object.entries(LEVELS)) {
@@ -44,7 +47,7 @@ for (const [k, v] of Object.entries(LEVELS)) {
 
 const site = require('./site')({ ROOT, LEVELS });
 
-const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'application/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.json': 'application/json', '.png': 'image/png', '.ico': 'image/x-icon', '.mp4': 'video/mp4', '.webm': 'video/webm', '.vtt': 'text/vtt', '.wasm': 'application/wasm' };
+const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'application/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.json': 'application/json', '.png': 'image/png', '.ico': 'image/x-icon', '.mp4': 'video/mp4', '.webm': 'video/webm', '.vtt': 'text/vtt', '.wasm': 'application/wasm', '.otf': 'font/otf', '.csv': 'text/csv; charset=utf-8' };
 const SESSION_DAYS = 30;
 const LEVEL_PATH = new RegExp(`^/(${Object.keys(LEVELS).join('|')})(/.*)?$`);
 
@@ -105,7 +108,7 @@ const CSP_MAIN = [
   "img-src 'self' data: https://i.ytimg.com",
   "media-src 'self'",
   "frame-src 'self' https://www.youtube-nocookie.com",
-  "connect-src 'self' https://godbolt.org https://cdn.jsdelivr.net",
+  "connect-src 'self' https://godbolt.org https://cdn.jsdelivr.net https://pypi.org https://files.pythonhosted.org",
   "frame-ancestors 'none'", "base-uri 'self'", "form-action 'self'"
 ].join('; ');
 // 程式預覽頁：放在無 allow-same-origin 的 sandbox iframe 中，執行學員寫的 HTML／React，需要內嵌腳本
