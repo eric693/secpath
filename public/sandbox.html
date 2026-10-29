@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>預覽</title></head>
+<body>
+<!-- 程式預覽頁：由 runners.js 以 sandbox iframe 載入（沒有 allow-same-origin，與主站隔離），
+     載入後通知主畫面，收到要預覽的 HTML 後整頁寫入。每次重新執行都會重新載入這一頁。 -->
+<script>
+addEventListener('message', function (e) {
+  if (e.source !== parent || !e.data || e.data.__sandbox !== 'render') return;
+  document.open();
+  document.write(e.data.html);
+  document.close();
+});
+parent.postMessage({ __sandbox: 'ready' }, '*');
+</script>
+</body>
+</html>

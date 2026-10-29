@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="/static/css/style.css">
   <link rel="stylesheet" href="/static/css/catalog.css">
   <link rel="stylesheet" href="/static/css/members.css">
-  <script>try { var t = localStorage.getItem('secpath.theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch (e) {}</script>
+  <script src="/static/js/theme.js"></script>
 </head>
 <body class="plain">
   <header class="plain-head site-head">
@@ -28,7 +28,7 @@
         <div class="overline">資安・AI・雲端・程式設計・IT 與 DevOps</div>
         <h1>學到能上工的<br>資訊技能與證照</h1>
         <p class="lead">從 iPAS、Security+、AWS 證照備考，到 Python、Git、Docker 與 AI 應用實作。每門課都有完整講義、教學影片、附解析的練習題與互動練習，第一章免費試讀。</p>
-        <form class="hero-search" role="search" onsubmit="return false">
+        <form class="hero-search" role="search">
           <input id="q" type="search" placeholder="搜尋課程，例如：子網路、RAG、Docker、Security+" autocomplete="off" aria-label="搜尋課程">
         </form>
         <div class="hero-stats">{{STATS}}</div>

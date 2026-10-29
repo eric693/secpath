@@ -99,8 +99,19 @@
   /* ---------- 網頁預覽（HTML／CSS／JS） ---------- */
   let frameSeq = 0;
   const frames = new Map();
+  // 預覽內容交給 /sandbox.html 顯示：它有自己的 CSP，可以執行內嵌腳本，主站的 CSP 不必放寬。
+  // 每次執行都換一個查詢字串重新載入，確保是全新的頁面（同網址只差 # 時瀏覽器不會重新載入）
+  function show(id, html) {
+    const f = frames.get(id);
+    f.html = html;
+    f.frame.src = '/sandbox.html?n=' + (++f.n);
+  }
   addEventListener('message', e => {
     const d = e.data;
+    if (d && d.__sandbox === 'ready') {
+      for (const f of frames.values()) if (e.source === f.frame.contentWindow && f.html != null) e.source.postMessage({ __sandbox: 'render', html: f.html }, '*');
+      return;
+    }
     if (!d || typeof d !== 'object' || !d.__web) return;
     const f = frames.get(d.__web);
     if (!f || e.source !== f.frame.contentWindow) return;
@@ -124,10 +135,10 @@ document.addEventListener('click',function(e){var a=e.target.closest&&e.target.c
     const frame = wrap.querySelector('iframe'), con = wrap.querySelector('.web-console');
     const id = ++frameSeq;
     frames.set(id, {
-      frame,
+      frame, n: 0,
       log(type, text) { con.hidden = false; const s = document.createElement('span'); s.className = 'c-' + type; s.textContent = text + '\n'; con.appendChild(s); }
     });
-    function run() { con.textContent = ''; con.hidden = true; frame.srcdoc = `<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">${BASE_CSS}${bridge(id)}</head><body>${ta.value}</body></html>`; }
+    function run() { con.textContent = ''; con.hidden = true; show(id, `<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">${BASE_CSS}${bridge(id)}</head><body>${ta.value}</body></html>`); }
     box.addEventListener('run', run);
     box.querySelector('.run').addEventListener('click', run);
     box.addEventListener('reset', run);
@@ -199,7 +210,7 @@ document.addEventListener('click',function(e){var a=e.target.closest&&e.target.c
       con.hidden = false;
       const s = document.createElement('span'); s.className = 'c-' + type; s.textContent = text + '\n'; con.appendChild(s);
     };
-    frames.set(id, { frame, log });
+    frames.set(id, { frame, log, n: 0 });
     let seq = 0;
     async function run() {
       const my = ++seq;
@@ -209,9 +220,9 @@ document.addEventListener('click',function(e){var a=e.target.closest&&e.target.c
       if (my !== seq) return;
       con.textContent = ''; con.hidden = true;
       try { r = toScript(ta.value); }
-      catch (e) { log('error', '語法錯誤：' + String(e.message).replace(/^\/?App\.jsx: /, '')); frame.srcdoc = ''; return; }
+      catch (e) { log('error', '語法錯誤：' + String(e.message).replace(/^\/?App\.jsx: /, '')); show(id, ''); return; }
       r.skipped.forEach(m => log('warn', `（預覽環境不支援匯入 ${m}，已略過這一行）`));
-      frame.srcdoc = `<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">${BASE_CSS}${REACT_CSS}${bridge(id)}<script>${react}<\/script></head><body><div id="root"></div><script>${r.js.replace(/<\/script/gi, '<\\/script')}<\/script></body></html>`;
+      show(id, `<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">${BASE_CSS}${REACT_CSS}${bridge(id)}<script>${react}<\/script></head><body><div id="root"></div><script>${r.js.replace(/<\/script/gi, '<\\/script')}<\/script></body></html>`);
     }
     box.addEventListener('run', run);
     box.querySelector('.run').addEventListener('click', run);

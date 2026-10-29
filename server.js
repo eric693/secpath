@@ -95,6 +95,26 @@ function recordFail(ip) { attempts.get(ip).push(Date.now()); }
 setInterval(() => { const now = Date.now(); for (const [k, v] of attempts) if (!v.some(t => now - t < 15 * 60e3)) attempts.delete(k); }, 10 * 60e3).unref();
 
 /* ---------- 回應工具 ---------- */
+// 安全標頭：主站嚴格限制來源，只開放執行器需要的外部服務（Pyodide CDN、Compiler Explorer）與 WebAssembly
+const CSP_MAIN = [
+  "default-src 'self'",
+  "script-src 'self' 'wasm-unsafe-eval' https://cdn.jsdelivr.net",
+  "worker-src 'self' blob:",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src https://fonts.gstatic.com",
+  "img-src 'self' data: https://i.ytimg.com",
+  "media-src 'self'",
+  "frame-src 'self' https://www.youtube-nocookie.com",
+  "connect-src 'self' https://godbolt.org https://cdn.jsdelivr.net",
+  "frame-ancestors 'none'", "base-uri 'self'", "form-action 'self'"
+].join('; ');
+// 程式預覽頁：放在無 allow-same-origin 的 sandbox iframe 中，執行學員寫的 HTML／React，需要內嵌腳本
+const CSP_SANDBOX = "default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' https:; style-src 'unsafe-inline' https:; img-src * data: blob:; font-src * data:; media-src * data: blob:; connect-src https:; frame-ancestors 'self'; base-uri 'none'; form-action 'none'";
+function securityHeaders(res, p) {
+  const box = p === '/sandbox.html';
+  res.setHeader('Content-Security-Policy', box ? CSP_SANDBOX : CSP_MAIN);
+  res.setHeader('X-Frame-Options', box ? 'SAMEORIGIN' : 'DENY');
+}
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const views = {};
 function view(name) {
@@ -162,7 +182,9 @@ const server = http.createServer(async (req, res) => {
   let url;
   try { url = new URL(req.url, 'http://x'); } catch { return send(res, 400, 'Bad request', 'text/plain'); }
   const p = decodeURIComponent(url.pathname);
+  securityHeaders(res, p);
 
+  if (p === '/sandbox.html') return serveFile(res, path.join(ROOT, 'public'), 'sandbox.html', 'public, max-age=3600');
   if (p === '/' || p === '/index.html') return send(res, 200, render('home.html', { ...site.home(), USER_NAV: members.userNav(members.user(req)) }));
   const cm = p.match(/^\/course\/([\w-]+)(\/trial)?\/?$/);
   if (cm) {
