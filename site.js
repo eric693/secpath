@@ -9,6 +9,15 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': 
 const strip = s => String(s ?? '').replace(/<[^>]+>/g, '');
 const FILES = ['level.js', 'chapters1.js', 'chapters2.js', 'questions.js', 'glossary.js', 'videos.js'];
 
+// 可在網頁上執行的程式範例：依講義中 <pre class="…"> 的種類統計，並列出主要語言
+const RUN_LANG = { py: 'Python', sql: 'SQL', web: 'HTML', js: 'JavaScript', jsx: 'React', c: 'C', cpp: 'C++' };
+function runnables(CH) {
+  const n = {};
+  for (const c of CH) for (const sec of c.sections) for (const m of sec.html.matchAll(/<pre class="(py|sql|web|js|jsx|c|cpp)"/g)) n[m[1]] = (n[m[1]] || 0) + 1;
+  const kinds = Object.keys(n).sort((a, b) => n[b] - n[a]);
+  return { runnable: kinds.reduce((t, k) => t + n[k], 0), runLangs: kinds.slice(0, 3).map(k => RUN_LANG[k]).join('、'), runDownload: kinds.some(k => k === 'py' || k === 'sql' || k === 'jsx') };
+}
+
 module.exports = function createSite({ ROOT, LEVELS }) {
   const catalogFile = path.join(ROOT, 'catalog.js');
   let data = null;
@@ -35,7 +44,7 @@ module.exports = function createSite({ ROOT, LEVELS }) {
         terms: (w.GLOSSARY || []).length,
         videos: (V.review || []).length + Object.values(V.chapters || {}).reduce((n, a) => n + a.length, 0),
         tools: (LV.tools || []).length,
-        runnable: CH.reduce((n, c) => n + c.sections.reduce((m, s) => m + (s.html.match(/<pre class="py"/g) || []).length, 0), 0)
+        ...runnables(CH)
       }
     };
   }
@@ -135,7 +144,7 @@ module.exports = function createSite({ ROOT, LEVELS }) {
       [`${s.questions} 題練習題`, '每題附詳細解析'],
       LV.exam && LV.exam.full ? [`${LV.words ? '綜合測驗' : '計時模擬考'}`, `${LV.exam.full.n} 題・${LV.exam.full.min} 分鐘`] : null,
       s.videos ? [`${s.videos} 支教學影片`, '逐章搭配'] : null,
-      s.runnable ? [`${s.runnable} 個可執行範例`, '直接在網頁上執行 Python'] : null,
+      s.runnable ? [`${s.runnable} 個可執行範例`, `直接在網頁上執行 ${s.runLangs}`] : null,
       s.tools ? [`${s.tools} 個互動練習`, '計算器與模擬器'] : null,
       s.terms ? [`${s.terms} 個名詞`, '速查與記憶卡'] : null,
       ['錯題本與學習進度', '自動記錄在瀏覽器']
@@ -148,7 +157,7 @@ module.exports = function createSite({ ROOT, LEVELS }) {
 
     const faq = [
       ['如何取得課程密碼？', '每門課程使用獨立的課程密碼，請向課程管理者索取。輸入一次後 30 天內不需重新登入。'],
-      ['需要安裝任何軟體嗎？', s.runnable ? '不需要。講義、練習題與 Python 範例都在瀏覽器中完成，第一次執行程式時會自動下載執行環境。' : '不需要，所有講義、練習題與互動工具都在瀏覽器中完成，手機也能閱讀。'],
+      ['需要安裝任何軟體嗎？', s.runnable ? `不需要。講義、練習題與 ${s.runLangs} 範例都在瀏覽器中完成${s.runDownload ? '，第一次執行程式時會自動下載執行環境' : ''}。` : '不需要，所有講義、練習題與互動工具都在瀏覽器中完成，手機也能閱讀。'],
       ['學習進度會保存嗎？', '章節完成狀態、錯題與收藏會儲存在你目前使用的瀏覽器。更換裝置或清除瀏覽器資料後會重新開始。'],
       c.kind === 'cert' ? ['這是官方課程嗎？', strip(LV.examNote || '本課程非官方課程，考試資訊請以官方公告為準。')] : ['完成後可以做到什麼？', strip(LV.readyNote || '')]
     ].filter(x => x[1]);

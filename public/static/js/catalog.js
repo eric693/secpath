@@ -3,6 +3,10 @@
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 
+  // 搜尋框即時篩選，按 Enter 不送出表單
+  const searchForm = $('.hero-search');
+  if (searchForm) searchForm.addEventListener('submit', e => e.preventDefault());
+
   const grid = $('#grid');
   if (grid) {
     const cards = $$('.cw-card', grid), q = $('#q'), empty = $('#empty');
