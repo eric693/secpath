@@ -2,6 +2,7 @@
    <pre class="sql" data-db="shop">  在瀏覽器中以 SQLite 執行查詢，結果顯示為表格（每次執行都從範例資料重新開始）
    <pre class="web">                 HTML／CSS／JS 片段，在隔離的 iframe 中即時預覽，並顯示 console 輸出
    <pre class="jsx">                 React 元件（JSX），以 Babel 轉譯後在隔離的 iframe 中渲染；未自行呼叫 createRoot 時自動渲染 App
+   <pre class="ts">                  TypeScript，以官方編譯器 strict 模式型別檢查，通過後交給 JavaScript 執行器
    <pre class="js">                  純 JavaScript，在背景執行緒執行並顯示 console 輸出，可停止無限迴圈
    <pre class="c">／<pre class="cpp">  C／C++ 程式，送到 Compiler Explorer（godbolt.org）以 GCC 編譯並執行；data-input 為標準輸入 */
 (function () {
@@ -269,33 +270,86 @@ self.addEventListener('unhandledrejection', e => { e.preventDefault(); postMessa
     [/has already been declared/, '重複宣告：同一個範圍內不能用 let／const 宣告兩次同名變數。'],
     [/Unexpected token .*JSON|is not valid JSON/, 'JSON 格式錯誤：鍵與字串要用雙引號，最後一項後面不能有逗號。']
   ];
-  function enhanceJs(pre) {
-    const { box, ta } = shell(pre, 'JavaScript', '<button type="button" class="py-btn run">執行</button><button type="button" class="py-btn stop" hidden>停止</button>');
+  /* ---------- TypeScript（型別檢查通過後交給 JavaScript 執行器） ---------- */
+  // 官方編譯器壓縮後約 1.6 MB，第一次執行 TypeScript 範例時才在背景執行緒載入
+  let tsWorker = null, tsReady = false, tsSeq = 0;
+  const tsWait = new Map();
+  const tsFail = text => { tsWait.forEach(f => f({ diags: [{ line: 0, code: 0, text }], js: '' })); tsWait.clear(); };
+  const tsCheck = code => new Promise(ok => {
+    if (!tsWorker) {
+      tsWorker = new Worker('/static/js/ts-worker.js');
+      tsWorker.onmessage = e => {
+        const d = e.data;
+        if (d.ready) { tsReady = true; return; }
+        const f = tsWait.get(d.id); if (f) { tsWait.delete(d.id); f(d); }
+      };
+      tsWorker.onerror = e => { e.preventDefault(); tsWorker = null; tsReady = false; tsFail('無法載入 TypeScript 編譯器，請檢查網路連線後再試一次。'); };
+    }
+    const id = ++tsSeq;
+    tsWait.set(id, ok);
+    tsWorker.postMessage({ id, code });
+  });
+  // TypeScript 錯誤代碼的中文說明
+  const TS_HINTS = {
+    2322: '型別不符：指定的值和宣告的型別不同。', 2345: '參數型別不符：傳入函式的值和參數宣告的型別不同。',
+    2339: '屬性不存在：這個型別上沒有這個屬性，檢查拼字或型別定義。', 2551: '屬性不存在，可能是拼字錯誤（訊息最後會建議正確的名稱）。',
+    2304: '找不到名稱：變數、函式或型別還沒宣告，或拼字錯誤。', 7006: '參數隱含 any：strict 模式要求為參數標註型別。',
+    2741: '缺少必要屬性：物件少了型別定義中必填的屬性。', 2554: '參數個數不符：傳入的參數數量和函式宣告不同。',
+    18047: '可能是 null：使用前先檢查，或使用 ?. 選擇性串連。', 18048: '可能是 undefined：使用前先檢查，或提供預設值。',
+    2531: '物件可能是 null：使用前先檢查。', 2532: '物件可能是 undefined：使用前先檢查。',
+    2588: 'const 宣告的變數不能重新指定。', 2540: '唯讀（readonly）屬性不能修改。', 2341: 'private 屬性只能在類別內部存取。',
+    2353: '物件有型別中沒有定義的屬性，檢查拼字或型別定義。', 2561: '物件有型別中沒有定義的屬性，可能是拼錯字（訊息最後會建議正確的名稱）。', 2367: '比較的兩個型別沒有交集，這個條件永遠不會成立。',
+    2366: '函式缺少回傳值：有些執行路徑沒有 return。', 2564: '類別屬性沒有初始化：在宣告時或建構子中給初始值。',
+    2769: '沒有符合的多載：傳入的參數不符合任何一種函式簽章。', 2349: '這個值不能被呼叫：它不是函式。',
+    2820: '字串不在允許的值之中（訊息最後會建議正確的值）。', 2678: 'switch 的 case 不在可能的值之中。',
+    2362: '算術運算的左邊必須是數字型別。', 2363: '算術運算的右邊必須是數字型別。', 2365: '這兩種型別不能用這個運算子。'
+  };
+  function enhanceJs(pre, isTs) {
+    const { box, ta } = shell(pre, isTs ? 'TypeScript' : 'JavaScript', '<button type="button" class="py-btn run">執行</button><button type="button" class="py-btn stop" hidden>停止</button>');
     const out = document.createElement('div');
     out.className = 'py-out'; out.hidden = true; out.innerHTML = '<pre></pre>';
     box.appendChild(out);
     const outPre = out.querySelector('pre');
     const btnRun = box.querySelector('.run'), btnStop = box.querySelector('.stop');
-    let w = null, timers = [], t0 = 0, url = null;
+    let w = null, timers = [], t0 = 0, url = null, checkSeq = 0;
     const write = (t, cls) => { const s = document.createElement('span'); if (cls) s.className = cls; s.textContent = t + '\n'; outPre.appendChild(s); };
     const stop = msg => {
+      checkSeq++;
       if (w) { w.terminate(); w = null; }
       if (url) { URL.revokeObjectURL(url); url = null; }
       timers.forEach(clearTimeout); timers = [];
       btnRun.disabled = false; btnStop.hidden = true; box.classList.remove('running');
       if (msg) write(msg, 'py-err');
     };
-    function run() {
+    async function run() {
       stop();
       out.hidden = false; outPre.textContent = '';
       btnRun.disabled = true; btnStop.hidden = false; box.classList.add('running');
       t0 = performance.now();
-      url = URL.createObjectURL(new Blob([PRELUDE + '\n(async () => {\n' + ta.value + '\n})().then(() => postMessage({ type: "main" }), e => { postMessage({ type: "error", text: String(e && e.stack ? e.stack.split("\\n")[0] : e) }); postMessage({ type: "main" }); });'], { type: 'text/javascript' }));
+      let code = ta.value;
+      if (isTs) {
+        const my = checkSeq;
+        write(tsReady ? '型別檢查中…' : '第一次執行：正在載入 TypeScript 編譯器並進行型別檢查…', 'py-status');
+        const r = await tsCheck(code);
+        if (my !== checkSeq) return;
+        outPre.textContent = '';
+        if (r.diags.length) {
+          r.diags.forEach(d => {
+            write((d.line ? '第 ' + d.line + ' 行：' : '') + d.text + (d.code ? ' (TS' + d.code + ')' : ''), 'py-err');
+            if (TS_HINTS[d.code]) write('提示：' + TS_HINTS[d.code], 'py-hint');
+          });
+          write('— 型別檢查發現 ' + r.diags.length + ' 個錯誤，程式沒有執行（' + fmtMs(performance.now() - t0) + '）', 'py-status');
+          stop();
+          return;
+        }
+        code = r.js;
+      }
+      url = URL.createObjectURL(new Blob([PRELUDE + '\n(async () => {\n' + code + '\n})().then(() => postMessage({ type: "main" }), e => { postMessage({ type: "error", text: String(e && e.stack ? e.stack.split("\\n")[0] : e) }); postMessage({ type: "main" }); });'], { type: 'text/javascript' }));
       let errored = false;
       try { w = new Worker(url); } catch (e) { stop('無法建立執行環境：' + e.message); return; }
       const done = () => {
         if (!outPre.textContent.trim()) write('（程式已執行完畢，沒有輸出。要看到結果請使用 console.log()）', 'py-status');
-        write('— 執行完成，' + fmtMs(performance.now() - t0), 'py-status');
+        write('— ' + (isTs ? '型別檢查通過，' : '') + '執行完成，' + fmtMs(performance.now() - t0), 'py-status');
         stop();
       };
       w.onmessage = e => {
@@ -406,7 +460,8 @@ self.addEventListener('unhandledrejection', e => { e.preventDefault(); postMessa
     view.querySelectorAll('pre.sql').forEach(enhanceSql);
     view.querySelectorAll('pre.web').forEach(enhanceWeb);
     view.querySelectorAll('pre.jsx').forEach(enhanceJsx);
-    view.querySelectorAll('pre.js').forEach(enhanceJs);
+    view.querySelectorAll('pre.js').forEach(p => enhanceJs(p));
+    view.querySelectorAll('pre.ts').forEach(p => enhanceJs(p, true));
   };
   new MutationObserver(scan).observe(view, { childList: true, subtree: true });
   scan();

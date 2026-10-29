@@ -10,12 +10,12 @@ const strip = s => String(s ?? '').replace(/<[^>]+>/g, '');
 const FILES = ['level.js', 'chapters1.js', 'chapters2.js', 'questions.js', 'glossary.js', 'videos.js'];
 
 // 可在網頁上執行的程式範例：依講義中 <pre class="…"> 的種類統計，並列出主要語言
-const RUN_LANG = { py: 'Python', sql: 'SQL', web: 'HTML', js: 'JavaScript', jsx: 'React', c: 'C', cpp: 'C++' };
+const RUN_LANG = { py: 'Python', sql: 'SQL', web: 'HTML', js: 'JavaScript', ts: 'TypeScript', jsx: 'React', c: 'C', cpp: 'C++' };
 function runnables(CH) {
   const n = {};
-  for (const c of CH) for (const sec of c.sections) for (const m of sec.html.matchAll(/<pre class="(py|sql|web|js|jsx|c|cpp)"/g)) n[m[1]] = (n[m[1]] || 0) + 1;
+  for (const c of CH) for (const sec of c.sections) for (const m of sec.html.matchAll(/<pre class="(py|sql|web|js|ts|jsx|c|cpp)"/g)) n[m[1]] = (n[m[1]] || 0) + 1;
   const kinds = Object.keys(n).sort((a, b) => n[b] - n[a]);
-  return { runnable: kinds.reduce((t, k) => t + n[k], 0), runLangs: kinds.slice(0, 3).map(k => RUN_LANG[k]).join('、'), runDownload: kinds.some(k => k === 'py' || k === 'sql' || k === 'jsx') };
+  return { runnable: kinds.reduce((t, k) => t + n[k], 0), runLangs: kinds.slice(0, 3).map(k => RUN_LANG[k]).join('、'), runDownload: kinds.some(k => k === 'py' || k === 'sql' || k === 'jsx' || k === 'ts') };
 }
 
 module.exports = function createSite({ ROOT, LEVELS }) {

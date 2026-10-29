@@ -4,6 +4,34 @@ const PYODIDE = 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/';
 let ready = null;
 const PIP = ['openpyxl'];
 const installed = new Set();
+// 課程資料集：程式中提到這些檔名時，自動放進 Pyodide 的工作目錄，用 pd.read_csv('sales.csv') 即可讀取
+const DATA = ['sales.csv', 'customers.csv', 'sales_raw.csv'];
+const FONT = '/static/vendor/fonts/NotoSansTC-subset.otf';
+let fontReady = false;
+async function prepare(py, code) {
+  for (const name of DATA) {
+    if (installed.has(name) || !code.includes(name)) continue;
+    const res = await fetch('/static/data/' + name);
+    if (!res.ok) throw new Error('無法下載資料檔 ' + name);
+    py.FS.writeFile(name, await res.text());
+    installed.add(name);
+  }
+  // matplotlib 預設字型沒有中文，第一次畫圖時載入繁體中文子集字型
+  if (!fontReady && /\bmatplotlib\b/.test(code)) {
+    postMessage({ type: 'status', text: '載入中文字型…' });
+    const res = await fetch(FONT);
+    if (res.ok) {
+      py.FS.writeFile('/tmp/NotoSansTC-subset.otf', new Uint8Array(await res.arrayBuffer()));
+      py.runPython(`
+import matplotlib, matplotlib.font_manager as _fm
+_fm.fontManager.addfont('/tmp/NotoSansTC-subset.otf')
+matplotlib.rcParams['font.sans-serif'] = ['Noto Sans CJK TC', 'DejaVu Sans']
+matplotlib.rcParams['axes.unicode_minus'] = False
+`);
+      fontReady = true;
+    }
+  }
+}
 
 function boot() {
   if (!ready) ready = (async () => {
@@ -53,13 +81,16 @@ self.onmessage = async e => {
     py.globals.get('_secpath_inputs').extend(py.toPy(input ? input.replace(/\r/g, '').split('\n') : []));
     await py.loadPackagesFromImports(code, { messageCallback: m => postMessage({ type: 'status', text: '下載套件：' + m }) });
     // Pyodide 未內建、但純 Python 的套件改從 PyPI 安裝
-    const extra = PIP.filter(n => new RegExp('^\\s*(import|from)\\s+' + n + '\\b', 'm').test(code) && !installed.has(n));
+    // pandas 的 to_excel／read_excel 會在內部使用 openpyxl，程式中沒有 import 也要安裝
+    const needs = n => new RegExp('^\\s*(import|from)\\s+' + n + '\\b', 'm').test(code) || (n === 'openpyxl' && /\b(to_excel|read_excel|ExcelWriter)\b/.test(code));
+    const extra = PIP.filter(n => needs(n) && !installed.has(n));
     if (extra.length) {
       postMessage({ type: 'status', text: '安裝套件：' + extra.join('、') + '…' });
       await py.loadPackage('micropip');
       await py.pyimport('micropip').install(extra);
       extra.forEach(n => installed.add(n));
     }
+    await prepare(py, code);
     const ns = py.toPy({ __name__: '__main__' });
     await py.runPythonAsync(code, { globals: ns });
     ns.destroy();
