@@ -84,7 +84,11 @@
     dfselect: { name: 'DataFrame 選取練習', desc: '在一個小表格上試試 loc、iloc、欄位選取與布林條件，被選到的儲存格會標示出來，並說明結果的形狀與型別。' },
     missing: { name: '缺失值處理比較', desc: '同一欄有缺失值與一個異常值，比較 dropna、補 0、補平均數、補中位數、向前填補的結果，看平均與總和如何改變。' },
     groupviz: { name: 'groupby 分組視覺化', desc: '選擇分組欄位與彙總函式，逐步觀察 split（分組）、apply（計算）、combine（組合）三個步驟。' },
-    chartpick: { name: '圖表選擇器', desc: '依分析目的（趨勢、比較、分布、關係、組成）找出合適的圖表，查看示意圖、使用時機與 matplotlib／pandas 程式碼。' }
+    chartpick: { name: '圖表選擇器', desc: '依分析目的（趨勢、比較、分布、關係、組成）找出合適的圖表，查看示意圖、使用時機與 matplotlib／pandas 程式碼。' },
+    toolschema: { name: '工具定義產生器', desc: '填寫工具名稱、說明與參數，同時產生 Claude API 的工具定義、MCP 的 tools/list 內容、Python @mcp.tool() 與 TypeScript registerTool 程式碼，並檢查名稱與說明是否寫得夠清楚。' },
+    agentloop: { name: '代理迴圈逐步追蹤', desc: '以查詢訂單、平行查詢、工具失敗後重試三個情境，逐步觀察 messages 陣列如何增加、每一步的 stop_reason，以及 tool_use 與 tool_result 如何對應。' },
+    patternpick: { name: '代理模式選擇器', desc: '回答幾個關於任務特性的問題，找出適合的做法：單次呼叫、提示串連、路由、平行化、協調者與工作者、評估與改進，或完全自主的代理。' },
+    mcpflow: { name: 'MCP 訊息流程', desc: '逐一查看 MCP 2026-07-28 版的 server/discover、tools/list、tools/call、resources/read、prompts/get、通知與錯誤的 JSON-RPC 請求與回應。' }
   };
   const fmtN = (x, d = 4) => Number.isFinite(x) ? (+x.toFixed(d)).toString() : '—';
 
@@ -125,6 +129,28 @@
 
   function render(id) {
     switch (id) {
+      case 'toolschema': return `
+        <div class="grid g2" style="gap:8px">
+          <label class="field"><span>工具名稱</span><input class="input mono" id="tsName" value="orders_search"></label>
+          <label class="field"><span>說明（做什麼、何時使用）</span><input class="input" id="tsDesc" value="依條件搜尋訂單，回傳訂單編號、狀態與金額。使用者詢問多筆訂單或想篩選訂單時使用。"></label>
+        </div>
+        <div class="small" style="margin:10px 0 4px"><b>參數</b>　<button class="btn sm outline" type="button" id="tsAdd">新增參數</button></div>
+        <div id="tsRows"></div>
+        <div id="tsLint" class="small" style="margin-top:8px"></div>
+        <div class="tabs" id="tsFmt" style="margin-top:10px;flex-wrap:wrap"><button type="button" data-v="api" class="on">Claude API</button><button type="button" data-v="mcp">MCP tools/list</button><button type="button" data-v="py">Python MCP</button><button type="button" data-v="ts">TypeScript MCP</button></div>
+        <pre class="out" id="tsOut" style="margin-top:8px"></pre>`;
+      case 'agentloop': return `
+        <div class="tabs" id="alSc" style="flex-wrap:wrap"><button type="button" data-v="0" class="on">單一工具</button><button type="button" data-v="1">平行工具呼叫</button><button type="button" data-v="2">工具失敗後重試</button></div>
+        <div class="al-step" id="alStep"></div>
+        <div class="al-msgs" id="alMsgs"></div>
+        ${stepBar('al')}`;
+      case 'patternpick': return `
+        <div id="ppQs" class="pp-qs"></div>
+        <div class="pp-res" id="ppOut"></div>`;
+      case 'mcpflow': return `
+        <div class="tabs" id="mfMsg" style="flex-wrap:wrap"></div>
+        <p class="small" id="mfNote" style="margin:10px 0 6px"></p>
+        <div class="mf-pair"><div><b class="small">→ 請求（Client → Server）</b><pre class="out" id="mfReq"></pre></div><div><b class="small">← 回應（Server → Client）</b><pre class="out" id="mfRes"></pre></div></div>`;
       case 'dfselect': return `
         <label class="field"><span>選取寫法</span><select class="input mono" id="dsExpr"></select></label>
         <div class="table-wrap" style="margin-top:10px"><table class="tbl ds-t" id="dsTbl"></table></div>
@@ -2974,6 +3000,172 @@ print('平均：', round(sum(scores.values()) / len(scores), 1))</pre>
       };
       tabsSelect(root, (t, v) => run(v));
       run('trend');
+    }
+    if (id === 'toolschema') {
+      let rows = [['status', 'string', false, '訂單狀態', 'pending,shipped,returned'], ['date_from', 'string', false, '開始日期，格式 YYYY-MM-DD', ''], ['limit', 'integer', false, '最多回傳幾筆，預設 10', '']];
+      let fmt = 'api';
+      const T = ['string', 'integer', 'number', 'boolean'];
+      const drawRows = () => {
+        $('#tsRows', root).innerHTML = rows.map((r, i) => `<div class="ts-row" data-i="${i}">
+          <input class="input mono" data-k="0" value="${esc(r[0])}" placeholder="名稱">
+          <select class="input" data-k="1">${T.map(t => `<option${t === r[1] ? ' selected' : ''}>${t}</option>`).join('')}</select>
+          <label class="small"><input type="checkbox" data-k="2"${r[2] ? ' checked' : ''}> 必填</label>
+          <input class="input" data-k="3" value="${esc(r[3])}" placeholder="說明">
+          <input class="input mono" data-k="4" value="${esc(r[4])}" placeholder="選項（逗號分隔，可留空）">
+          <button class="btn sm outline" type="button" data-del="${i}">✕</button></div>`).join('');
+      };
+      const schema = () => {
+        const props = {};
+        rows.filter(r => r[0].trim()).forEach(r => {
+          const p = { type: r[1] };
+          if (r[3].trim()) p.description = r[3].trim();
+          const en = r[4].split(',').map(s => s.trim()).filter(Boolean);
+          if (en.length) p.enum = r[1] === 'integer' || r[1] === 'number' ? en.map(Number) : en;
+          props[r[0].trim()] = p;
+        });
+        return { type: 'object', properties: props, required: rows.filter(r => r[2] && r[0].trim()).map(r => r[0].trim()) };
+      };
+      const PY = { string: 'str', integer: 'int', number: 'float', boolean: 'bool' };
+      const ZOD = { string: 'z.string()', integer: 'z.number().int()', number: 'z.number()', boolean: 'z.boolean()' };
+      const PYDEF = { string: '""', integer: '0', number: '0.0', boolean: 'False' };
+      const run = () => {
+        const name = $('#tsName', root).value.trim(), desc = $('#tsDesc', root).value.trim(), sc = schema();
+        const valid = rows.filter(r => r[0].trim());
+        let out = '';
+        if (fmt === 'api') out = JSON.stringify({ name, description: desc, input_schema: sc }, null, 2);
+        if (fmt === 'mcp') out = JSON.stringify({ name, description: desc, inputSchema: sc }, null, 2);
+        if (fmt === 'py') {
+          const args = [...valid.filter(r => r[2]), ...valid.filter(r => !r[2])].map(r => `${r[0]}: ${PY[r[1]]}` + (r[2] ? '' : ` = ${PYDEF[r[1]]}`)).join(', ');
+          out = `@mcp.tool()\ndef ${name}(${args}) -> str:\n    """${desc}\n\n    Args:\n${valid.map(r => `        ${r[0]}: ${r[3] || '（說明）'}`).join('\n')}\n    """\n    ...`;
+        }
+        if (fmt === 'ts') {
+          const fields = valid.map(r => {
+            const en = r[4].split(',').map(s => s.trim()).filter(Boolean);
+            let z = en.length && r[1] === 'string' ? `z.enum([${en.map(e => JSON.stringify(e)).join(', ')}])` : ZOD[r[1]];
+            if (!r[2]) z += '.optional()';
+            if (r[3].trim()) z += `.describe(${JSON.stringify(r[3].trim())})`;
+            return `      ${r[0]}: ${z},`;
+          }).join('\n');
+          out = `server.registerTool(\n  ${JSON.stringify(name)},\n  {\n    description: ${JSON.stringify(desc)},\n    inputSchema: z.object({\n${fields}\n    }),\n  },\n  async (args) => {\n    return { content: [{ type: "text", text: "…" }] };\n  },\n);`;
+        }
+        $('#tsOut', root).textContent = out;
+        const lint = [
+          [/^[a-z][a-z0-9]*_[a-z0-9_]+$/.test(name), '名稱使用小寫加底線，並有服務前綴（例如 orders_）'],
+          [desc.length >= 20, '說明夠具體（至少 20 字）'],
+          [/使用|時|when/i.test(desc), '說明有寫「何時使用」'],
+          [valid.every(r => r[3].trim()), '每個參數都有說明'],
+          [valid.length <= 8, '參數數量適中（8 個以內）']
+        ];
+        $('#tsLint', root).innerHTML = lint.map(([ok, t]) => `<span class="tag ${ok ? 'ok' : 'warn'}" style="margin:2px">${ok ? '✓' : '·'} ${t}</span>`).join('');
+      };
+      root.addEventListener('input', e => {
+        const row = e.target.closest('.ts-row');
+        if (row && e.target.dataset.k) { rows[+row.dataset.i][+e.target.dataset.k] = e.target.type === 'checkbox' ? e.target.checked : e.target.value; }
+        run();
+      });
+      root.addEventListener('change', e => {
+        const row = e.target.closest('.ts-row');
+        if (row && e.target.dataset.k) rows[+row.dataset.i][+e.target.dataset.k] = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+        run();
+      });
+      root.addEventListener('click', e => {
+        if (e.target.id === 'tsAdd') { rows.push(['', 'string', false, '', '']); drawRows(); run(); }
+        const d = e.target.closest('[data-del]'); if (d) { rows.splice(+d.dataset.del, 1); drawRows(); run(); }
+      });
+      tabsSelect(root, (t, v) => { fmt = v; run(); });
+      drawRows(); run();
+    }
+    if (id === 'agentloop') {
+      const U = t => ({ role: 'user', content: t });
+      const TU = (id, name, input) => ({ type: 'tool_use', id, name, input });
+      const TR = (id, content, err) => ({ type: 'tool_result', tool_use_id: id, content, ...(err ? { is_error: true } : {}) });
+      const TX = t => ({ type: 'text', text: t });
+      // 每個情境：[說明, 新增的訊息, stop_reason]
+      const S = [
+        [['使用者送出請求，程式呼叫模型（附上工具清單）', U('訂單 A1001 到哪了？'), null],
+         ['模型決定呼叫 get_order，回應的 stop_reason 是 tool_use', { role: 'assistant', content: [TX('我來查詢。'), TU('toolu_1', 'get_order', { order_id: 'A1001' })] }, 'tool_use'],
+         ['程式執行 get_order，以 tool_result 回傳（tool_use_id 對應 toolu_1）', { role: 'user', content: [TR('toolu_1', '已出貨，預計 11/02 送達')] }, null],
+         ['模型讀到結果後回答，stop_reason 是 end_turn，迴圈結束', { role: 'assistant', content: [TX('您的訂單 A1001 已出貨，預計 11/02 送達。')] }, 'end_turn']],
+        [['使用者一次詢問兩筆訂單', U('A1001 和 A1002 分別到哪了？'), null],
+         ['模型在同一個回應中要求兩次工具呼叫（平行呼叫）', { role: 'assistant', content: [TU('toolu_1', 'get_order', { order_id: 'A1001' }), TU('toolu_2', 'get_order', { order_id: 'A1002' })] }, 'tool_use'],
+         ['程式執行兩個工具，兩個結果放在「同一則」user 訊息中送回', { role: 'user', content: [TR('toolu_1', '已出貨'), TR('toolu_2', '備貨中')] }, null],
+         ['模型彙整兩個結果回答', { role: 'assistant', content: [TX('A1001 已出貨；A1002 還在備貨中。')] }, 'end_turn']],
+        [['使用者詢問訂單，但編號打錯', U('我的訂單 A10O1 到哪了？'), null],
+         ['模型照著使用者給的編號呼叫工具', { role: 'assistant', content: [TU('toolu_1', 'get_order', { order_id: 'A10O1' })] }, 'tool_use'],
+         ['工具找不到訂單，程式回傳 is_error 與具體的錯誤說明（不要讓程式當掉）', { role: 'user', content: [TR('toolu_1', '找不到訂單 A10O1。訂單編號格式為 A 加 4 位數字', true)] }, null],
+         ['模型根據錯誤說明推測是把 0 打成 O，修正後重試', { role: 'assistant', content: [TX('編號可能是 A1001，我再查一次。'), TU('toolu_2', 'get_order', { order_id: 'A1001' })] }, 'tool_use'],
+         ['程式回傳正確結果', { role: 'user', content: [TR('toolu_2', '已出貨，預計 11/02 送達')] }, null],
+         ['模型回答並提醒使用者確認編號', { role: 'assistant', content: [TX('您輸入的 A10O1 應該是 A1001：已出貨，預計 11/02 送達。')] }, 'end_turn']]
+      ];
+      let sc = 0;
+      const draw = i => {
+        const steps = S[sc], cur = steps[i];
+        $('#alStep', root).innerHTML = `<b>${cur[1].role === 'assistant' ? '🤖 模型' : '🧑‍💻 程式'}</b>　${esc(cur[0])}` + (cur[2] ? `　<span class="tag ${cur[2] === 'end_turn' ? 'ok' : 'warn'}">stop_reason: ${cur[2]}</span>` : '');
+        $('#alMsgs', root).innerHTML = `<div class="small muted" style="margin-bottom:4px">messages 陣列（共 ${i + 1} 則）</div>` + steps.slice(0, i + 1).map((s, k) => `<div class="al-msg ${s[1].role}${k === i ? ' on' : ''}"><span>${k}　${s[1].role}</span><pre>${esc(JSON.stringify(s[1].content, null, 1).replace(/\n\s*/g, ' '))}</pre></div>`).join('');
+      };
+      const go = stepCtl(root, 'al', () => S[sc].length, draw, 1300);
+      tabsSelect(root, (t, v) => { sc = +v; go(0); });
+      go(0);
+    }
+    if (id === 'patternpick') {
+      const Q = [
+        ['fixed', '完成任務的步驟可以事先寫死嗎？', ['可以', '不行，要看過程中的結果才知道']],
+        ['single', '一次模型呼叫（加上好的提示詞）就能完成嗎？', ['可以', '不行']],
+        ['types', '輸入的類型差異很大，分開處理效果更好嗎？', ['是', '否']],
+        ['indep', '可以拆成彼此獨立、能同時進行的子任務嗎？', ['是', '否']],
+        ['dyn', '子任務要看輸入內容才知道要拆成哪些嗎？', ['是', '否']],
+        ['eval', '有明確的評估標準，而且回饋能讓結果明顯變好嗎？', ['是', '否']]
+      ];
+      const ans = { fixed: 0, single: 1, types: 1, indep: 1, dyn: 1, eval: 1 };
+      const run = () => {
+        $('#ppQs', root).innerHTML = Q.map(([k, q, opts]) => `<div class="pp-q"><span>${q}</span><div class="tabs" data-q="${k}">${opts.map((o, i) => `<button type="button" data-v="${i}"${ans[k] === i ? ' class="on"' : ''}>${o}</button>`).join('')}</div></div>`).join('');
+        const rec = [];
+        if (ans.single === 0) rec.push(['單次呼叫', '最簡單、最便宜、最好維護。加上結構化輸出與好的提示詞就夠了。']);
+        else if (ans.fixed === 0) rec.push(['提示串連（工作流程）', '依序執行固定的步驟，步驟之間用程式檢查中間結果。']);
+        else rec.push(['代理（模型自行規劃）', '步驟無法事先寫死，讓模型在迴圈中使用工具並決定下一步；記得設定回合上限與人工確認。']);
+        if (ans.types === 0) rec.push(['路由', '先分類，再交給專門的提示詞、工具或不同大小的模型處理。']);
+        if (ans.indep === 0 && ans.dyn === 1) rec.push(['平行化', '獨立的子任務同時執行；需要高可信度的判斷可以用投票。']);
+        if (ans.dyn === 0) rec.push(['協調者與工作者', '由協調者依輸入動態拆解任務，分派給子代理，最後彙整。']);
+        if (ans.eval === 0) rec.push(['評估與改進', '一個產生、一個依標準評估並回饋，反覆改進到通過。']);
+        $('#ppOut', root).innerHTML = '<b>建議的做法</b>' + rec.map(([n, d], i) => `<div class="pp-item"><span>${i + 1}</span><div><b>${n}</b><p class="small" style="margin:2px 0 0">${d}</p></div></div>`).join('') + '<p class="small muted" style="margin:8px 0 0">多個建議可以組合使用，例如先路由，再由協調者拆解任務。能用越簡單的做法解決越好。</p>';
+      };
+      root.addEventListener('click', e => {
+        const b = e.target.closest('[data-q] button'); if (!b) return;
+        ans[b.parentElement.dataset.q] = +b.dataset.v; run();
+      });
+      run();
+    }
+    if (id === 'mcpflow') {
+      const META = { 'io.modelcontextprotocol/protocolVersion': '2026-07-28', 'io.modelcontextprotocol/clientInfo': { name: 'claude-code', version: '1.0.0' }, 'io.modelcontextprotocol/clientCapabilities': { elicitation: {} } };
+      const req = (id, method, params = {}) => ({ jsonrpc: '2.0', id, method, params: { ...params, _meta: META } });
+      const res = (id, result) => ({ jsonrpc: '2.0', id, result: { resultType: 'complete', ...result } });
+      const M = [
+        ['server/discover', '查詢伺服器支援的協定版本與能力。2026-07-28 版是無狀態協定，這個請求是選用的，回應可以快取。',
+          req(1, 'server/discover'), res(1, { supportedVersions: ['2026-07-28'], capabilities: { tools: { listChanged: true }, resources: {}, prompts: {} }, _meta: { 'io.modelcontextprotocol/serverInfo': { name: 'orders', version: '1.0.0' } }, ttlMs: 3600000, cacheScope: 'public' })],
+        ['tools/list', '列出伺服器的工具：名稱、說明與 inputSchema。Host 會把所有伺服器的工具合併後交給模型。',
+          req(2, 'tools/list'), res(2, { tools: [{ name: 'orders_get_status', title: '查詢訂單', description: '查詢訂單的出貨狀態與預計送達日', inputSchema: { type: 'object', properties: { order_id: { type: 'string', description: '訂單編號，格式如 A1001' } }, required: ['order_id'] } }], ttlMs: 300000, cacheScope: 'public' })],
+        ['tools/call 成功', '模型決定使用工具後，Host 把呼叫轉送給對應的伺服器。結果以 content 陣列回傳。',
+          req(3, 'tools/call', { name: 'orders_get_status', arguments: { order_id: 'A1001' } }), res(3, { content: [{ type: 'text', text: 'A1001：已出貨，預計 2026-11-02 送達' }] })],
+        ['tools/call 失敗', '工具本身執行失敗（找不到訂單）時，回傳正常的 result 並設定 isError: true，讓模型看到錯誤內容並調整。',
+          req(4, 'tools/call', { name: 'orders_get_status', arguments: { order_id: 'A10O1' } }), res(4, { content: [{ type: 'text', text: '找不到訂單 A10O1，訂單編號格式為 A 加 4 位數字' }], isError: true })],
+        ['resources/read', '讀取以 URI 識別的資源，例如單筆訂單的完整資料或資料表結構。',
+          req(5, 'resources/read', { uri: 'orders://A1001' }), res(5, { contents: [{ uri: 'orders://A1001', mimeType: 'application/json', text: '{"status":"已出貨","eta":"2026-11-02","items":2}' }] })],
+        ['prompts/get', '取得伺服器提供的提示範本，通常由使用者在介面上選用（例如斜線指令）。',
+          req(6, 'prompts/get', { name: 'weekly_report', arguments: { week: '2026-W44' } }), res(6, { description: '產生每週訂單報告', messages: [{ role: 'user', content: { type: 'text', text: '請整理 2026-W44 的訂單狀況，列出延遲出貨的訂單與原因。' } }] })],
+        ['工具清單變更通知', '客戶端以 subscriptions/listen 訂閱後，伺服器的工具改變時會送出通知（沒有 id、不需要回應），客戶端收到後重新呼叫 tools/list。',
+          req(7, 'subscriptions/listen', { notifications: { toolsListChanged: true } }), { jsonrpc: '2.0', method: 'notifications/tools/list_changed', params: { _meta: { 'io.modelcontextprotocol/subscriptionId': 7 } } }],
+        ['協定錯誤', '呼叫不存在的方法屬於協定層面的錯誤，回傳 JSON-RPC 的 error 物件（Method not found，代碼 -32601）。',
+          req(8, 'files/delete'), { jsonrpc: '2.0', id: 8, error: { code: -32601, message: 'Method not found: files/delete' } }]
+      ];
+      $('#mfMsg', root).innerHTML = M.map((m, i) => `<button type="button" data-v="${i}"${i === 0 ? ' class="on"' : ''}>${esc(m[0])}</button>`).join('');
+      const run = i => {
+        const [, note, rq, rs] = M[i];
+        $('#mfNote', root).textContent = note;
+        $('#mfReq', root).textContent = JSON.stringify(rq, null, 2);
+        $('#mfRes', root).textContent = JSON.stringify(rs, null, 2);
+      };
+      tabsSelect(root, (t, v) => run(+v));
+      run(0);
     }
   }
 

@@ -36,7 +36,8 @@ const LEVELS = {
   react: { name: 'React', title: 'React 前端框架：元件、Hooks 與實戰專案', hashEnv: 'PASS_REACT', org: '前端職缺最常要求・React 18 × Hooks × 即時預覽', foot: '以 React 18 函式元件與 Hooks 撰寫；範例在瀏覽器中即時預覽', labels: ['基礎篇', '進階篇'], subjects: ['JSX、元件、state、列表與表單', 'Hooks、狀態管理、路由與專案實戰'] },
   claude: { name: 'Claude 實戰', title: 'Claude 實戰：提示詞、Claude Code 與 API 開發', hashEnv: 'PASS_CLAUDE', org: 'AI 工作流程實戰・Claude × Claude Code × API', foot: '內容依 2026 年 10 月官方文件整理；產品更新頻繁，請以官方文件為準', labels: ['使用篇', '進階篇'], subjects: ['提示詞、claude.ai 與 Claude Code 指令', '專案記憶、擴充、自動化與 API 開發'] },
   ts: { name: 'TypeScript', title: 'TypeScript：型別系統、泛型與實戰開發', hashEnv: 'PASS_TS', org: '前端與 Node.js 專案標配・TypeScript × 型別檢查 × 即時執行', foot: '以 TypeScript 5.6 strict 模式為準；範例在瀏覽器中以官方編譯器檢查後執行', labels: ['基礎篇', '進階篇'], subjects: ['型別、物件、函式、聯合型別與類別', '泛型、型別操作、非同步、工具鏈與實戰'] },
-  pydata: { name: 'Python 資料分析', title: 'Python 資料分析：NumPy、pandas 與視覺化', hashEnv: 'PASS_PYDATA', org: '資料分析師必備・pandas × matplotlib × 實際資料', foot: '以 pandas 2.2、NumPy 1.26、matplotlib 3.5 為準；範例在瀏覽器中以 Pyodide 執行', labels: ['基礎篇', '進階篇'], subjects: ['NumPy、DataFrame、篩選、清理與分組', '合併、視覺化、時間序列、統計與實戰'] }
+  pydata: { name: 'Python 資料分析', title: 'Python 資料分析：NumPy、pandas 與視覺化', hashEnv: 'PASS_PYDATA', org: '資料分析師必備・pandas × matplotlib × 實際資料', foot: '以 pandas 2.2、NumPy 1.26、matplotlib 3.5 為準；範例在瀏覽器中以 Pyodide 執行', labels: ['基礎篇', '進階篇'], subjects: ['NumPy、DataFrame、篩選、清理與分組', '合併、視覺化、時間序列、統計與實戰'] },
+  agent: { name: 'AI 代理與 MCP', title: 'AI 代理與 MCP 開發：工具使用、設計模式與 MCP 伺服器', hashEnv: 'PASS_AGENT', org: 'AI 應用開發進階・Agent × Tool Use × MCP', foot: '內容依 2026 年 10 月官方文件與 MCP 2026-07-28 規格整理；規格更新時以官方文件為準', labels: ['代理篇', 'MCP 與上線篇'], subjects: ['工具使用、代理迴圈、設計模式與記憶', 'MCP 協定、伺服器開發、Agent SDK 與上線'] }
 };
 const IPAS = { org: 'iPAS 資訊安全工程師能力鑑定', foot: '考試資訊以 iPAS 經濟部產業人才能力鑑定官網公告為準', labels: ['科目一', '科目二'] };
 for (const [k, v] of Object.entries(LEVELS)) {

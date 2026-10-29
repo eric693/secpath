@@ -117,6 +117,12 @@ const courses = {
     audience: ['想用 AI 提升工作效率的上班族與學生', '想用 Claude Code 加速開發的工程師', '要把 Claude 整合進產品或自動化流程的開發者'],
     highlights: ['依 2026 年 10 月官方文件整理的 Claude Code 指令與設定', '指令速查、提示詞產生器與 CLAUDE.md 設定產生器', 'API 費用試算與工具呼叫範例可在網頁上執行']
   },
+  agent: {
+    cat: 'ai', kind: 'skill', code: 'MCP', level: '進階',
+    pitch: '把 AI 接進真實系統：工具使用與代理迴圈、五種代理設計模式、context 與記憶，再用 Python 與 TypeScript 開發 MCP 伺服器、連接 Claude Code 與 Claude API，最後學會評估與防範提示注入。',
+    audience: ['要把 AI 接進公司系統、打造 AI 代理的工程師', '想為自家服務開發 MCP 伺服器的開發者', '完成 Claude 實戰或 AI 應用實作、想更進一步的人'],
+    highlights: ['依 MCP 2026-07-28 規格與最新 SDK 寫法撰寫', '代理迴圈、設計模式與 MCP 訊息皆有可執行的模擬範例', '工具定義產生器、代理迴圈追蹤、模式選擇器與 MCP 訊息流程工具']
+  },
   'ai-apps': {
     cat: 'ai', kind: 'skill', code: 'RAG', level: '進階',
     pitch: '從會用 AI 聊天進階到能打造 AI 應用：提示工程、API、RAG、工具呼叫與代理流程。',
@@ -177,7 +183,7 @@ const courses = {
 const paths = [
   { id: 'soc', name: '資安分析師', desc: '從網路與系統基礎開始，取得國內外資安證照，準備 SOC 與資安工程師職缺。', steps: ['network', 'linux', 'beginner', 'secplus', 'intermediate'] },
   { id: 'cloud', name: '雲端工程師', desc: '打好網路與 Linux 基礎，取得 AWS 證照，再學會容器與自動化部署。', steps: ['network', 'linux', 'git', 'aws-clf', 'aws-saa', 'devops'] },
-  { id: 'ai', name: 'AI 應用開發', desc: '從 Python 入門到考取 iPAS AI 證照，學會用 Claude 與 Claude Code 工作，最後動手打造 RAG 與 AI 代理。', steps: ['py-basic', 'ai-beginner', 'claude', 'py-practice', 'ai-apps', 'ai-intermediate'] },
+  { id: 'ai', name: 'AI 應用開發', desc: '從 Python 入門到考取 iPAS AI 證照，學會用 Claude 與 Claude Code 工作，動手打造 RAG、AI 代理與 MCP 伺服器。', steps: ['py-basic', 'ai-beginner', 'claude', 'py-practice', 'ai-apps', 'agent', 'ai-intermediate'] },
   { id: 'auto', name: '辦公自動化與資料分析', desc: '不需資訊背景，從 Excel 與 SQL 開始，再用 Python 與 AI 自動化報表、分析資料並做出作品集。', steps: ['excel', 'sql', 'py-basic', 'py-practice', 'ai-apps'] },
   { id: 'analyst', name: '資料分析師', desc: '從 Excel 與 SQL 開始，學會 Python 與 pandas 處理資料、畫出圖表，完成能放進作品集的分析報告。', steps: ['excel', 'sql', 'py-basic', 'pydata'] },
   { id: 'firmware', name: '韌體與嵌入式工程師', desc: '從 C 語言打好指標與記憶體的基礎，學會 Linux 與網路，再用 C++ 與 Git 開發大型專案。', steps: ['c', 'linux', 'network', 'cpp', 'git'] },
