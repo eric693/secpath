@@ -72,7 +72,15 @@ module.exports = function createSite({ ROOT, LEVELS }) {
   const kindName = k => k === 'cert' ? '證照備考' : '技能教學';
   const title = c => c.LV.title || c.L.title;
   const short = c => c.short || c.L.name;
-  const cover = (c, size = '') => `<div class="cover ${size}" style="--h:${c.hue}" aria-hidden="true"><span class="cover-cat">${esc(c.catName)}</span><span class="cover-code">${esc(c.code)}</span><span class="cover-level">${esc(c.level)}</span></div>`;
+  // 封面照片：public/static/img/covers/<id>-640.jpg 與 -1280.jpg（來源與授權見 /credits），沒有照片時使用漸層
+  const COVER_DIR = path.join(ROOT, 'public', 'static', 'img', 'covers');
+  const hasPhoto = id => fs.existsSync(path.join(COVER_DIR, id + '-640.jpg'));
+  const photo = (c, size) => {
+    const base = '/static/img/covers/' + c.id;
+    const sizes = size === 'lg' ? '(max-width: 900px) 100vw, 640px' : '(max-width: 700px) 100vw, 380px';
+    return `<img class="cover-img" src="${base}-640.jpg" srcset="${base}-640.jpg 640w, ${base}-1280.jpg 1280w" sizes="${sizes}" alt=""${size === 'lg' ? '' : ' loading="lazy"'} decoding="async">`;
+  };
+  const cover = (c, size = '') => `<div class="cover ${size}${hasPhoto(c.id) ? ' has-img' : ''}" style="--h:${c.hue}" aria-hidden="true">${hasPhoto(c.id) ? photo(c, size) : ''}<span class="cover-cat">${esc(c.catName)}</span><span class="cover-code">${esc(c.code)}</span><span class="cover-level">${esc(c.level)}</span></div>`;
   const metaLine = s => `<span>${s.chapters} 章</span><span>約 ${s.hours} 小時</span><span>${s.questions} 題練習</span>`;
 
   function card(c) {

@@ -10,6 +10,7 @@ const categories = [
   { id: 'code', name: '程式設計', hue: 152 },
   { id: 'data', name: '資料分析', hue: 75 },
   { id: 'it', name: 'IT 與 DevOps', hue: 190 },
+  { id: 'biz', name: '商業管理', hue: 18 },
   { id: 'practice', name: '實作專題', hue: 346 }
 ];
 
@@ -176,6 +177,30 @@ const courses = {
     pitch: '不寫程式，用生成式 AI、Google 試算表與 n8n，打造自己的台股研究助理並推播到手機。',
     audience: ['想用 AI 輔助投資研究的上班族', '想學 No Code 自動化的入門者', '對台股公開資料與回測有興趣的人'],
     highlights: ['所有資料來源與公式都已實際測試', '部位規模、最大回撤、定期定額複利等互動計算器', '工具教學，不提供個股買賣建議']
+  },
+  marketing: {
+    cat: 'biz', kind: 'skill', code: 'ROAS', level: '入門',
+    pitch: '從顧客旅程與受眾定位開始，學會內容行銷、SEO 與社群經營，再實際規劃 Google 與 Meta 廣告、看懂 CTR、CPA、ROAS，並用 GA4、UTM 與 A/B 測試持續優化。',
+    audience: ['行銷、電商、品牌與新創的從業人員', '想自己經營網路生意、投放廣告的創業者與小店家', '想轉職行銷或數位廣告相關職缺的人'],
+    highlights: ['以台灣常用的 Google、Meta、LINE 官方帳號與 GA4 為例', '成效指標、損益兩平 ROAS 與 A/B 檢定範例可在網頁上執行', '漏斗分析、UTM 產生器、廣告成效計算機與 A/B 測試顯著性工具']
+  },
+  finance: {
+    cat: 'biz', kind: 'skill', code: 'ROE', level: '入門',
+    pitch: '不是會計系也能看懂財報：用一家公司的完整財報讀懂損益表、資產負債表與現金流量表，學會財務比率與杜邦分析，再用損益兩平、定價、預算差異、NPV 與 IRR 做出商業決策。',
+    audience: ['要管預算、看報表的主管與部門經理', '要評估專案與定價的 PM、行銷、業務', '想知道錢夠不夠用的創業者，以及想學看財報的投資新手'],
+    highlights: ['一家虛構公司的三大報表完整勾稽，貫穿所有章節', '24 個財務計算範例可在網頁上用 Python 執行', '財務比率計算機、損益兩平圖、預算差異與 NPV／IRR 工具']
+  },
+  pm: {
+    cat: 'biz', kind: 'skill', code: 'PMP', level: '中級',
+    pitch: '專案延期、超支、需求一直改？用一個 App 專案學會章程、WBS、要徑法與成本估算，再用實獲值追蹤進度與預算、管理風險與溝通，最後學會 Scrum 與 Kanban，涵蓋 PMP 常見的核心觀念。',
+    audience: ['要帶專案的專案經理、產品經理與工程主管', '常被專案延期與需求變更困擾的團隊成員', '準備 PMP 或想系統學習專案管理的人'],
+    highlights: ['一個 App 專案貫穿章程、WBS、時程、預算與風險', '要徑法、實獲值、EMV、燃盡圖等 17 個 Python 範例可直接執行', '要徑法計算、實獲值計算機、風險矩陣與燃盡圖工具']
+  },
+  product: {
+    cat: 'biz', kind: 'skill', code: 'PRD', level: '入門',
+    pitch: '要解決誰的什麼問題？先做哪一個？做出來真的有用嗎？從使用者訪談與待完成的任務開始，學會北極星指標、OKR、RICE 排序、PRD 與使用者故事、MVP 驗證，再用留存分析與 A/B 測試衡量成效。',
+    audience: ['想轉職或剛成為產品經理的人', '和 PM 合作、想更懂產品決策的設計師與工程師', '想驗證點子、少走冤枉路的創業者'],
+    highlights: ['一個 App 的真實產品工作流程貫穿 10 章', 'NPS、RICE、Kano、留存與樣本數等 12 個 Python 範例', 'RICE 評分、使用者故事產生器、留存分析與 A/B 測試工具']
   }
 };
 
@@ -188,7 +213,8 @@ const paths = [
   { id: 'analyst', name: '資料分析師', desc: '從 Excel 與 SQL 開始，學會 Python 與 pandas 處理資料、畫出圖表，完成能放進作品集的分析報告。', steps: ['excel', 'sql', 'py-basic', 'pydata'] },
   { id: 'firmware', name: '韌體與嵌入式工程師', desc: '從 C 語言打好指標與記憶體的基礎，學會 Linux 與網路，再用 C++ 與 Git 開發大型專案。', steps: ['c', 'linux', 'network', 'cpp', 'git'] },
   { id: 'swe', name: '軟體工程師面試', desc: '用 C++ 打好程式基礎，系統學會資料結構與演算法，搭配 Git 與 SQL，準備科技公司的白板題與技術面試。', steps: ['cpp', 'ds', 'algo', 'git', 'sql'] },
-  { id: 'frontend', name: '前端工程師', desc: '從 HTML、CSS、JavaScript 打好基礎，用 React 與 TypeScript 做出互動作品，學會版本控制與資料庫，再把作品自動部署上線。', steps: ['web', 'react', 'ts', 'git', 'sql', 'devops'] }
+  { id: 'frontend', name: '前端工程師', desc: '從 HTML、CSS、JavaScript 打好基礎，用 React 與 TypeScript 做出互動作品，學會版本控制與資料庫，再把作品自動部署上線。', steps: ['web', 'react', 'ts', 'git', 'sql', 'devops'] },
+  { id: 'biz', name: '商業與管理', desc: '從 Excel 打好數字基礎，學會數位行銷與看懂財報，再用產品思維決定做什麼、用專案管理把事做完，適合行銷、PM、主管與創業者。', steps: ['excel', 'marketing', 'finance', 'product', 'pm'] }
 ];
 
 module.exports = { categories, courses, paths };

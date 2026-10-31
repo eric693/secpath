@@ -88,7 +88,22 @@
     toolschema: { name: '工具定義產生器', desc: '填寫工具名稱、說明與參數，同時產生 Claude API 的工具定義、MCP 的 tools/list 內容、Python @mcp.tool() 與 TypeScript registerTool 程式碼，並檢查名稱與說明是否寫得夠清楚。' },
     agentloop: { name: '代理迴圈逐步追蹤', desc: '以查詢訂單、平行查詢、工具失敗後重試三個情境，逐步觀察 messages 陣列如何增加、每一步的 stop_reason，以及 tool_use 與 tool_result 如何對應。' },
     patternpick: { name: '代理模式選擇器', desc: '回答幾個關於任務特性的問題，找出適合的做法：單次呼叫、提示串連、路由、平行化、協調者與工作者、評估與改進，或完全自主的代理。' },
-    mcpflow: { name: 'MCP 訊息流程', desc: '逐一查看 MCP 2026-07-28 版的 server/discover、tools/list、tools/call、resources/read、prompts/get、通知與錯誤的 JSON-RPC 請求與回應。' }
+    mcpflow: { name: 'MCP 訊息流程', desc: '逐一查看 MCP 2026-07-28 版的 server/discover、tools/list、tools/call、resources/read、prompts/get、通知與錯誤的 JSON-RPC 請求與回應。' },
+    funnel: { name: '行銷漏斗分析', desc: '輸入漏斗各階段的人數，計算每一步的轉換率與流失人數，自動標出流失最嚴重的環節並提供改善方向。' },
+    utmgen: { name: 'UTM 產生器', desc: '輸入網址與 source、medium、campaign 等參數，依「小寫、底線」的命名規則產生追蹤連結，並提醒常見的命名錯誤。' },
+    adcalc: { name: '廣告成效計算機', desc: '輸入花費、曝光、點擊、訂單與營收，算出 CTR、CPC、CPM、CVR、CPA、ROAS，並依毛利率判斷廣告是否真的賺錢。' },
+    abtest: { name: 'A/B 測試顯著性', desc: '輸入 A、B 兩組的樣本數與轉換數，用兩比例 z 檢定判斷差異是否顯著，並估算要偵測這個提升需要多少樣本。' },
+    ratios: { name: '財務比率計算機', desc: '輸入損益表與資產負債表的主要數字，一次算出獲利、償債、經營效率比率、現金轉換循環與杜邦分析，並附上每個比率的解讀。' },
+    breakeven: { name: '損益兩平分析', desc: '輸入售價、單位變動成本與固定成本，畫出營收線與總成本線，算出損益兩平點、目標利潤銷量、安全邊際與營業槓桿。' },
+    variance: { name: '預算差異分析', desc: '輸入預算與實際的數量和單價，把營收差異拆成價格差異與數量差異，並判斷有利或不利。' },
+    npv: { name: 'NPV／IRR 計算機', desc: '輸入期初投資與各年現金流，算出淨現值、內部報酬率與回收期，並畫出不同折現率下的 NPV 曲線。' },
+    cpm: { name: '要徑法計算', desc: '輸入活動、工期與前置活動，自動順推、逆推算出 ES、EF、LS、LF 與浮時，標出要徑並畫出甘特圖。' },
+    evm: { name: '實獲值計算機', desc: '輸入 BAC、PV、EV、AC，算出 CV、SV、CPI、SPI、EAC、ETC、VAC 與 TCPI，並用燈號說明專案的進度與成本狀態。' },
+    riskmatrix: { name: '風險矩陣', desc: '列出風險的機率與影響（1～5 分），放進 5 × 5 機率影響矩陣，依分數排序並建議應對策略。' },
+    burndown: { name: '燃盡圖', desc: '輸入 Sprint 的總點數與每天剩下的點數，畫出實際與理想燃盡線，並依最近的速度預估完成日。' },
+    rice: { name: 'RICE 評分', desc: '為每個想法填入觸及、影響、信心與投入，即時算出 RICE 分數並排序，觀察調整假設後排名如何改變。' },
+    userstory: { name: '使用者故事產生器', desc: '填入角色、功能、價值與情境，產生使用者故事、Given-When-Then 驗收條件草稿，並依 INVEST 原則檢查常見問題。' },
+    cohort: { name: '留存分析', desc: '貼上每個群組各期仍活躍的人數，產生留存率熱圖與平均留存曲線，並判斷曲線是否趨於平穩。' }
   };
   const fmtN = (x, d = 4) => Number.isFinite(x) ? (+x.toFixed(d)).toString() : '—';
 
@@ -129,6 +144,138 @@
 
   function render(id) {
     switch (id) {
+      case 'rice': return `
+        <p class="small muted" style="margin:0 0 6px">影響：3 極大、2 高、1 中、0.5 低、0.25 極低。信心：100% 有數據、80% 有部分證據、50% 只是直覺。</p>
+        <div class="table-wrap"><table class="tbl" id="riTbl"><tr><th>想法</th><th>觸及</th><th>影響</th><th>信心 %</th><th>投入（人月）</th><th style="text-align:right">RICE</th></tr></table></div>
+        <div class="row" style="gap:8px;margin:8px 0"><button type="button" class="btn" id="riAdd">新增一列</button></div>
+        <div id="riOut"></div>`;
+      case 'userstory': return `
+        <div class="grid g2" style="gap:10px">
+          <label class="field"><span>身為（角色）</span><input class="input" id="usRole" value="每月訂閱的會員"></label>
+          <label class="field"><span>我想要（功能）</span><input class="input" id="usWant" value="在配送前收到提醒並可以延後"></label>
+        </div>
+        <label class="field"><span>以便（價值）</span><input class="input" id="usSo" value="咖啡豆還沒喝完時不會收到新的"></label>
+        <div class="grid g2" style="gap:10px">
+          <label class="field"><span>前提（Given）</span><input class="input" id="usGiven" value="會員的下一次配送日是 3 天後"></label>
+          <label class="field"><span>動作（When）</span><input class="input" id="usWhen" value="會員點擊推播並選擇延後 1 週"></label>
+        </div>
+        <label class="field"><span>預期結果（Then）</span><input class="input" id="usThen" value="下一次配送日延後 7 天，顯示確認訊息，本期不扣款"></label>
+        <div id="usOut"></div>`;
+      case 'cohort': return `
+        <label class="field"><span>每行一個群組：名稱, 第 0 期人數, 第 1 期, 第 2 期 …</span><textarea class="input mono" id="coIn" rows="6">7 月, 400, 248, 184, 160, 150, 146
+8 月, 450, 288, 216, 194, 182
+9 月, 420, 290, 235, 218
+10 月, 480, 346, 288
+11 月, 510, 372</textarea></label>
+        <div id="coOut"></div>`;
+      case 'cpm': return `
+        <label class="field"><span>每行一個活動：代號, 名稱, 工期, 前置活動（多個用空白分隔，沒有填 -）</span><textarea class="input mono" id="cpIn" rows="8">A, 需求訪談, 2, -
+B, UI／UX 設計, 3, A
+C, 後端 API, 4, A
+D, 前端 App, 4, B
+E, 金流串接, 2, C
+F, 整合測試, 2, D E
+G, 上架與訓練, 1, F</textarea></label>
+        <div id="cpOut"></div>`;
+      case 'evm': return `
+        <div class="grid g2" style="gap:10px">
+          <label class="field"><span>BAC 完工預算</span><input class="input num" type="number" id="evBAC" value="280" min="0"></label>
+          <label class="field"><span>PV 計畫值</span><input class="input num" type="number" id="evPV" value="110" min="0"></label>
+          <label class="field"><span>EV 實獲值</span><input class="input num" type="number" id="evEV" value="99" min="0"></label>
+          <label class="field"><span>AC 實際成本</span><input class="input num" type="number" id="evAC" value="110" min="0"></label>
+        </div>
+        <div id="evOut"></div>`;
+      case 'riskmatrix': return `
+        <label class="field"><span>每行一個風險：名稱, 機率（1～5）, 影響（1～5）</span><textarea class="input mono" id="rmIn" rows="6">金流商審核延誤, 3, 4
+App 審查被退件, 2, 3
+主要工程師離職, 2, 5
+需求頻繁變更, 4, 3
+雲端費用超出, 2, 2
+上線當天流量過大, 1, 4</textarea></label>
+        <div id="rmGrid"></div>
+        <div id="rmOut"></div>`;
+      case 'burndown': return `
+        <div class="grid g2" style="gap:10px">
+          <label class="field"><span>Sprint 總點數</span><input class="input num" type="number" id="bdTotal" value="40" min="1"></label>
+          <label class="field"><span>Sprint 天數（工作日）</span><input class="input num" type="number" id="bdDays" value="10" min="1" max="30"></label>
+        </div>
+        <label class="field"><span>每天結束時剩下的點數（第 1 天起，以逗號分隔，可以只填到今天）</span><input class="input mono" id="bdRem" value="38, 38, 33, 30, 30, 27"></label>
+        <div id="bdChart"></div>
+        <div id="bdOut"></div>`;
+      case 'ratios': return `
+        <p class="small muted" style="margin:0 0 8px">預設為講義中豆仔咖啡 2025 年的數字（千元）。期初欄位用來計算平均值。</p>
+        <div class="grid g2" style="gap:10px">
+          <label class="field"><span>營業收入</span><input class="input num" type="number" data-k="rev" value="50000"></label>
+          <label class="field"><span>營業成本</span><input class="input num" type="number" data-k="cogs" value="30000"></label>
+          <label class="field"><span>營業利益</span><input class="input num" type="number" data-k="op" value="6000"></label>
+          <label class="field"><span>本期淨利</span><input class="input num" type="number" data-k="net" value="4400"></label>
+          <label class="field"><span>稅前淨利</span><input class="input num" type="number" data-k="pretax" value="5500"></label>
+          <label class="field"><span>利息費用</span><input class="input num" type="number" data-k="int" value="600"></label>
+        </div>
+        <div class="table-wrap"><table class="tbl" style="margin-top:6px"><tr><th>資產負債表</th><th>期末</th><th>期初</th></tr>
+          ${[['ca', '流動資產', 17000, 13700], ['inv', '存貨', 6000, 5000], ['ar', '應收帳款', 5000, 4200], ['ta', '資產總計', 40000, 37000], ['cl', '流動負債', 8000, 7400], ['ap', '應付帳款', 4000, 3500], ['tl', '負債總計', 18000, 16400], ['eq', '權益總計', 22000, 20600]].map(([k, n, a, b]) => `<tr><td>${n}</td><td><input class="input num" type="number" data-k="${k}1" value="${a}" style="width:100%;min-width:80px"></td><td><input class="input num" type="number" data-k="${k}0" value="${b}" style="width:100%;min-width:80px"></td></tr>`).join('')}
+        </table></div>
+        <div id="raOut"></div>`;
+      case 'breakeven': return `
+        <div class="grid g2" style="gap:10px">
+          <label class="field"><span>售價（元／單位）</span><input class="input num" type="number" id="beP" value="120" min="0"></label>
+          <label class="field"><span>單位變動成本（元）</span><input class="input num" type="number" id="beV" value="45" min="0"></label>
+          <label class="field"><span>每月固定成本（元）</span><input class="input num" type="number" id="beF" value="300000" min="0"></label>
+          <label class="field"><span>目標利潤（元／月）</span><input class="input num" type="number" id="beT" value="60000" min="0"></label>
+          <label class="field"><span>預估銷售量（單位／月）</span><input class="input num" type="number" id="beQ" value="5000" min="0"></label>
+        </div>
+        <div id="beChart" style="margin-top:6px"></div>
+        <div id="beOut"></div>`;
+      case 'variance': return `
+        <div class="table-wrap"><table class="tbl"><tr><th></th><th>數量</th><th>單價（元）</th></tr>
+          <tr><td>預算</td><td><input class="input num" type="number" id="vaBQ" value="4800" min="0" style="width:100%"></td><td><input class="input num" type="number" id="vaBP" value="120" min="0" step="0.1" style="width:100%"></td></tr>
+          <tr><td>實際</td><td><input class="input num" type="number" id="vaAQ" value="5200" min="0" style="width:100%"></td><td><input class="input num" type="number" id="vaAP" value="115" min="0" step="0.1" style="width:100%"></td></tr>
+        </table></div>
+        <label class="field"><span>單位變動成本（選填，用來檢查毛利）</span><input class="input num" type="number" id="vaVC" value="45" min="0" step="0.1"></label>
+        <div id="vaOut"></div>`;
+      case 'npv': return `
+        <label class="field"><span>現金流（第 0 年為投資，用負數；以逗號或換行分隔）</span><textarea class="input mono" id="nvCF" rows="2">-300, 80, 90, 100, 100, 100</textarea></label>
+        <label class="field"><span>折現率 <b class="mono" id="nvRV">10%</b></span><input type="range" id="nvR" min="0" max="30" step="0.5" value="10" style="width:100%"></label>
+        <div id="nvOut"></div>
+        <div id="nvChart"></div>`;
+      case 'funnel': return `
+        <label class="field"><span>每行一個階段：名稱, 人數</span><textarea class="input mono" id="fnIn" rows="6">看到廣告, 100000
+點擊進站, 2500
+瀏覽商品, 1500
+加入購物車, 300
+完成購買, 90</textarea></label>
+        <div id="fnOut"></div>`;
+      case 'utmgen': return `
+        <label class="field"><span>到達頁網址</span><input class="input mono" id="utBase" value="https://www.example.com/subscribe"></label>
+        <div class="grid g2" style="gap:10px">
+          <label class="field"><span>utm_source（必填）來源</span><input class="input mono" id="utSource" value="Instagram" list="utSrcList"></label>
+          <label class="field"><span>utm_medium（必填）媒介</span><input class="input mono" id="utMedium" value="social" list="utMedList"></label>
+          <label class="field"><span>utm_campaign（必填）活動</span><input class="input mono" id="utCampaign" value="2026 11 Double11"></label>
+          <label class="field"><span>utm_content 素材</span><input class="input mono" id="utContent" value="reels brewing"></label>
+          <label class="field"><span>utm_term 關鍵字</span><input class="input mono" id="utTerm" value=""></label>
+        </div>
+        <datalist id="utSrcList"><option value="google"><option value="facebook"><option value="instagram"><option value="line"><option value="youtube"><option value="newsletter"></datalist>
+        <datalist id="utMedList"><option value="cpc"><option value="social"><option value="paid_social"><option value="email"><option value="referral"><option value="display"></datalist>
+        <div id="utOut"></div>`;
+      case 'adcalc': return `
+        <div class="grid g2" style="gap:10px">
+          <label class="field"><span>廣告花費（元）</span><input class="input num" type="number" id="acSpend" value="30000" min="0"></label>
+          <label class="field"><span>曝光次數</span><input class="input num" type="number" id="acImp" value="600000" min="0"></label>
+          <label class="field"><span>點擊次數</span><input class="input num" type="number" id="acClk" value="9000" min="0"></label>
+          <label class="field"><span>訂單（轉換）數</span><input class="input num" type="number" id="acOrd" value="180" min="0"></label>
+          <label class="field"><span>廣告帶來的營收（元）</span><input class="input num" type="number" id="acRev" value="135000" min="0"></label>
+          <label class="field"><span>毛利率（%）</span><input class="input num" type="number" id="acMargin" value="50" min="0" max="100"></label>
+        </div>
+        <div id="acOut"></div>`;
+      case 'abtest': return `
+        <div class="grid g2" style="gap:10px">
+          <label class="field"><span>A 組樣本數（看到 A 版的人）</span><input class="input num" type="number" id="abNA" value="500" min="1"></label>
+          <label class="field"><span>A 組轉換數</span><input class="input num" type="number" id="abCA" value="15" min="0"></label>
+          <label class="field"><span>B 組樣本數</span><input class="input num" type="number" id="abNB" value="500" min="1"></label>
+          <label class="field"><span>B 組轉換數</span><input class="input num" type="number" id="abCB" value="22" min="0"></label>
+        </div>
+        <div class="tabs" id="abConf" style="margin-bottom:10px"><button type="button" data-v="1.645">90% 信心</button><button type="button" data-v="1.96" class="on">95% 信心</button><button type="button" data-v="2.576">99% 信心</button></div>
+        <div id="abOut"></div>`;
       case 'toolschema': return `
         <div class="grid g2" style="gap:8px">
           <label class="field"><span>工具名稱</span><input class="input mono" id="tsName" value="orders_search"></label>
@@ -3166,6 +3313,413 @@ print('平均：', round(sum(scores.values()) / len(scores), 1))</pre>
       };
       tabsSelect(root, (t, v) => run(+v));
       run(0);
+    }
+    if (id === 'funnel') {
+      const TIPS = [
+        [/廣告|曝光|觸及|看到/, /點擊|進站|造訪/, 'CTR 偏低：換素材、文案打中痛點、調整受眾。'],
+        [/點擊|進站|造訪/, /瀏覽|商品|內容/, '進站就離開：檢查廣告與到達頁是否一致、網頁速度與手機版體驗。'],
+        [/瀏覽|商品/, /購物車|加入/, '看了不想買：加強商品說明、評價、價格與優惠呈現。'],
+        [/購物車|結帳/, /購買|完成|付款|訂單/, '結帳流失：簡化結帳步驟、提供多種付款、檢查運費門檻，並對放棄購物車的人再行銷。']
+      ];
+      const run = () => {
+        const st = $('#fnIn', root).value.split('\n').map(l => l.split(/[,，\t]/)).filter(p => p.length >= 2 && p[0].trim() && Number.isFinite(+p[1]) && +p[1] >= 0).map(p => [p[0].trim(), +p[1]]);
+        if (st.length < 2 || !st[0][1]) { $('#fnOut', root).innerHTML = '<p class="small muted">請至少輸入兩個階段，第一階段人數要大於 0。</p>'; return; }
+        const top = st[0][1];
+        let worst = -1, worstRate = 2;
+        st.forEach((s, i) => { if (i && st[i - 1][1]) { const r = s[1] / st[i - 1][1]; if (r < worstRate && i > 1) { worstRate = r; worst = i; } } });
+        if (worst < 0) worst = 1;
+        const rows = st.map((s, i) => {
+          const w = Math.max(0.6, Math.sqrt(s[1] / top) * 100);
+          const rate = i ? (st[i - 1][1] ? s[1] / st[i - 1][1] : 0) : 1;
+          return `<div style="margin:6px 0"><div class="row small" style="justify-content:space-between;gap:8px"><b>${esc(s[0])}</b><span class="mono">${s[1].toLocaleString()} 人${i ? `・上一步 ${(rate * 100).toFixed(1)}%・流失 ${(st[i - 1][1] - s[1]).toLocaleString()}` : ''}</span></div>
+            <div style="height:14px;border-radius:7px;background:var(--line,#ddd);overflow:hidden"><div style="height:100%;width:${w}%;background:${i === worst ? 'var(--bad)' : 'var(--accent)'}"></div></div></div>`;
+        }).join('');
+        const a = st[worst - 1][0], b = st[worst][0];
+        const tip = (TIPS.find(t => t[0].test(a) && t[1].test(b)) || [, , '比較這一步前後的頁面與流程，找出讓人離開的原因，並用 A/B 測試驗證改善方案。'])[2];
+        $('#fnOut', root).innerHTML = rows + `<p class="tiny muted" style="margin:4px 0 8px">長條寬度以平方根縮放，方便同時看到人數差距很大的階段。第一步（曝光到點擊）通常本來就很低，所以從第二步開始找瓶頸。</p>
+          <div class="box warn"><b class="t">最大瓶頸：${esc(a)} → ${esc(b)}（${(worstRate * 100).toFixed(1)}%）</b>${tip}</div>
+          <div class="box memo"><b class="t">整體轉換率 ${(st[st.length - 1][1] / top * 100).toFixed(3)}%</b>如果把瓶頸這一步提升到 ${Math.min(100, worstRate * 150).toFixed(1)}%（提高一半），最後一階段約可增加到 ${Math.round(st[st.length - 1][1] * Math.min(1.5, 1 / worstRate)).toLocaleString()} 人。</div>`;
+      };
+      $('#fnIn', root).addEventListener('input', run); run();
+    }
+    if (id === 'utmgen') {
+      const norm = v => v.trim().toLowerCase().replace(/\s+/g, '_');
+      const KNOWN = { fb: 'facebook', ig: 'instagram', yt: 'youtube', 'line@': 'line', edm: 'newsletter' };
+      const run = () => {
+        const f = k => $('#ut' + k, root).value;
+        const warns = [];
+        let url;
+        try { url = new URL(f('Base').trim()); if (!/^https?:$/.test(url.protocol)) throw 0; } catch { $('#utOut', root).innerHTML = '<div class="box warn"><b class="t">網址格式不正確</b>請輸入以 https:// 開頭的完整網址。</div>'; return; }
+        const P = [['source', f('Source')], ['medium', f('Medium')], ['campaign', f('Campaign')], ['content', f('Content')], ['term', f('Term')]];
+        P.slice(0, 3).forEach(([k, v]) => { if (!v.trim()) warns.push(`utm_${k} 是必填，沒有填 GA4 會無法正確分類流量。`); });
+        P.forEach(([k, v]) => {
+          if (v.trim() && v.trim() !== norm(v)) warns.push(`utm_${k}「${esc(v.trim())}」已轉成「${esc(norm(v))}」：統一小寫與底線，避免同一來源被拆成多筆。`);
+          if (k === 'source' && KNOWN[norm(v)]) warns.push(`source「${esc(norm(v))}」建議寫完整名稱「${KNOWN[norm(v)]}」，並在團隊命名表中固定下來。`);
+        });
+        if (/^(organic|social)$/.test(norm(f('Medium'))) && /google|facebook|instagram/.test(norm(f('Source'))) && /ad|廣告|paid/.test(norm(f('Campaign')) + norm(f('Content')))) warns.push('看起來是付費廣告，medium 建議用 cpc 或 paid_social，GA4 才會歸到付費管道。');
+        if (/google/.test(norm(f('Source'))) && norm(f('Medium')) === 'cpc') warns.push('Google Ads 連結 GA4 並開啟自動標記（gclid）時，通常不需要手動加 UTM。');
+        for (const [k, v] of P) if (v.trim()) url.searchParams.set('utm_' + k, norm(v));
+        const link = url.toString();
+        $('#utOut', root).innerHTML = `<div class="out mono" id="utLink" style="word-break:break-all;margin-top:6px">${esc(link)}</div>
+          <div class="row" style="gap:8px;margin:8px 0"><button type="button" class="btn" id="utCopy">複製連結</button><span class="small muted" id="utMsg"></span></div>
+          ${warns.length ? `<div class="box tip"><b class="t">命名提醒</b><ul style="margin:4px 0 0;padding-left:18px">${warns.map(w => `<li>${w}</li>`).join('')}</ul></div>` : '<div class="box memo"><b class="t">命名符合規則</b>全部小寫、以底線分隔，必填參數都有填。</div>'}
+          <p class="tiny muted" style="margin:6px 0 0">GA4 的「流量開發」報表中，以「工作階段來源／媒介」和「工作階段廣告活動」查看這個連結帶來的流量。</p>`;
+        $('#utCopy', root).addEventListener('click', () => {
+          const done = ok => { $('#utMsg', root).textContent = ok ? '已複製' : '無法自動複製，請手動選取連結'; };
+          if (navigator.clipboard) navigator.clipboard.writeText(link).then(() => done(true), () => done(false)); else done(false);
+        });
+      };
+      root.addEventListener('input', e => { if (e.target.id && e.target.id.startsWith('ut')) run(); }); run();
+    }
+    if (id === 'adcalc') {
+      const run = () => {
+        const g = k => Math.max(0, +$('#ac' + k, root).value || 0);
+        const spend = g('Spend'), imp = g('Imp'), clk = g('Clk'), ord = g('Ord'), rev = g('Rev'), m = Math.min(100, g('Margin')) / 100;
+        const div = (a, b) => b ? a / b : NaN;
+        const ctr = div(clk, imp), cpc = div(spend, clk), cpm = div(spend, imp) * 1000, cvr = div(ord, clk), cpa = div(spend, ord), roas = div(rev, spend), aov = div(rev, ord);
+        const be = m ? 1 / m : NaN, profit = rev * m - spend;
+        const f = (x, d, unit = '') => Number.isFinite(x) ? x.toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d }) + unit : '—';
+        const pct = x => Number.isFinite(x) ? (x * 100).toFixed(2) + '%' : '—';
+        const R = [['CTR 點閱率', pct(ctr), '點擊 ÷ 曝光'], ['CPC 每次點擊成本', f(cpc, 1, ' 元'), '花費 ÷ 點擊'], ['CPM 千次曝光成本', f(cpm, 0, ' 元'), '花費 ÷ 曝光 × 1,000'],
+          ['CVR 轉換率', pct(cvr), '訂單 ÷ 點擊'], ['CPA 每次轉換成本', f(cpa, 0, ' 元'), '花費 ÷ 訂單'], ['ROAS', f(roas, 2), '營收 ÷ 花費'], ['AOV 平均訂單金額', f(aov, 0, ' 元'), '營收 ÷ 訂單']];
+        const ok = Number.isFinite(roas) && Number.isFinite(be);
+        const maxCpa = Number.isFinite(aov) ? aov * m : NaN;
+        $('#acOut', root).innerHTML = `<table class="tbl" style="margin-top:8px"><tr><th>指標</th><th style="text-align:right">數值</th><th>公式</th></tr>${R.map(r => `<tr><td>${r[0]}</td><td class="num" style="text-align:right"><b>${r[1]}</b></td><td class="small muted">${r[2]}</td></tr>`).join('')}</table>
+          ${ok ? `<div class="box ${profit >= 0 ? 'memo' : 'warn'}"><b class="t">${profit >= 0 ? '扣除廣告費後有獲利' : '扣除廣告費後虧損'}：${Math.abs(Math.round(profit)).toLocaleString()} 元</b>毛利率 ${(m * 100).toFixed(0)}% 的損益兩平 ROAS 是 ${be.toFixed(2)}，目前 ROAS ${roas.toFixed(2)}${roas >= be ? '，高於' : '，低於'}損益兩平。${Number.isFinite(maxCpa) ? `以平均訂單 ${Math.round(aov).toLocaleString()} 元計算，CPA 不超過 <b>${Math.round(maxCpa).toLocaleString()} 元</b>才不虧錢。` : ''}</div>` : ''}
+          <p class="small muted" style="margin:6px 0 0">CPA = CPC ÷ CVR：要降低 CPA，可以降低點擊成本（素材、相關性），或提高轉換率（到達頁、結帳流程）。這裡只算第一次購買，若顧客會回購，還要搭配 LTV 評估。</p>`;
+      };
+      root.addEventListener('input', run); run();
+    }
+    if (id === 'abtest') {
+      // 標準常態分配累積機率（Abramowitz–Stegun 7.1.26 近似 erf）
+      const phi = z => { const t = 1 / (1 + 0.3275911 * Math.abs(z) / Math.SQRT2); const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-z * z / 2); return z >= 0 ? (1 + y) / 2 : (1 - y) / 2; };
+      let zc = 1.96;
+      const run = () => {
+        const g = k => Math.max(0, Math.floor(+$('#ab' + k, root).value || 0));
+        const nA = g('NA'), cA = g('CA'), nB = g('NB'), cB = g('CB');
+        if (!nA || !nB || cA > nA || cB > nB) { $('#abOut', root).innerHTML = '<div class="box warn"><b class="t">數字有誤</b>樣本數要大於 0，轉換數不能大於樣本數。</div>'; return; }
+        const pA = cA / nA, pB = cB / nB, p = (cA + cB) / (nA + nB);
+        const se = Math.sqrt(p * (1 - p) * (1 / nA + 1 / nB));
+        const z = se ? (pB - pA) / se : 0, pv = 2 * (1 - phi(Math.abs(z)));
+        const sig = Math.abs(z) >= zc, conf = { 1.645: 90, 1.96: 95, 2.576: 99 }[zc];
+        const lift = pA ? (pB - pA) / pA : NaN;
+        // 每組所需樣本數（檢定力 80%）：n = (zα/2 + zβ)² × [pA(1−pA) + pB(1−pB)] ÷ (pB − pA)²
+        const need = pB !== pA ? Math.ceil((zc + 0.8416) ** 2 * (pA * (1 - pA) + pB * (1 - pB)) / (pB - pA) ** 2) : Infinity;
+        const bar = (lab, r, n, c) => `<div style="margin:6px 0"><div class="row small" style="justify-content:space-between"><b>${lab}</b><span class="mono">${c.toLocaleString()} ÷ ${n.toLocaleString()} = ${(r * 100).toFixed(2)}%</span></div><div style="height:12px;border-radius:6px;background:var(--line,#ddd);overflow:hidden"><div style="height:100%;width:${Math.min(100, r / Math.max(pA, pB, 1e-9) * 100)}%;background:var(--accent)"></div></div></div>`;
+        $('#abOut', root).innerHTML = bar('A 版', pA, nA, cA) + bar('B 版', pB, nB, cB) +
+          `<table class="tbl" style="margin-top:8px"><tr><td>相對提升（B 對 A）</td><td class="num" style="text-align:right">${Number.isFinite(lift) ? (lift >= 0 ? '+' : '') + (lift * 100).toFixed(1) + '%' : '—'}</td></tr>
+          <tr><td>z 值</td><td class="num" style="text-align:right">${z.toFixed(2)}</td></tr>
+          <tr><td>p 值（雙尾）</td><td class="num" style="text-align:right">${pv < 0.0001 ? '&lt; 0.0001' : pv.toFixed(4)}</td></tr></table>
+          <div class="box ${sig ? 'memo' : 'tip'}"><b class="t">${sig ? `差異顯著（${conf}% 信心）` : `尚不顯著（${conf}% 信心）`}</b>${sig ? `|z| = ${Math.abs(z).toFixed(2)} ≥ ${zc}，這個差異不太可能只是隨機造成，可以考慮採用${pB > pA ? ' B 版' : ' A 版'}。` : `|z| = ${Math.abs(z).toFixed(2)} &lt; ${zc}，目前的差異可能只是運氣，還不能下結論。`}</div>
+          <p class="small" style="margin:6px 0 0">${Number.isFinite(need) ? `若真實轉換率就是 ${(pA * 100).toFixed(2)}% 與 ${(pB * 100).toFixed(2)}%，要有 80% 的機會偵測到這個差異，<b>每組約需 ${need.toLocaleString()} 人</b>（目前 A ${nA.toLocaleString()}、B ${nB.toLocaleString()}）。` : '兩組轉換率相同，無法估算所需樣本數。'}</p>
+          <p class="tiny muted" style="margin:4px 0 0">事先決定樣本數與測試時間，到了再看結果；中途一直查看、看到顯著就停止，會讓「假的顯著」變多。樣本數或轉換數很小時，z 檢定的近似也比較不準。</p>`;
+      };
+      tabsSelect(root, (tabs, v) => { zc = +v; run(); });
+      root.addEventListener('input', run); run();
+    }
+    if (id === 'ratios') {
+      const run = () => {
+        const v = {};
+        root.querySelectorAll('[data-k]').forEach(i => { v[i.dataset.k] = +i.value || 0; });
+        const avg = k => (v[k + '1'] + v[k + '0']) / 2;
+        const d = (a, b) => b ? a / b : NaN;
+        const pct = x => Number.isFinite(x) ? (x * 100).toFixed(1) + '%' : '—';
+        const num = (x, u = '') => Number.isFinite(x) ? String(+x.toFixed(x >= 100 ? 0 : u === ' 天' ? 1 : 2)) + u : '—';
+        const days = (a, b) => d(365 * a, b);
+        const dio = days(avg('inv'), v.cogs), dso = days(avg('ar'), v.rev), dpo = days(avg('ap'), v.cogs);
+        const nm = d(v.net, v.rev), at = d(v.rev, avg('ta')), em = d(avg('ta'), avg('eq'));
+        const cr = d(v.ca1, v.cl1), qr = d(v.ca1 - v.inv1, v.cl1), dr = d(v.tl1, v.ta1), ic = d(v.pretax + v.int, v.int);
+        const G = [
+          ['獲利能力', [
+            ['毛利率', pct(d(v.rev - v.cogs, v.rev)), '產品定價能力'],
+            ['營業利益率', pct(d(v.op, v.rev)), '本業經營效率'],
+            ['淨利率', pct(nm), '最終留給股東的比例'],
+            ['ROA', pct(d(v.net, avg('ta'))), '淨利 ÷ 平均總資產'],
+            ['ROE', pct(d(v.net, avg('eq'))), '淨利 ÷ 平均權益']]],
+          ['償債能力', [
+            ['流動比率', pct(cr), cr >= 2 ? '短期償債能力充足' : cr >= 1 ? '流動資產足以支付流動負債' : '低於 100%，留意短期資金壓力（依產業判斷）'],
+            ['速動比率', pct(qr), qr >= 1 ? '不靠存貨也能支付流動負債' : '要靠賣存貨才能還短期負債'],
+            ['負債比率', pct(dr), dr > 0.6 ? '負債偏高，注意利率與景氣風險' : '資金結構'],
+            ['利息保障倍數', num(ic, ' 倍'), ic < 3 ? '倍數偏低，利息負擔較重' : '營業賺的錢足以支付利息']]],
+          ['經營效率', [
+            ['存貨周轉天數', num(dio, ' 天'), '存貨平均放多久才賣出'],
+            ['收款天數', num(dso, ' 天'), '平均多久收回貨款'],
+            ['付款天數', num(dpo, ' 天'), '平均多久付款給供應商'],
+            ['現金轉換循環', num(dio + dso - dpo, ' 天'), '需要自己準備資金的天數'],
+            ['總資產周轉率', num(at, ' 次'), '每一元資產帶來多少營收']]]
+        ];
+        $('#raOut', root).innerHTML = G.map(([h, rows]) => `<h4 style="margin:12px 0 4px">${h}</h4><table class="tbl">${rows.map(r => `<tr><td>${r[0]}</td><td class="num" style="text-align:right;white-space:nowrap"><b>${r[1]}</b></td><td class="small muted">${r[2]}</td></tr>`).join('')}</table>`).join('') +
+          `<div class="box tip"><b class="t">杜邦分析</b>淨利率 ${pct(nm)} × 總資產周轉率 ${num(at, ' 次')} × 權益乘數 ${num(em)} ＝ ROE ${pct(nm * at * em)}。${em > 2.5 ? 'ROE 有很大一部分來自財務槓桿，要留意負債風險。' : nm > 0.15 ? 'ROE 主要來自高利潤率。' : at > 1.5 ? 'ROE 主要來自高周轉。' : '比較同業，看看是哪一個因子拉高或拉低了 ROE。'}</div>
+          <p class="tiny muted" style="margin:6px 0 0">速動比率簡化為（流動資產 − 存貨）÷ 流動負債；比率的好壞要和同業及自己的歷史比較。</p>`;
+      };
+      root.addEventListener('input', run); run();
+    }
+    if (id === 'breakeven') {
+      const run = () => {
+        const g = k => Math.max(0, +$('#be' + k, root).value || 0);
+        const p = g('P'), vc = g('V'), F = g('F'), T = g('T'), Q = g('Q');
+        const cm = p - vc;
+        if (cm <= 0) { $('#beChart', root).innerHTML = ''; $('#beOut', root).innerHTML = '<div class="box warn"><b class="t">售價低於變動成本</b>每賣一單位都在虧錢，賣越多虧越多，不存在損益兩平點。</div>'; return; }
+        const bep = F / cm, tq = (F + T) / cm, op = Q * cm - F;
+        const qmax = Math.max(bep, tq, Q) * 1.35 || 1, ymax = Math.max(p * qmax, F + vc * qmax);
+        const W = 520, H = 260, L = 64, R = 12, TP = 12, B = 34;
+        const x = q => L + q / qmax * (W - L - R), y = m => H - B - m / ymax * (H - TP - B);
+        const fm = n => n >= 1e6 ? (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M' : n >= 1e3 ? Math.round(n / 1e3) + 'k' : Math.round(n);
+        const ticks = [0, 0.25, 0.5, 0.75, 1];
+        $('#beChart', root).innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:${W}px;font-size:11px" role="img" aria-label="損益兩平圖">
+          ${ticks.map(t => `<line x1="${L}" x2="${W - R}" y1="${y(ymax * t)}" y2="${y(ymax * t)}" stroke="var(--line)"/><text x="${L - 6}" y="${y(ymax * t) + 4}" text-anchor="end" fill="var(--muted)">${fm(ymax * t)}</text><text x="${x(qmax * t)}" y="${H - B + 16}" text-anchor="middle" fill="var(--muted)">${fm(qmax * t)}</text>`).join('')}
+          <text x="${W - R}" y="${H - 4}" text-anchor="end" fill="var(--muted)">銷售量</text>
+          <line x1="${x(0)}" y1="${y(F)}" x2="${x(qmax)}" y2="${y(F)}" stroke="var(--muted)" stroke-dasharray="4 4"/>
+          <line x1="${x(0)}" y1="${y(F)}" x2="${x(qmax)}" y2="${y(F + vc * qmax)}" stroke="var(--bad)" stroke-width="2.5"/>
+          <line x1="${x(0)}" y1="${y(0)}" x2="${x(qmax)}" y2="${y(p * qmax)}" stroke="var(--accent)" stroke-width="2.5"/>
+          <line x1="${x(Q)}" y1="${y(0)}" x2="${x(Q)}" y2="${TP}" stroke="var(--ok)" stroke-dasharray="3 3"/>
+          <circle cx="${x(bep)}" cy="${y(p * bep)}" r="5" fill="var(--ink)"/>
+          <text x="${x(bep) - 8}" y="${y(p * bep) - 10}" text-anchor="end" fill="var(--ink)">損益兩平 ${Math.ceil(bep).toLocaleString()}</text>
+          <text x="${L + 6}" y="${TP + 12}" fill="var(--accent)">— 營收</text><text x="${L + 60}" y="${TP + 12}" fill="var(--bad)">— 總成本</text><text x="${L + 128}" y="${TP + 12}" fill="var(--muted)">- - 固定成本</text><text x="${L + 214}" y="${TP + 12}" fill="var(--ok)">┆ 預估銷量</text>
+        </svg>`;
+        const mos = Q ? (Q - bep) / Q : NaN, dol = op > 0 ? Q * cm / op : NaN;
+        $('#beOut', root).innerHTML = `<table class="tbl"><tr><td>單位邊際貢獻</td><td class="num" style="text-align:right">${cm.toLocaleString()} 元（邊際貢獻率 ${(cm / p * 100).toFixed(1)}%）</td></tr>
+          <tr><td>損益兩平銷售量</td><td class="num" style="text-align:right"><b>${Math.ceil(bep).toLocaleString()}</b>（營收 ${Math.round(bep * p).toLocaleString()} 元）</td></tr>
+          <tr><td>達成目標利潤的銷售量</td><td class="num" style="text-align:right">${Math.ceil(tq).toLocaleString()}</td></tr>
+          <tr><td>預估銷量的營業利益</td><td class="num" style="text-align:right">${Math.round(op).toLocaleString()} 元</td></tr>
+          <tr><td>安全邊際率</td><td class="num" style="text-align:right">${Number.isFinite(mos) ? (mos * 100).toFixed(1) + '%' : '—'}</td></tr>
+          <tr><td>營業槓桿度</td><td class="num" style="text-align:right">${Number.isFinite(dol) ? dol.toFixed(2) : '—（目前未獲利）'}</td></tr></table>
+          <div class="box ${op >= 0 ? 'memo' : 'warn'}"><b class="t">${op >= 0 ? `預估銷量高於損益兩平 ${(mos * 100).toFixed(0)}%` : `預估銷量還差 ${Math.ceil(bep - Q).toLocaleString()} 單位才能損益兩平`}</b>${Number.isFinite(dol) ? `營業槓桿度 ${dol.toFixed(1)}：銷量每變動 10%，營業利益約變動 ${(dol * 10).toFixed(0)}%。` : '可以檢討提高售價、降低變動成本或固定成本。'}售價每提高 10 元，損益兩平量會降到 ${Math.ceil(F / (cm + 10)).toLocaleString()}。</div>`;
+      };
+      root.addEventListener('input', run); run();
+    }
+    if (id === 'variance') {
+      const run = () => {
+        const g = k => Math.max(0, +$('#va' + k, root).value || 0);
+        const bq = g('BQ'), bp = g('BP'), aq = g('AQ'), ap = g('AP'), vc = g('VC');
+        const br = bq * bp, ar = aq * ap, pv = (ap - bp) * aq, qv = (aq - bq) * bp;
+        const tag = x => x > 0 ? '<span class="tag ok">有利</span>' : x < 0 ? '<span class="tag bad">不利</span>' : '<span class="tag">無差異</span>';
+        const f = x => (x > 0 ? '+' : '') + Math.round(x).toLocaleString();
+        const bg = bq * (bp - vc), ag = aq * (ap - vc);
+        const maxAbs = Math.max(Math.abs(pv), Math.abs(qv), 1);
+        const bar = (lab, x) => `<div class="row small" style="gap:8px;align-items:center;margin:4px 0"><span style="width:72px">${lab}</span><div style="flex:1;display:flex;height:14px"><div style="width:50%;display:flex;justify-content:flex-end">${x < 0 ? `<div style="width:${Math.abs(x) / maxAbs * 100}%;background:var(--bad);border-radius:7px 0 0 7px"></div>` : ''}</div><div style="width:50%;border-left:1px solid var(--line-2)">${x > 0 ? `<div style="height:100%;width:${x / maxAbs * 100}%;background:var(--ok);border-radius:0 7px 7px 0"></div>` : ''}</div></div><span class="mono" style="width:90px;text-align:right">${f(x)}</span></div>`;
+        $('#vaOut', root).innerHTML = `<table class="tbl"><tr><td>預算營收</td><td class="num" style="text-align:right">${br.toLocaleString()}</td><td></td></tr>
+          <tr><td>實際營收</td><td class="num" style="text-align:right">${ar.toLocaleString()}</td><td></td></tr>
+          <tr><td><b>總差異</b></td><td class="num" style="text-align:right"><b>${f(ar - br)}</b></td><td>${tag(ar - br)}</td></tr>
+          <tr><td>價格差異<div class="tiny muted">（${ap} − ${bp}）× ${aq.toLocaleString()}</div></td><td class="num" style="text-align:right">${f(pv)}</td><td>${tag(pv)}</td></tr>
+          <tr><td>數量差異<div class="tiny muted">（${aq.toLocaleString()} − ${bq.toLocaleString()}）× ${bp}</div></td><td class="num" style="text-align:right">${f(qv)}</td><td>${tag(qv)}</td></tr></table>
+          ${bar('價格差異', pv)}${bar('數量差異', qv)}
+          ${vc ? `<div class="box ${ag >= bg ? 'memo' : 'warn'}"><b class="t">邊際貢獻：預算 ${Math.round(bg).toLocaleString()}，實際 ${Math.round(ag).toLocaleString()}（${f(ag - bg)}）</b>${pv < 0 && qv > 0 ? (ag >= bg ? '降價換來的銷量足以彌補每單位利潤的減少。' : '營收雖然增加，但降價讓每單位利潤減少太多，邊際貢獻反而低於預算。') : pv > 0 && qv < 0 ? '漲價讓每單位賺更多，但銷量減少，要觀察顧客是否流失到競爭者。' : '價格與數量同方向變動，原因相對單純。'}</div>` : ''}`;
+      };
+      root.addEventListener('input', run); run();
+    }
+    if (id === 'npv') {
+      const npvAt = (r, cf) => cf.reduce((s, c, t) => s + c / (1 + r) ** t, 0);
+      const irrOf = cf => {
+        let lo = -0.99, hi = 10;
+        if (npvAt(lo, cf) * npvAt(hi, cf) > 0) return NaN;
+        for (let i = 0; i < 200; i++) { const m = (lo + hi) / 2; if (npvAt(m, cf) * npvAt(lo, cf) > 0) lo = m; else hi = m; }
+        return (lo + hi) / 2;
+      };
+      const run = () => {
+        const cf = $('#nvCF', root).value.split(/[\s,，]+/).filter(Boolean).map(Number).filter(Number.isFinite);
+        const r = +$('#nvR', root).value / 100;
+        $('#nvRV', root).textContent = (r * 100).toFixed(1).replace(/\.0$/, '') + '%';
+        if (cf.length < 2) { $('#nvOut', root).innerHTML = '<p class="small muted">請至少輸入兩期現金流。</p>'; $('#nvChart', root).innerHTML = ''; return; }
+        const v = Math.round(npvAt(r, cf) * 10) / 10 || 0, irr = irrOf(cf);
+        let cum = 0, pb = NaN;
+        cf.forEach((c, t) => { const prev = cum; cum += c; if (Number.isNaN(pb) && t > 0 && prev < 0 && cum >= 0) pb = t - 1 + (-prev) / c; });
+        const signs = cf.filter(c => c !== 0).map(Math.sign).reduce((n, s, i, a) => n + (i && s !== a[i - 1] ? 1 : 0), 0);
+        $('#nvOut', root).innerHTML = `<table class="tbl"><tr><th>年</th><th style="text-align:right">現金流</th><th style="text-align:right">折現因子</th><th style="text-align:right">現值</th></tr>
+          ${cf.map((c, t) => `<tr><td>${t}</td><td class="num" style="text-align:right">${c.toLocaleString()}</td><td class="num" style="text-align:right">${(1 / (1 + r) ** t).toFixed(4)}</td><td class="num" style="text-align:right">${(c / (1 + r) ** t).toFixed(1)}</td></tr>`).join('')}</table>
+          <div class="box ${v >= 0 ? 'memo' : 'warn'}"><b class="t">NPV ＝ ${v.toFixed(1)}　IRR ＝ ${Number.isFinite(irr) ? (irr * 100).toFixed(1) + '%' : '無法計算'}　回收期 ${Number.isFinite(pb) ? pb.toFixed(1) + ' 年' : '期間內未回收'}</b>${v >= 0 ? `以 ${(r * 100).toFixed(1)}% 的折現率計算，投資會增加價值。` : `以 ${(r * 100).toFixed(1)}% 的折現率計算，報酬不到要求。`}${signs > 1 ? '現金流正負號變動超過一次，IRR 可能有多個解，請以 NPV 判斷。' : ''}</div>`;
+        const W = 520, H = 200, L = 52, R = 12, TP = 12, B = 30, rmax = 0.3;
+        const pts = Array.from({ length: 61 }, (_, i) => [i / 60 * rmax, npvAt(i / 60 * rmax, cf)]);
+        const ys = pts.map(p => p[1]), ymax = Math.max(...ys, 0), ymin = Math.min(...ys, 0), span = ymax - ymin || 1;
+        const x = rr => L + rr / rmax * (W - L - R), y = n => TP + (ymax - n) / span * (H - TP - B);
+        $('#nvChart', root).innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:${W}px;font-size:11px;margin-top:6px" role="img" aria-label="NPV 曲線">
+          <line x1="${L}" x2="${W - R}" y1="${y(0)}" y2="${y(0)}" stroke="var(--line-2)"/>
+          ${[0, 0.1, 0.2, 0.3].map(t => `<text x="${x(t)}" y="${H - 10}" text-anchor="middle" fill="var(--muted)">${t * 100}%</text>`).join('')}
+          <text x="${L - 6}" y="${y(ymax) + 4}" text-anchor="end" fill="var(--muted)">${Math.round(ymax)}</text><text x="${L - 6}" y="${y(ymin) + 4}" text-anchor="end" fill="var(--muted)">${Math.round(ymin)}</text><text x="${L - 6}" y="${y(0) + 4}" text-anchor="end" fill="var(--muted)">0</text>
+          <polyline fill="none" stroke="var(--accent)" stroke-width="2.5" points="${pts.map(p => `${x(p[0]).toFixed(1)},${y(p[1]).toFixed(1)}`).join(' ')}"/>
+          ${r <= rmax ? `<circle cx="${x(r)}" cy="${y(v)}" r="5" fill="var(--ink)"/>` : ''}
+          ${Number.isFinite(irr) && irr >= 0 && irr <= rmax ? `<circle cx="${x(irr)}" cy="${y(0)}" r="4" fill="var(--bad)"/><text x="${x(irr)}" y="${y(0) - 8}" text-anchor="middle" fill="var(--bad)">IRR</text>` : ''}
+        </svg><p class="tiny muted" style="margin:2px 0 0">橫軸為折現率，曲線與 0 的交點就是 IRR；黑點為目前選擇的折現率。</p>`;
+      };
+      root.addEventListener('input', run); run();
+    }
+    if (id === 'cpm') {
+      const run = () => {
+        const rows = $('#cpIn', root).value.split('\n').map(l => l.split(/[,，]/).map(x => x.trim())).filter(p => p.length >= 3 && p[0]);
+        const A = {}, order = [], errs = [];
+        rows.forEach(([code, name, dur, pre]) => {
+          if (A[code]) errs.push(`代號 ${code} 重複`);
+          const d = +dur;
+          if (!Number.isFinite(d) || d < 0) errs.push(`${code} 的工期不是數字`);
+          A[code] = { code, name: name || code, d: Math.max(0, d || 0), pre: (pre || '').split(/\s+/).filter(x => x && x !== '-') };
+          order.push(code);
+        });
+        order.forEach(c => A[c].pre.forEach(p => { if (!A[p]) errs.push(`${c} 的前置活動 ${p} 不存在`); }));
+        // 拓撲排序，順便檢查循環
+        const seen = {}, topo = [];
+        const visit = (c, stack) => { if (seen[c] === 2) return; if (seen[c] === 1) { errs.push('活動之間出現循環：' + [...stack, c].join(' → ')); return; } seen[c] = 1; A[c].pre.filter(p => A[p]).forEach(p => visit(p, [...stack, c])); seen[c] = 2; topo.push(c); };
+        order.forEach(c => visit(c, []));
+        if (errs.length || !order.length) { $('#cpOut', root).innerHTML = `<div class="box warn"><b class="t">請檢查輸入</b>${esc([...new Set(errs)].join('；') || '至少輸入一個活動')}</div>`; return; }
+        topo.forEach(c => { const a = A[c]; a.es = Math.max(0, ...a.pre.map(p => A[p].ef)); a.ef = a.es + a.d; });
+        const end = Math.max(...topo.map(c => A[c].ef));
+        [...topo].reverse().forEach(c => { const succ = order.filter(s => A[s].pre.includes(c)); A[c].lf = succ.length ? Math.min(...succ.map(s => A[s].ls)) : end; A[c].ls = A[c].lf - A[c].d; });
+        const crit = topo.filter(c => A[c].ls === A[c].es);
+        const pct = x => (x / (end || 1) * 100).toFixed(2) + '%';
+        $('#cpOut', root).innerHTML = `<div class="table-wrap"><table class="tbl"><tr><th>活動</th><th>工期</th><th>ES</th><th>EF</th><th>LS</th><th>LF</th><th>浮時</th></tr>
+          ${order.map(c => { const a = A[c], f = a.ls - a.es; return `<tr${f === 0 ? ' style="font-weight:600"' : ''}><td>${esc(c)} ${esc(a.name)}</td><td class="num">${a.d}</td><td class="num">${a.es}</td><td class="num">${a.ef}</td><td class="num">${a.ls}</td><td class="num">${a.lf}</td><td>${f === 0 ? '<span class="tag bad">要徑</span>' : f}</td></tr>`; }).join('')}</table></div>
+          <div style="margin:10px 0">${order.map(c => { const a = A[c], f = a.ls - a.es; return `<div class="row small" style="gap:8px;align-items:center;margin:3px 0"><span class="mono" style="width:28px">${esc(c)}</span><div style="flex:1;position:relative;height:16px;background:var(--surface-2);border-radius:4px"><div style="position:absolute;left:${pct(a.es)};width:${pct(a.d)};height:100%;background:${f === 0 ? 'var(--bad)' : 'var(--accent)'};border-radius:4px"></div>${f ? `<div style="position:absolute;left:${pct(a.ef)};width:${pct(f)};height:100%;border:1px dashed var(--muted);border-left:0;border-radius:0 4px 4px 0;box-sizing:border-box"></div>` : ''}</div></div>`; }).join('')}
+          <div class="tiny muted" style="margin-left:36px">0 ～ ${end}（紅色為要徑，虛線框為浮時）</div></div>
+          <div class="box memo"><b class="t">要徑：${crit.map(esc).join(' → ')}，專案工期 ${end}</b>要徑上的活動延誤多少，專案就延誤多少。試著把非要徑活動的工期加長超過它的浮時，看看要徑如何改變。</div>`;
+      };
+      $('#cpIn', root).addEventListener('input', run); run();
+    }
+    if (id === 'evm') {
+      const run = () => {
+        const g = k => Math.max(0, +$('#ev' + k, root).value || 0);
+        const BAC = g('BAC'), PV = g('PV'), EV = g('EV'), AC = g('AC');
+        if (!AC || !PV || !BAC) { $('#evOut', root).innerHTML = '<p class="small muted">BAC、PV、AC 需大於 0。</p>'; return; }
+        const CV = EV - AC, SV = EV - PV, CPI = EV / AC, SPI = EV / PV;
+        const EAC = CPI ? BAC / CPI : Infinity, ETC = EAC - AC, VAC = BAC - EAC, TCPI = BAC > AC ? (BAC - EV) / (BAC - AC) : Infinity;
+        const f = (x, d = 1) => Number.isFinite(x) ? x.toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d }) : '—';
+        const light = x => x >= 1 ? ['ok', '🟢'] : x >= 0.9 ? ['warn', '🟡'] : ['bad', '🔴'];
+        const [cc, ci] = light(CPI), [sc, si] = light(SPI);
+        const mx = Math.max(BAC, PV, EV, AC);
+        const bar = (lab, v, col) => `<div class="row small" style="gap:8px;align-items:center;margin:3px 0"><span class="mono" style="width:36px">${lab}</span><div style="flex:1;height:14px;background:var(--surface-2);border-radius:7px;overflow:hidden"><div style="height:100%;width:${v / mx * 100}%;background:${col}"></div></div><span class="mono" style="width:64px;text-align:right">${f(v, 0)}</span></div>`;
+        $('#evOut', root).innerHTML = bar('BAC', BAC, 'var(--line-2)') + bar('PV', PV, 'var(--muted)') + bar('EV', EV, 'var(--accent)') + bar('AC', AC, 'var(--bad)') +
+          `<div class="table-wrap"><table class="tbl" style="margin-top:8px"><tr><th>指標</th><th style="text-align:right">數值</th><th>公式</th></tr>
+          <tr><td>CV 成本差異</td><td class="num" style="text-align:right">${f(CV)}</td><td class="small muted">EV − AC</td></tr>
+          <tr><td>SV 時程差異</td><td class="num" style="text-align:right">${f(SV)}</td><td class="small muted">EV − PV</td></tr>
+          <tr><td>CPI</td><td class="num" style="text-align:right"><span class="tag ${cc}">${f(CPI, 2)}</span></td><td class="small muted">EV ÷ AC</td></tr>
+          <tr><td>SPI</td><td class="num" style="text-align:right"><span class="tag ${sc}">${f(SPI, 2)}</span></td><td class="small muted">EV ÷ PV</td></tr>
+          <tr><td>EAC 完工估算</td><td class="num" style="text-align:right">${f(EAC)}</td><td class="small muted">BAC ÷ CPI</td></tr>
+          <tr><td>ETC 完工尚需</td><td class="num" style="text-align:right">${f(ETC)}</td><td class="small muted">EAC − AC</td></tr>
+          <tr><td>VAC 完工差異</td><td class="num" style="text-align:right">${f(VAC)}</td><td class="small muted">BAC − EAC</td></tr>
+          <tr><td>TCPI</td><td class="num" style="text-align:right">${f(TCPI, 3)}</td><td class="small muted">（BAC − EV）÷（BAC − AC）</td></tr>
+          <tr><td>完成百分比</td><td class="num" style="text-align:right">${f(EV / BAC * 100)}%</td><td class="small muted">計畫應完成 ${f(PV / BAC * 100)}%</td></tr></table></div>
+          <div class="box ${CPI >= 1 && SPI >= 1 ? 'memo' : CPI < 0.9 || SPI < 0.9 ? 'warn' : 'tip'}"><b class="t">成本 ${ci} ${CPI >= 1 ? '在預算內' : '超支'}　進度 ${si} ${SPI >= 1 ? '符合或超前' : '落後'}</b>${CPI < 1 ? `每花 1 元只完成 ${f(CPI, 2)} 元的工作；照目前效率，完工約需 ${f(EAC)}，超出 ${f(-VAC)}。` : `每花 1 元完成 ${f(CPI, 2)} 元的工作。`}${Number.isFinite(TCPI) ? (TCPI > 1.1 ? `TCPI ${f(TCPI, 2)} 遠高於 1，守住原預算的難度很高，應盡早和發起人討論調整範疇或預算。` : TCPI > 1 ? `剩下的工作要比原計畫有效率 ${f((TCPI - 1) * 100)}% 才能守住預算。` : '照目前的狀況，可以在預算內完成。') : '已超過完工預算。'}</div>`;
+      };
+      root.addEventListener('input', run); run();
+    }
+    if (id === 'riskmatrix') {
+      const run = () => {
+        const R = $('#rmIn', root).value.split('\n').map(l => l.split(/[,，]/).map(x => x.trim())).filter(p => p.length >= 3 && p[0]).map(([n, p, i]) => ({ n, p: Math.min(5, Math.max(1, Math.round(+p) || 1)), i: Math.min(5, Math.max(1, Math.round(+i) || 1)) }));
+        const lv = s => s >= 12 ? ['高', 'var(--bad)', 'var(--bad-soft)'] : s >= 6 ? ['中', 'var(--warn)', 'var(--warn-soft)'] : ['低', 'var(--ok)', 'var(--ok-soft)'];
+        let g = '<div class="table-wrap"><table class="tbl" style="table-layout:fixed;text-align:center"><tr><th style="width:56px">機率＼影響</th>' + [1, 2, 3, 4, 5].map(i => `<th>${i}</th>`).join('') + '</tr>';
+        for (let p = 5; p >= 1; p--) {
+          g += `<tr><th>${p}</th>` + [1, 2, 3, 4, 5].map(i => { const L = lv(p * i), here = R.map((r, k) => r.p === p && r.i === i ? k + 1 : 0).filter(Boolean); return `<td style="background:${L[2]};height:38px;vertical-align:middle">${here.map(k => `<span style="display:inline-block;min-width:20px;padding:1px 4px;margin:1px;border-radius:10px;background:${L[1]};color:#fff;font-size:12px">R${k}</span>`).join('')}</td>`; }).join('') + '</tr>';
+        }
+        $('#rmGrid', root).innerHTML = g + '</table></div>';
+        const tip = r => r.p * r.i >= 12 ? (r.p >= 4 ? '減輕：降低發生機率（例如提早處理、增加檢查）；必要時規避' : '減輕影響或轉移（保險、合約），並準備應變計畫') : r.p * r.i >= 6 ? '指定負責人、設定觸發條件，定期追蹤' : '接受，列入觀察清單';
+        $('#rmOut', root).innerHTML = R.length ? `<div class="table-wrap"><table class="tbl"><tr><th>#</th><th>風險</th><th>機率</th><th>影響</th><th>分數</th><th>建議</th></tr>${R.map((r, k) => ({ ...r, k })).sort((a, b) => b.p * b.i - a.p * a.i).map(r => { const L = lv(r.p * r.i); return `<tr><td>R${r.k + 1}</td><td>${esc(r.n)}</td><td class="num">${r.p}</td><td class="num">${r.i}</td><td><b style="color:${L[1]}">${r.p * r.i} ${L[0]}</b></td><td class="small">${tip(r)}</td></tr>`; }).join('')}</table></div>
+          <p class="tiny muted" style="margin:6px 0 0">分數 ＝ 機率 × 影響；12 分以上為高、6～11 分為中。門檻依組織的風險承受度調整。</p>` : '<p class="small muted">請輸入至少一個風險。</p>';
+      };
+      $('#rmIn', root).addEventListener('input', run); run();
+    }
+    if (id === 'burndown') {
+      const run = () => {
+        const total = Math.max(1, +$('#bdTotal', root).value || 1), days = Math.min(30, Math.max(1, Math.round(+$('#bdDays', root).value) || 1));
+        const rem = [total, ...$('#bdRem', root).value.split(/[\s,，]+/).filter(Boolean).map(Number).filter(Number.isFinite).slice(0, days)];
+        const W = 520, H = 230, L = 40, R = 12, T = 12, B = 30;
+        const ymax = Math.max(total, ...rem);
+        const x = d => L + d / days * (W - L - R), y = v => T + (ymax - v) / ymax * (H - T - B);
+        const today = rem.length - 1, cur = rem[today];
+        const look = Math.min(3, today), rate = look ? (rem[today - look] - cur) / look : 0;
+        const finish = cur <= 0 ? today : rate > 0 ? today + cur / rate : Infinity;
+        const ideal = d => total - total * d / days;
+        $('#bdChart', root).innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:${W}px;font-size:11px;margin-top:6px" role="img" aria-label="燃盡圖">
+          ${[0, 0.5, 1].map(t => `<line x1="${L}" x2="${W - R}" y1="${y(ymax * t)}" y2="${y(ymax * t)}" stroke="var(--line)"/><text x="${L - 6}" y="${y(ymax * t) + 4}" text-anchor="end" fill="var(--muted)">${Math.round(ymax * t)}</text>`).join('')}
+          ${Array.from({ length: days + 1 }, (_, d) => d % (days > 15 ? 5 : days > 8 ? 2 : 1) === 0 ? `<text x="${x(d)}" y="${H - 10}" text-anchor="middle" fill="var(--muted)">${d}</text>` : '').join('')}
+          <line x1="${x(0)}" y1="${y(total)}" x2="${x(days)}" y2="${y(0)}" stroke="var(--muted)" stroke-dasharray="5 4"/>
+          ${Number.isFinite(finish) && cur > 0 ? `<line x1="${x(today)}" y1="${y(cur)}" x2="${x(Math.min(finish, days * 1.5))}" y2="${y(Math.max(0, cur - rate * (Math.min(finish, days * 1.5) - today)))}" stroke="var(--accent)" stroke-dasharray="2 3" stroke-width="2"/>` : ''}
+          <polyline fill="none" stroke="var(--accent)" stroke-width="2.5" points="${rem.map((v, d) => `${x(d).toFixed(1)},${y(v).toFixed(1)}`).join(' ')}"/>
+          ${rem.map((v, d) => `<circle cx="${x(d)}" cy="${y(v)}" r="3" fill="${v > ideal(d) + 0.5 ? 'var(--bad)' : 'var(--accent)'}"/>`).join('')}
+          <text x="${W - R}" y="${T + 10}" text-anchor="end" fill="var(--muted)">- - 理想線　— 實際　··· 預測</text>
+        </svg>`;
+        let flat = 0; for (let d = today; d > 0 && rem[d] >= rem[d - 1]; d--) flat++;
+        const behind = cur - ideal(today);
+        $('#bdOut', root).innerHTML = `<div class="box ${cur <= 0 ? 'memo' : finish <= days ? 'memo' : 'warn'}"><b class="t">${cur <= 0 ? `第 ${today} 天完成所有工作` : `第 ${today} 天，剩 ${cur} 點（${behind > 0.5 ? `落後理想線 ${behind.toFixed(1)} 點` : behind < -0.5 ? `超前理想線 ${(-behind).toFixed(1)} 點` : '符合理想線'}）`}</b>${cur <= 0 ? '' : rate > 0 ? `最近 ${look} 天平均每天完成 ${rate.toFixed(1)} 點，預估第 ${Math.ceil(finish)} 天完成${finish <= days ? '，可以在 Sprint 內完成。' : `，超過 Sprint 的 ${days} 天，應和產品負責人討論調整範疇。`}` : '最近沒有完成任何工作，無法預估完成日。'}${flat >= 2 && cur > 0 ? `已經連續 ${flat} 天沒有進展，請在每日站會中找出阻礙。` : ''}</div>`;
+      };
+      root.addEventListener('input', run); run();
+    }
+    if (id === 'rice') {
+      const rows = [['首月半價試喝', 5000, 1, 80, 0.5], ['配送前推播與一鍵延後', 3000, 2, 80, 1.5], ['依飲用紀錄建議頻率', 3000, 2, 50, 4], ['沖煮心得社群', 8000, 0.5, 50, 6], ['深色模式', 12000, 0.25, 100, 1]];
+      const tbl = $('#riTbl', root);
+      const addRow = r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td><input class="input" value="${esc(r[0])}" style="min-width:120px;width:100%"></td>` +
+          `<td><input class="input num" type="number" min="0" value="${r[1]}" style="width:84px"></td>` +
+          `<td><select class="input">${[3, 2, 1, 0.5, 0.25].map(v => `<option value="${v}"${v === r[2] ? ' selected' : ''}>${v}</option>`).join('')}</select></td>` +
+          `<td><select class="input">${[100, 80, 50].map(v => `<option value="${v}"${v === r[3] ? ' selected' : ''}>${v}%</option>`).join('')}</select></td>` +
+          `<td><input class="input num" type="number" min="0.1" step="0.5" value="${r[4]}" style="width:72px"></td><td class="num ri-s" style="text-align:right"></td>`;
+        tbl.appendChild(tr);
+      };
+      const run = () => {
+        const list = [...tbl.querySelectorAll('tr')].slice(1).map(tr => {
+          const f = tr.querySelectorAll('input,select');
+          const [name, R, I, C, E] = [f[0].value.trim(), +f[1].value || 0, +f[2].value, +f[3].value / 100, +f[4].value || 0];
+          const s = E > 0 ? R * I * C / E : 0;
+          tr.querySelector('.ri-s').textContent = Math.round(s).toLocaleString();
+          return { name: name || '（未命名）', s, R, I, C, E };
+        });
+        const sorted = [...list].sort((a, b) => b.s - a.s), max = sorted[0] ? sorted[0].s || 1 : 1;
+        $('#riOut', root).innerHTML = sorted.map((r, i) => `<div class="row small" style="gap:8px;align-items:center;margin:4px 0"><span style="width:20px" class="mono">${i + 1}</span><span style="width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.name)}</span><div style="flex:1;height:14px;background:var(--surface-2);border-radius:7px;overflow:hidden"><div style="height:100%;width:${r.s / max * 100}%;background:${i === 0 ? 'var(--ok)' : 'var(--accent)'}"></div></div><span class="mono" style="width:70px;text-align:right">${Math.round(r.s).toLocaleString()}</span></div>`).join('') +
+          (sorted.length ? `<div class="box tip"><b class="t">第一名：${esc(sorted[0].name)}</b>${sorted[0].C < 0.8 ? '信心只有 ' + Math.round(sorted[0].C * 100) + '%，建議先用小實驗收集證據再大量投入。' : '證據相對充分。'}RICE 是討論的起點，不是答案：如果排序和直覺差很多，檢查是哪一個估計造成的，並和團隊確認。</div>` : '');
+      };
+      rows.forEach(addRow);
+      $('#riAdd', root).addEventListener('click', () => { addRow(['新想法', 1000, 1, 50, 1]); run(); });
+      root.addEventListener('input', run); root.addEventListener('change', run); run();
+    }
+    if (id === 'userstory') {
+      const run = () => {
+        const g = k => $('#us' + k, root).value.trim();
+        const role = g('Role'), want = g('Want'), so = g('So'), gv = g('Given'), wh = g('When'), th = g('Then');
+        const warn = [];
+        if (!so) warn.push('缺少「以便」：沒有寫出價值，團隊遇到取捨時無法判斷。');
+        if (/工程師|開發者|系統|資料庫|後端|管理員/.test(role)) warn.push('角色看起來是內部人員或系統，確認這個故事對使用者是否有價值（Valuable）。');
+        if (/資料表|API|重構|欄位|伺服器|資料庫/.test(want)) warn.push('功能描述偏向技術實作，使用者故事應描述使用者想做的事，技術做法交給團隊討論。');
+        if (/和|並且|以及|、/.test(want) && want.length > 18) warn.push('功能包含多件事，可能太大（Small），考慮拆成多個故事。');
+        if (/方便|好用|快速|更好|友善|簡單/.test(want + th)) warn.push('出現「方便、快速、好用」等模糊字眼，驗收條件要寫成可以測試的具體結果（Testable），例如「2 秒內完成」。');
+        if (!th) warn.push('缺少預期結果，無法驗收。');
+        const story = `身為${role || '＿＿'}，我想要${want || '＿＿'}${so ? '，以便' + so : ''}。`;
+        const ac = `情境 1：主要流程\nGiven ${gv || '＿＿'}\nWhen ${wh || '＿＿'}\nThen ${th || '＿＿'}\n\n情境 2：（請補上邊界情況，例如超過截止時間、操作失敗、網路中斷）\nGiven \nWhen \nThen `;
+        $('#usOut', root).innerHTML = `<pre class="out" style="margin-top:8px;white-space:pre-wrap">${esc(story + '\n\n驗收條件\n' + ac)}</pre>
+          <div class="row" style="gap:8px;margin:6px 0"><button type="button" class="btn" id="usCopy">複製</button><span class="small muted" id="usMsg"></span></div>
+          ${warn.length ? `<div class="box tip"><b class="t">INVEST 檢查</b><ul style="margin:4px 0 0;padding-left:18px">${warn.map(w => `<li>${esc(w)}</li>`).join('')}</ul></div>` : '<div class="box memo"><b class="t">沒有發現常見問題</b>記得和設計師、工程師一起討論，補上邊界情況。</div>'}`;
+        $('#usCopy', root).addEventListener('click', () => {
+          const done = ok => { $('#usMsg', root).textContent = ok ? '已複製' : '無法自動複製，請手動選取'; };
+          if (navigator.clipboard) navigator.clipboard.writeText(story + '\n\n驗收條件\n' + ac).then(() => done(true), () => done(false)); else done(false);
+        });
+      };
+      root.addEventListener('input', run); run();
+    }
+    if (id === 'cohort') {
+      const run = () => {
+        const C = $('#coIn', root).value.split('\n').map(l => l.split(/[,，\t]/).map(x => x.trim())).filter(p => p.length >= 2 && p[0] && +p[1] > 0)
+          .map(p => ({ name: p[0], v: p.slice(1).map(Number).filter(Number.isFinite) }));
+        if (!C.length) { $('#coOut', root).innerHTML = '<p class="small muted">請輸入至少一個群組。</p>'; return; }
+        const P = Math.max(...C.map(c => c.v.length));
+        const rate = (c, k) => k < c.v.length ? c.v[k] / c.v[0] : null;
+        const cell = r => r === null ? '<td></td>' : `<td style="text-align:center;background:color-mix(in srgb, var(--accent) ${Math.round(r * 85)}%, transparent);color:${r > 0.55 ? 'var(--accent-ink, #fff)' : 'var(--ink)'}">${Math.round(r * 100)}%</td>`;
+        const avg = Array.from({ length: P }, (_, k) => { const xs = C.map(c => rate(c, k)).filter(x => x !== null); return xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null; });
+        const W = 520, H = 180, L = 40, R = 12, T = 10, B = 26;
+        const x = k => L + k / Math.max(1, P - 1) * (W - L - R), y = r => T + (1 - r) * (H - T - B);
+        const longest = C.reduce((a, c) => c.v.length > a.v.length ? c : a, C[0]);
+        const last3 = longest.v.slice(-3).map(n => n / longest.v[0]);
+        const flat = longest.v.length >= 4 && (last3[0] - last3[2]) < 0.05 && last3[2] > 0.1;
+        const k1 = C.filter(c => c.v.length > 1).map(c => [c.name, rate(c, 1)]);
+        const trend = k1.length >= 2 ? k1[k1.length - 1][1] - k1[0][1] : 0;
+        $('#coOut', root).innerHTML = `<div class="table-wrap"><table class="tbl"><tr><th>群組</th><th>人數</th>${Array.from({ length: P }, (_, k) => `<th style="text-align:center">第 ${k} 期</th>`).join('')}</tr>
+          ${C.map(c => `<tr><td>${esc(c.name)}</td><td class="num">${c.v[0].toLocaleString()}</td>${Array.from({ length: P }, (_, k) => cell(rate(c, k))).join('')}</tr>`).join('')}
+          <tr><td><b>平均</b></td><td></td>${avg.map(a => a === null ? '<td></td>' : `<td style="text-align:center"><b>${Math.round(a * 100)}%</b></td>`).join('')}</tr></table></div>
+          <svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:${W}px;font-size:11px;margin-top:8px" role="img" aria-label="平均留存曲線">
+            ${[0, 0.5, 1].map(t => `<line x1="${L}" x2="${W - R}" y1="${y(t)}" y2="${y(t)}" stroke="var(--line)"/><text x="${L - 6}" y="${y(t) + 4}" text-anchor="end" fill="var(--muted)">${t * 100}%</text>`).join('')}
+            ${avg.map((a, k) => `<text x="${x(k)}" y="${H - 8}" text-anchor="middle" fill="var(--muted)">${k}</text>`).join('')}
+            ${C.map(c => `<polyline fill="none" stroke="var(--line-2)" stroke-width="1.2" points="${c.v.map((_, k) => `${x(k).toFixed(1)},${y(rate(c, k)).toFixed(1)}`).join(' ')}"/>`).join('')}
+            <polyline fill="none" stroke="var(--accent)" stroke-width="3" points="${avg.map((a, k) => a === null ? '' : `${x(k).toFixed(1)},${y(a).toFixed(1)}`).join(' ')}"/>
+          </svg>
+          <div class="box ${flat ? 'memo' : 'tip'}"><b class="t">${flat ? '留存曲線趨於平穩' : longest.v.length < 4 ? '資料期數較少，還無法判斷曲線是否變平' : '留存曲線仍在下降'}</b>${flat ? `最早的群組（${esc(longest.name)}）最後三期維持在 ${Math.round(last3[2] * 100)}%～${Math.round(last3[0] * 100)}%，代表有一群使用者持續得到價值，這是產品市場契合的正面訊號。` : '持續追蹤，找出留下來的使用者有什麼共同行為（啟用指標）。'}${Math.abs(trend) >= 0.03 ? `較新的群組第 1 期留存${trend > 0 ? '提升' : '下降'}了 ${Math.round(Math.abs(trend) * 100)} 個百分點（${esc(k1[0][0])} → ${esc(k1[k1.length - 1][0])}），${trend > 0 ? '近期的產品改善可能有效。' : '要找出原因。'}` : ''}</div>`;
+      };
+      $('#coIn', root).addEventListener('input', run); run();
     }
   }
 

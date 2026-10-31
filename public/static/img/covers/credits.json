@@ -1,0 +1,219 @@
+{
+ "beginner": {
+  "title": "File:Padlock⚿21udqfcl.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Padlock%E2%9A%BF21udqfcl.jpg",
+  "artist": "Grzegorz W. Tężycki",
+  "license": "CC BY-SA 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+ },
+ "intermediate": {
+  "title": "File:Code on computer monitor (Unsplash).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Code_on_computer_monitor_(Unsplash).jpg",
+  "artist": "Markus Spiske markusspiske",
+  "license": "CC0",
+  "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+ },
+ "secplus": {
+  "title": "File:Closeup of pc keyboard buttons. (49736318492).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Closeup_of_pc_keyboard_buttons._(49736318492).jpg",
+  "artist": "Nenad Stojkovic",
+  "license": "CC BY 2.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by/2.0"
+ },
+ "ai-beginner": {
+  "title": "File:UBTECH Alpha 1PRO Humanoid Robot - hack4no 2016.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:UBTECH_Alpha_1PRO_Humanoid_Robot_-_hack4no_2016.jpg",
+  "artist": "Kartverket",
+  "license": "CC BY 2.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by/2.0"
+ },
+ "ai-intermediate": {
+  "title": "File:AMD Fiji GPU package with GPU, HBM memory and interposer.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:AMD_Fiji_GPU_package_with_GPU,_HBM_memory_and_interposer.jpg",
+  "artist": "C. Spille/pcgameshardware.de",
+  "license": "CC BY-SA 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+ },
+ "ai-invest": {
+  "title": "File:Tickers (8085342806).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Tickers_(8085342806).jpg",
+  "artist": "Francisco Gonzalez",
+  "license": "CC BY 2.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by/2.0"
+ },
+ "ai-apps": {
+  "title": "File:Colored pen and smartphone on a table (Unsplash 36nRvt6EP2I).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Colored_pen_and_smartphone_on_a_table_(Unsplash_36nRvt6EP2I).jpg",
+  "artist": "Gabriel Santiago gabrielssantiago",
+  "license": "CC0",
+  "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+ },
+ "claude": {
+  "title": "File:Laptop and a mug (Unsplash).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Laptop_and_a_mug_(Unsplash).jpg",
+  "artist": "Ryan Riggins ryan_riggins",
+  "license": "CC0",
+  "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+ },
+ "agent": {
+  "title": "File:Robot arm handles an assay plate.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Robot_arm_handles_an_assay_plate.jpg",
+  "artist": "National Institute of Allergy and Infectious Diseases",
+  "license": "Public domain",
+  "licenseUrl": ""
+ },
+ "linux": {
+  "title": "File:Arch Linux system update via pacman on an Acer laptop.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Arch_Linux_system_update_via_pacman_on_an_Acer_laptop.jpg",
+  "artist": "Solijon Solayev",
+  "license": "CC BY-SA 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+ },
+ "network": {
+  "title": "File:EthernetSwitch.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:EthernetSwitch.jpg",
+  "artist": "Raysonho @ Open Grid Scheduler / Grid Engine",
+  "license": "CC0",
+  "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+ },
+ "aws-clf": {
+  "title": "File:BalticServers data center.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:BalticServers_data_center.jpg",
+  "artist": "BalticServers.com",
+  "license": "CC BY-SA 3.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+ },
+ "aws-saa": {
+  "title": "File:Racks Amravati Data Center.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Racks_Amravati_Data_Center.jpg",
+  "artist": "PiDatacenters",
+  "license": "CC BY-SA 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+ },
+ "py-basic": {
+  "title": "File:Laptop Programmcode.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Laptop_Programmcode.jpg",
+  "artist": "Negative Space",
+  "license": "CC0",
+  "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+ },
+ "py-practice": {
+  "title": "File:Computer keyboard placed on a black desk in a modern workspace.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Computer_keyboard_placed_on_a_black_desk_in_a_modern_workspace.jpg",
+  "artist": "Shixart1985",
+  "license": "CC BY 2.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by/2.0"
+ },
+ "git": {
+  "title": "File:Leafless branches and cloudy sky North of Étangs Chabots in Auderghem, Belgium (DSCF2576).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Leafless_branches_and_cloudy_sky_North_of_%C3%89tangs_Chabots_in_Auderghem,_Belgium_(DSCF2576).jpg",
+  "artist": "Bubblenymph (developed by Trougnouf)",
+  "license": "CC BY 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by/4.0"
+ },
+ "devops": {
+  "title": "File:Port Jersey container ship sunset 2018.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Port_Jersey_container_ship_sunset_2018.jpg",
+  "artist": "Eric Kilby",
+  "license": "CC BY-SA 2.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0"
+ },
+ "sql": {
+  "title": "File:Hard disk head crash.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Hard_disk_head_crash.jpg",
+  "artist": "Alchemist-hp (talk) www.pse-mendelejew.de",
+  "license": "CC BY-SA 3.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+ },
+ "web": {
+  "title": "File:Person writing on brown wooden table near white ceramic mug.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Person_writing_on_brown_wooden_table_near_white_ceramic_mug.jpg",
+  "artist": "Unseen Studio",
+  "license": "CC0",
+  "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+ },
+ "excel": {
+  "title": "File:Calculator (5639214967).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Calculator_(5639214967).jpg",
+  "artist": "jakeandlindsay",
+  "license": "CC BY 2.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by/2.0"
+ },
+ "c": {
+  "title": "File:Green circuit board II (2389301870).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Green_circuit_board_II_(2389301870).jpg",
+  "artist": "Peter Shanks from Hobart, Australia",
+  "license": "CC BY 2.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by/2.0"
+ },
+ "cpp": {
+  "title": "File:Hitachi HD61700 microprocessor top metal die shot - standard cells close-up.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Hitachi_HD61700_microprocessor_top_metal_die_shot_-_standard_cells_close-up.jpg",
+  "artist": "Piotr433",
+  "license": "CC0",
+  "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+ },
+ "ds": {
+  "title": "File:Bookshelves Suzzallo Allen Library University of Washington Seattle Washington 2026.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Bookshelves_Suzzallo_Allen_Library_University_of_Washington_Seattle_Washington_2026.jpg",
+  "artist": "Guywelch2000",
+  "license": "CC BY 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by/4.0"
+ },
+ "algo": {
+  "title": "File:Chess pieces close up.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Chess_pieces_close_up.jpg",
+  "artist": "Aaaatu",
+  "license": "CC BY-SA 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+ },
+ "react": {
+  "title": "File:Working lat(t)e (3583874642).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Working_lat(t)e_(3583874642).jpg",
+  "artist": "Kuba Bożanowski from Warsaw, Poland",
+  "license": "CC BY 2.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by/2.0"
+ },
+ "ts": {
+  "title": "File:Original Blueprint of United States National Agricultural Library.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Original_Blueprint_of_United_States_National_Agricultural_Library.jpg",
+  "artist": "Warner, Burns, Toan, and Lunde  architecture firm",
+  "license": "Public domain",
+  "licenseUrl": ""
+ },
+ "pydata": {
+  "title": "File:Latte and dark coffee.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Latte_and_dark_coffee.jpg",
+  "artist": "Bex Walton",
+  "license": "CC BY 2.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by/2.0"
+ },
+ "marketing": {
+  "title": "File:Times square at night.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Times_square_at_night.jpg",
+  "artist": "Rafi B. from Somewhere in Texas :)",
+  "license": "CC BY 2.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by/2.0"
+ },
+ "finance": {
+  "title": "File:Analyzing Financial Data (5099605109).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Analyzing_Financial_Data_(5099605109).jpg",
+  "artist": "Dave Dugdale from Superior, USA",
+  "license": "CC BY-SA 2.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0"
+ },
+ "pm": {
+  "title": "File:Simple-kanban-board-.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Simple-kanban-board-.jpg",
+  "artist": "Jeff.lasovski",
+  "license": "CC BY-SA 3.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+ },
+ "product": {
+  "title": "File:H3DAR unconference event 11.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:H3DAR_unconference_event_11.jpg",
+  "artist": "Nebulousflynn",
+  "license": "CC BY 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by/4.0"
+ }
+}
