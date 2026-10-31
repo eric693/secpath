@@ -1,4 +1,4 @@
-/* SecPath 資安學堂：靜態檔案 + 分級密碼保護（僅使用 Node 內建模組） */
+/* SecPath 學堂：靜態檔案 + 分級密碼保護（僅使用 Node 內建模組） */
 'use strict';
 const http = require('http');
 const fs = require('fs');
@@ -38,6 +38,8 @@ const LEVELS = {
   ts: { name: 'TypeScript', title: 'TypeScript：型別系統、泛型與實戰開發', hashEnv: 'PASS_TS', org: '前端與 Node.js 專案標配・TypeScript × 型別檢查 × 即時執行', foot: '以 TypeScript 5.6 strict 模式為準；範例在瀏覽器中以官方編譯器檢查後執行', labels: ['基礎篇', '進階篇'], subjects: ['型別、物件、函式、聯合型別與類別', '泛型、型別操作、非同步、工具鏈與實戰'] },
   pydata: { name: 'Python 資料分析', title: 'Python 資料分析：NumPy、pandas 與視覺化', hashEnv: 'PASS_PYDATA', org: '資料分析師必備・pandas × matplotlib × 實際資料', foot: '以 pandas 2.2、NumPy 1.26、matplotlib 3.5 為準；範例在瀏覽器中以 Pyodide 執行', labels: ['基礎篇', '進階篇'], subjects: ['NumPy、DataFrame、篩選、清理與分組', '合併、視覺化、時間序列、統計與實戰'] },
   agent: { name: 'AI 代理與 MCP', title: 'AI 代理與 MCP 開發：工具使用、設計模式與 MCP 伺服器', hashEnv: 'PASS_AGENT', org: 'AI 應用開發進階・Agent × Tool Use × MCP', foot: '內容依 2026 年 10 月官方文件與 MCP 2026-07-28 規格整理；規格更新時以官方文件為準', labels: ['代理篇', 'MCP 與上線篇'], subjects: ['工具使用、代理迴圈、設計模式與記憶', 'MCP 協定、伺服器開發、Agent SDK 與上線'] },
+  k8s: { name: 'Kubernetes', title: 'Kubernetes 容器編排：從 Pod、Deployment 到正式環境維運', hashEnv: 'PASS_K8S', org: '雲端與 DevOps 進階必備・kubectl × YAML × 自動擴展 × Helm', foot: '依 Kubernetes 穩定版 API 撰寫；CKA、CKAD 考試資訊以 Linux Foundation 官方公告為準', labels: ['核心概念篇', '正式環境篇'], subjects: ['叢集架構、Pod、Deployment、Service、設定與機密', '儲存、資源排程、健康檢查與擴展、安全、Helm 與維運'] },
+  node: { name: 'Node.js 後端', title: 'Node.js 後端與 API 開發：從 Express 到登入驗證與上線', hashEnv: 'PASS_NODE', org: '前端轉全端必備・Express 5 × REST API × SQL × JWT', foot: '依 2026 年 10 月的 Node.js LTS 與 Express 5 寫法撰寫；套件更新時以官方文件為準', labels: ['Node.js 與 API 篇', '資料庫、驗證與上線篇'], subjects: ['事件迴圈、非同步、HTTP 與 REST、Express、驗證與錯誤處理', 'SQL、CRUD API、登入驗證、安全、測試與部署'] },
   product: { name: '產品經理', title: '產品經理入門：從使用者問題到上線成長', hashEnv: 'PASS_PRODUCT', org: '想當 PM 必備・使用者研究 × 優先順序 × PRD × 數據實驗', foot: '原創教學內容，案例與數據皆為虛構；各公司對產品經理的職責定義不同，本課程介紹通用做法', labels: ['探索篇', '交付與成長篇'], subjects: ['產品經理角色、使用者研究、問題定義、策略指標與優先順序', 'PRD、MVP、團隊協作、數據實驗與上市成長'] },
   pm: { name: '專案管理', title: '專案管理實務：從規劃、時程到敏捷（PMP 方向）', hashEnv: 'PASS_PM', org: 'PM、工程師與主管必備・WBS × 要徑法 × 實獲值 × Scrum', foot: '原創教學內容，非 PMI 官方教材；PMP 資訊以 PMI 官網為準，Scrum 依 2020 年版《Scrum 指南》', labels: ['規劃篇', '執行與控制篇'], subjects: ['專案基礎、啟動、範疇、時程與成本', '實獲值、風險、品質與溝通、Scrum 與 Kanban'] },
   finance: { name: '財務報表', title: '財務報表與商業分析：看懂財報、算出決策', hashEnv: 'PASS_FINANCE', org: '主管、PM、創業者與投資人必備・三大報表 × 比率 × 損益兩平 × NPV', foot: '財報格式依台灣 IFRS 實務整理；內容為一般性財務觀念說明，不構成投資建議', labels: ['財務報表篇', '商業分析篇'], subjects: ['會計觀念、三大報表與財務比率', '損益兩平、定價、預算、投資評估與營運資金'] },

@@ -9,7 +9,7 @@
 
   const grid = $('#grid');
   if (grid) {
-    const cards = $$('.cw-card', grid), q = $('#q'), empty = $('#empty');
+    const cards = $$('.cw-card', grid), groups = $$('.cw-group', grid), q = $('#q'), empty = $('#empty');
     const state = { cat: '', kind: '', q: '' };
     const apply = () => {
       const words = state.q.toLowerCase().split(/\s+/).filter(Boolean);
@@ -20,8 +20,36 @@
         c.hidden = !ok;
         if (ok) shown++;
       });
+      // 有任何篩選條件時改成網格，並隱藏沒有符合課程的分類
+      grid.classList.toggle('filtering', !!(state.cat || state.kind || words.length));
+      groups.forEach(g => { g.hidden = !g.querySelector('.cw-card:not([hidden])'); });
       empty.hidden = shown > 0;
+      groups.forEach(updateArrows);
     };
+    // 分類橫列的左右箭頭與「查看全部」
+    const updateArrows = g => {
+      const row = $('.cw-row', g), [prev, next] = $$('.cw-arrow', g);
+      if (!prev) return;
+      const max = row.scrollWidth - row.clientWidth - 2;
+      prev.disabled = row.scrollLeft <= 2;
+      next.disabled = row.scrollLeft >= max;
+      g.classList.toggle('no-scroll', max <= 0);
+    };
+    groups.forEach(g => {
+      const row = $('.cw-row', g), head = $('.cw-group-head', g);
+      const ctl = document.createElement('div');
+      ctl.className = 'cw-ctl';
+      ctl.innerHTML = '<button type="button" class="cw-all">查看全部</button><button type="button" class="cw-arrow" aria-label="上一組">‹</button><button type="button" class="cw-arrow" aria-label="下一組">›</button>';
+      head.appendChild(ctl);
+      const [prev, next] = $$('.cw-arrow', ctl);
+      const step = dir => row.scrollBy({ left: dir * row.clientWidth * 0.9, behavior: 'smooth' });
+      prev.addEventListener('click', () => step(-1));
+      next.addEventListener('click', () => step(1));
+      $('.cw-all', ctl).addEventListener('click', () => { setCat(g.dataset.cat); $('#courses').scrollIntoView({ behavior: 'smooth' }); });
+      row.addEventListener('scroll', () => updateArrows(g), { passive: true });
+    });
+    addEventListener('resize', () => groups.forEach(updateArrows));
+    requestAnimationFrame(apply);
     const setCat = cat => {
       state.cat = cat;
       $$('.chip').forEach(b => b.classList.toggle('on', b.dataset.cat === cat));

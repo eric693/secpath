@@ -54,7 +54,7 @@
   function crumb(...parts) {
     const all = [`<a href="#/">${esc(LV.name)}課程</a>`].concat(parts.map((p, i) => i === parts.length - 1 ? `<b>${esc(p)}</b>` : esc(p)));
     $('#crumb').innerHTML = all.join('<span class="sep">/</span>');
-    document.title = (parts.length ? parts[parts.length - 1] + ' · ' : '') + LV.title + ' · SecPath 資安學堂';
+    document.title = (parts.length ? parts[parts.length - 1] + ' · ' : '') + LV.title + ' · SecPath 學堂';
   }
   function setNav(key) { $$('#nav a').forEach(a => a.classList.toggle('active', a.dataset.nav === key)); }
   function refreshStreak() { $('#streak b').textContent = Store.streak(); }
