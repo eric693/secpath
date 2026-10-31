@@ -13,6 +13,11 @@
     radial-gradient(circle at 85% 15%, hsl(var(--h) 70% 55% / .55), transparent 55%),
     linear-gradient(135deg, var(--c1), var(--c2));
 }
+.cover.has-img { background: hsl(var(--h) 40% 18%); }
+.cover-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.cover.has-img::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.5) 0%, rgba(0,0,0,.08) 38%, rgba(0,0,0,.12) 55%, hsl(var(--h) 55% 12% / .82) 100%); }
+.cover.has-img .cover-cat, .cover.has-img .cover-code, .cover.has-img .cover-level { z-index: 1; text-shadow: 0 1px 8px rgba(0,0,0,.45); }
+.cover.has-img .cover-level { background: rgba(0,0,0,.25); }
 .cover-cat { position: absolute; top: 12px; left: 14px; font-size: .72rem; letter-spacing: .14em; opacity: .85; }
 .cover-code { position: absolute; left: 14px; bottom: 8px; font-family: var(--mono); font-weight: 600; font-size: 2.1rem; line-height: 1.1; letter-spacing: -.01em; }
 .cover-level { position: absolute; right: 12px; bottom: 12px; font-size: .72rem; padding: 0 8px; border: 1px solid rgba(255,255,255,.5); border-radius: 3px; line-height: 1.8; }
@@ -191,3 +196,7 @@ body.plain .view { max-width: 1180px; }
   .trial-bar { padding: 10px 16px; }
   .trial-end { padding: 20px 16px; }
 }
+
+/* ---------- 圖片來源頁 ---------- */
+.credits-tbl td { vertical-align: top; font-size: .88rem; }
+.credits-tbl img { width: 120px; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 4px; display: block; }

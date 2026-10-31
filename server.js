@@ -37,7 +37,11 @@ const LEVELS = {
   claude: { name: 'Claude 實戰', title: 'Claude 實戰：提示詞、Claude Code 與 API 開發', hashEnv: 'PASS_CLAUDE', org: 'AI 工作流程實戰・Claude × Claude Code × API', foot: '內容依 2026 年 10 月官方文件整理；產品更新頻繁，請以官方文件為準', labels: ['使用篇', '進階篇'], subjects: ['提示詞、claude.ai 與 Claude Code 指令', '專案記憶、擴充、自動化與 API 開發'] },
   ts: { name: 'TypeScript', title: 'TypeScript：型別系統、泛型與實戰開發', hashEnv: 'PASS_TS', org: '前端與 Node.js 專案標配・TypeScript × 型別檢查 × 即時執行', foot: '以 TypeScript 5.6 strict 模式為準；範例在瀏覽器中以官方編譯器檢查後執行', labels: ['基礎篇', '進階篇'], subjects: ['型別、物件、函式、聯合型別與類別', '泛型、型別操作、非同步、工具鏈與實戰'] },
   pydata: { name: 'Python 資料分析', title: 'Python 資料分析：NumPy、pandas 與視覺化', hashEnv: 'PASS_PYDATA', org: '資料分析師必備・pandas × matplotlib × 實際資料', foot: '以 pandas 2.2、NumPy 1.26、matplotlib 3.5 為準；範例在瀏覽器中以 Pyodide 執行', labels: ['基礎篇', '進階篇'], subjects: ['NumPy、DataFrame、篩選、清理與分組', '合併、視覺化、時間序列、統計與實戰'] },
-  agent: { name: 'AI 代理與 MCP', title: 'AI 代理與 MCP 開發：工具使用、設計模式與 MCP 伺服器', hashEnv: 'PASS_AGENT', org: 'AI 應用開發進階・Agent × Tool Use × MCP', foot: '內容依 2026 年 10 月官方文件與 MCP 2026-07-28 規格整理；規格更新時以官方文件為準', labels: ['代理篇', 'MCP 與上線篇'], subjects: ['工具使用、代理迴圈、設計模式與記憶', 'MCP 協定、伺服器開發、Agent SDK 與上線'] }
+  agent: { name: 'AI 代理與 MCP', title: 'AI 代理與 MCP 開發：工具使用、設計模式與 MCP 伺服器', hashEnv: 'PASS_AGENT', org: 'AI 應用開發進階・Agent × Tool Use × MCP', foot: '內容依 2026 年 10 月官方文件與 MCP 2026-07-28 規格整理；規格更新時以官方文件為準', labels: ['代理篇', 'MCP 與上線篇'], subjects: ['工具使用、代理迴圈、設計模式與記憶', 'MCP 協定、伺服器開發、Agent SDK 與上線'] },
+  product: { name: '產品經理', title: '產品經理入門：從使用者問題到上線成長', hashEnv: 'PASS_PRODUCT', org: '想當 PM 必備・使用者研究 × 優先順序 × PRD × 數據實驗', foot: '原創教學內容，案例與數據皆為虛構；各公司對產品經理的職責定義不同，本課程介紹通用做法', labels: ['探索篇', '交付與成長篇'], subjects: ['產品經理角色、使用者研究、問題定義、策略指標與優先順序', 'PRD、MVP、團隊協作、數據實驗與上市成長'] },
+  pm: { name: '專案管理', title: '專案管理實務：從規劃、時程到敏捷（PMP 方向）', hashEnv: 'PASS_PM', org: 'PM、工程師與主管必備・WBS × 要徑法 × 實獲值 × Scrum', foot: '原創教學內容，非 PMI 官方教材；PMP 資訊以 PMI 官網為準，Scrum 依 2020 年版《Scrum 指南》', labels: ['規劃篇', '執行與控制篇'], subjects: ['專案基礎、啟動、範疇、時程與成本', '實獲值、風險、品質與溝通、Scrum 與 Kanban'] },
+  finance: { name: '財務報表', title: '財務報表與商業分析：看懂財報、算出決策', hashEnv: 'PASS_FINANCE', org: '主管、PM、創業者與投資人必備・三大報表 × 比率 × 損益兩平 × NPV', foot: '財報格式依台灣 IFRS 實務整理；內容為一般性財務觀念說明，不構成投資建議', labels: ['財務報表篇', '商業分析篇'], subjects: ['會計觀念、三大報表與財務比率', '損益兩平、定價、預算、投資評估與營運資金'] },
+  marketing: { name: '數位行銷', title: '數位行銷與廣告投放：從受眾、內容到成效分析', hashEnv: 'PASS_MARKETING', org: '行銷人與創業者必備・SEO × 社群 × 廣告 × GA4', foot: '平台功能依 2026 年 10 月官方說明整理；廣告平台介面與政策更新快，以官方最新說明為準', labels: ['策略與內容篇', '廣告與成效篇'], subjects: ['顧客旅程、受眾、內容、SEO 與社群', 'Google／Meta 廣告、成效指標、GA4 與優化'] }
 };
 const IPAS = { org: 'iPAS 資訊安全工程師能力鑑定', foot: '考試資訊以 iPAS 經濟部產業人才能力鑑定官網公告為準', labels: ['科目一', '科目二'] };
 for (const [k, v] of Object.entries(LEVELS)) {
@@ -182,6 +186,22 @@ function loginVars(u, level) {
 }
 
 /* ---------- 路由 ---------- */
+// 圖片來源頁：列出課程封面照片的作者與授權（CC BY／BY-SA 需要標示）
+function creditsPage(req) {
+  let credits = {};
+  try { credits = JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'static', 'img', 'covers', 'credits.json'), 'utf8')); } catch { /* 沒有紀錄時顯示空表 */ }
+  const { courses } = require('./catalog.js');
+  const rows = Object.entries(credits).filter(([id]) => LEVELS[id] || courses[id]).map(([id, c]) => `<tr>
+    <td><img src="/static/img/covers/${esc(id)}-640.jpg" alt="" loading="lazy"></td>
+    <td><b>${esc(LEVELS[id] ? (LEVELS[id].title || LEVELS[id].name).split("：")[0] : id)}</b><br><a href="${esc(c.page)}" rel="noopener" target="_blank">${esc(c.title.replace(/^File:/, ''))}</a></td>
+    <td>${esc(c.artist || '（未署名）')}</td>
+    <td>${c.licenseUrl ? `<a href="${esc(c.licenseUrl)}" rel="noopener" target="_blank">${esc(c.license)}</a>` : esc(c.license)}</td></tr>`).join('');
+  const body = `<h1>圖片來源</h1>
+    <p>課程封面使用 Wikimedia Commons 上以創用 CC 或公有領域釋出的照片，感謝各位作者。照片皆經過裁切與縮放；以 CC BY-SA 授權的照片，改作後的版本同樣以相同授權釋出。</p>
+    <div class="table-wrap"><table class="tbl credits-tbl"><tr><th>封面</th><th>課程與原始檔案</th><th>作者</th><th>授權</th></tr>${rows}</table></div>`;
+  return render('page.html', { TITLE: '圖片來源', USER_NAV: members.userNav(members.user(req)), BODY: body, WIDE: ' wide' });
+}
+
 const server = http.createServer(async (req, res) => {
   let url;
   try { url = new URL(req.url, 'http://x'); } catch { return send(res, 400, 'Bad request', 'text/plain'); }
@@ -189,6 +209,7 @@ const server = http.createServer(async (req, res) => {
   securityHeaders(res, p);
 
   if (p === '/sandbox.html') return serveFile(res, path.join(ROOT, 'public'), 'sandbox.html', 'public, max-age=3600');
+  if (p === '/credits') return send(res, 200, creditsPage(req));
   if (p === '/' || p === '/index.html') return send(res, 200, render('home.html', { ...site.home(), USER_NAV: members.userNav(members.user(req)) }));
   const cm = p.match(/^\/course\/([\w-]+)(\/trial)?\/?$/);
   if (cm) {
