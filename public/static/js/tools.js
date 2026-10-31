@@ -103,7 +103,15 @@
     burndown: { name: '燃盡圖', desc: '輸入 Sprint 的總點數與每天剩下的點數，畫出實際與理想燃盡線，並依最近的速度預估完成日。' },
     rice: { name: 'RICE 評分', desc: '為每個想法填入觸及、影響、信心與投入，即時算出 RICE 分數並排序，觀察調整假設後排名如何改變。' },
     userstory: { name: '使用者故事產生器', desc: '填入角色、功能、價值與情境，產生使用者故事、Given-When-Then 驗收條件草稿，並依 INVEST 原則檢查常見問題。' },
-    cohort: { name: '留存分析', desc: '貼上每個群組各期仍活躍的人數，產生留存率熱圖與平均留存曲線，並判斷曲線是否趨於平穩。' }
+    cohort: { name: '留存分析', desc: '貼上每個群組各期仍活躍的人數，產生留存率熱圖與平均留存曲線，並判斷曲線是否趨於平穩。' },
+    restsim: { name: 'REST API 模擬器', desc: '對一個在瀏覽器中模擬的待辦事項 API 送出 GET、POST、PATCH、DELETE 請求，觀察狀態碼、回應標頭與內容，練習登入、驗證錯誤與權限的情況。' },
+    statuscode: { name: 'HTTP 狀態碼選擇器', desc: '隨機出現 API 開發的常見情境，選出最適合的 HTTP 狀態碼，並查看說明與容易混淆的選項。' },
+    mwflow: { name: '中介軟體流程', desc: '調整 Express 中介軟體的順序與開關，送出不同的請求，逐步觀察請求經過哪些中介軟體、在哪裡被攔下或交給錯誤處理。' },
+    jwt: { name: 'JWT 解碼與驗證', desc: '貼上 JWT 查看標頭與內容、到期時間，並用 HS256 金鑰驗證簽章；也可以產生範例 Token 並試著竄改內容。' },
+    reconcile: { name: '控制迴圈與滾動更新', desc: '模擬 Deployment 的控制迴圈：讓 Pod 故障、調整副本數，或更新版本並設定 maxSurge 與 maxUnavailable，逐步觀察 Kubernetes 如何讓實際狀態追上期望狀態。' },
+    scheduler: { name: '排程模擬', desc: '設定節點的資源、標籤與 taint，再依序加入 Pod，觀察排程器如何過濾與評分、哪些 Pod 會停在 Pending，以及每個節點的資源分配。' },
+    hpa: { name: 'HPA 計算機', desc: '輸入目前副本數、目標使用率與上下限，模擬一天的流量變化，計算 HorizontalPodAutoscaler 每個時段的副本數。' },
+    podstatus: { name: 'Pod 故障排除', desc: '選擇 Pod 的狀態或症狀，查看常見原因、要執行的 kubectl 指令，以及對應的修正方式。' }
   };
   const fmtN = (x, d = 4) => Number.isFinite(x) ? (+x.toFixed(d)).toString() : '—';
 
@@ -144,6 +152,84 @@
 
   function render(id) {
     switch (id) {
+      case 'reconcile': return `
+        <div class="grid g2" style="gap:10px">
+          <label class="field"><span>期望副本數 <b class="mono" id="rcRepV">4</b></span><input type="range" id="rcRep" min="1" max="8" value="4" style="width:100%"></label>
+          <label class="field"><span>maxSurge <b class="mono" id="rcSurgeV">1</b>　maxUnavailable <b class="mono" id="rcUnavV">0</b></span>
+            <span class="row" style="gap:8px"><input type="range" id="rcSurge" min="0" max="4" value="1" style="flex:1"><input type="range" id="rcUnav" min="0" max="4" value="0" style="flex:1"></span></label>
+        </div>
+        <div class="row" style="gap:8px;flex-wrap:wrap;margin:6px 0 10px">
+          <button type="button" class="btn outline sm" id="rcKill">讓一個 Pod 故障</button>
+          <button type="button" class="btn outline sm" id="rcUpdate">更新到下一版</button>
+          <button type="button" class="btn accent sm" id="rcStep">執行一次控制迴圈</button>
+          <button type="button" class="btn outline sm" id="rcAuto">自動執行到穩定</button>
+          <button type="button" class="btn outline sm" id="rcReset">重設</button>
+        </div>
+        <div id="rcPods" style="display:flex;flex-wrap:wrap;gap:6px;min-height:56px"></div>
+        <div id="rcInfo"></div>
+        <ol id="rcLog" class="small" style="padding-left:20px;max-height:220px;overflow:auto;margin:8px 0 0"></ol>`;
+      case 'scheduler': return `
+        <label class="field"><span>節點：名稱, CPU（m）, 記憶體（Mi）, 標籤（k=v，可多個）, taint（可省略）</span><textarea class="input mono" id="skNodes" rows="3">node-a, 2000, 4096, disk=ssd
+node-b, 4000, 8192, disk=hdd
+node-c, 4000, 8192, disk=ssd, dedicated=gpu</textarea></label>
+        <label class="field"><span>Pod（依序排程）：名稱, CPU requests, 記憶體 requests, nodeSelector（k=v，可省略）, toleration（可省略）</span><textarea class="input mono" id="skPods" rows="6">api-1, 500, 512
+api-2, 500, 512
+api-3, 500, 512
+db, 1000, 2048, disk=ssd
+ml, 1500, 2048, , dedicated=gpu
+worker, 3500, 4096</textarea></label>
+        <div id="skOut"></div>`;
+      case 'hpa': return `
+        <div class="grid g2" style="gap:10px">
+          <label class="field"><span>目標 CPU 使用率（%）</span><input class="input num" type="number" id="hpTarget" value="60" min="1" max="100"></label>
+          <label class="field"><span>每個 Pod 能處理的請求數／秒（使用率 100% 時）</span><input class="input num" type="number" id="hpCap" value="50" min="1"></label>
+          <label class="field"><span>minReplicas</span><input class="input num" type="number" id="hpMin" value="2" min="1"></label>
+          <label class="field"><span>maxReplicas</span><input class="input num" type="number" id="hpMax" value="10" min="1"></label>
+        </div>
+        <label class="field"><span>每小時的流量（請求數／秒，24 個數字）</span><input class="input mono" id="hpLoad" value="20, 15, 12, 10, 10, 15, 40, 90, 160, 210, 230, 250, 280, 260, 230, 220, 240, 300, 380, 420, 350, 220, 120, 60"></label>
+        <div id="hpChart"></div>
+        <div id="hpOut"></div>`;
+      case 'podstatus': return `
+        <div class="tabs" id="psTab" style="flex-wrap:wrap">
+          <button type="button" class="on" data-v="pending">Pending</button><button type="button" data-v="image">ImagePullBackOff</button>
+          <button type="button" data-v="crash">CrashLoopBackOff</button><button type="button" data-v="oom">OOMKilled</button>
+          <button type="button" data-v="notready">Running 但 0/1 Ready</button><button type="button" data-v="nosvc">連不到 Service</button>
+          <button type="button" data-v="restart">RESTARTS 一直增加</button><button type="button" data-v="term">Terminating 卡住</button>
+        </div>
+        <div id="psOut"></div>`;
+      case 'restsim': return `
+        <div class="row" style="gap:8px;flex-wrap:wrap;align-items:flex-end">
+          <label class="field" style="margin:0"><span>方法</span><select class="input mono" id="rsMethod"><option>GET</option><option>POST</option><option>PATCH</option><option>DELETE</option></select></label>
+          <label class="field" style="margin:0;flex:1;min-width:200px"><span>路徑</span><input class="input mono" id="rsPath" value="/api/todos?page=1&amp;limit=3"></label>
+        </div>
+        <label class="field"><span>身分（Authorization 標頭）</span><select class="input" id="rsAuth"><option value="">未登入（不帶 Token）</option><option value="2" selected>陳大文（使用者 2）</option><option value="1">林小美（使用者 1，admin）</option><option value="bad">過期或偽造的 Token</option></select></label>
+        <label class="field"><span>請求主體（JSON，GET／DELETE 不需要）</span><textarea class="input mono" id="rsBody" rows="3">{ "title": "寫 API 文件", "dueDate": "2026-11-20" }</textarea></label>
+        <div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:8px"><button type="button" class="btn accent" id="rsSend">送出請求</button><button type="button" class="btn outline" id="rsReset">重設資料</button></div>
+        <div class="row small" style="gap:6px;flex-wrap:wrap;margin-bottom:8px" id="rsPresets"></div>
+        <div id="rsOut"></div>`;
+      case 'statuscode': return `
+        <div class="row small muted" style="justify-content:space-between;margin-bottom:6px"><span id="scProg"></span><span id="scScore"></span></div>
+        <div class="box tip" style="margin-top:0"><b class="t">情境</b><span id="scQ"></span></div>
+        <div id="scOpts" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px"></div>
+        <div id="scFb"></div>
+        <button type="button" class="btn accent" id="scNext" style="margin-top:8px" hidden>下一題</button>`;
+      case 'mwflow': return `
+        <p class="small muted" style="margin:0 0 6px">用 ↑ ↓ 調整順序，取消勾選代表移除這個中介軟體。</p>
+        <ol id="mfList" style="list-style:none;padding:0;margin:0 0 10px"></ol>
+        <label class="field"><span>請求</span><select class="input mono" id="mfReq">
+          <option value="0">GET /api/todos（帶有效 Token）</option>
+          <option value="1">GET /api/todos（沒有 Token）</option>
+          <option value="2">POST /api/todos，主體 {"title":""}</option>
+          <option value="3">POST /api/todos，主體 {"title":"寫測試"}</option>
+          <option value="4">GET /api/todos/999（資料庫查詢失敗）</option>
+          <option value="5">GET /api/unknown</option>
+        </select></label>
+        <div id="mfOut"></div>`;
+      case 'jwt': return `
+        <label class="field"><span>JWT</span><textarea class="input mono" id="jwTok" rows="3" style="word-break:break-all"></textarea></label>
+        <label class="field"><span>HS256 金鑰（只在你的瀏覽器中計算，不會送出）</span><input class="input mono" id="jwKey" value="dev-only-secret-change-me"></label>
+        <div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:8px"><button type="button" class="btn outline sm" id="jwGen">產生範例 Token</button><button type="button" class="btn outline sm" id="jwTamper">竄改：role 改成 admin</button><button type="button" class="btn outline sm" id="jwExpire">產生已過期的 Token</button></div>
+        <div id="jwOut"></div>`;
       case 'rice': return `
         <p class="small muted" style="margin:0 0 6px">影響：3 極大、2 高、1 中、0.5 低、0.25 極低。信心：100% 有數據、80% 有部分證據、50% 只是直覺。</p>
         <div class="table-wrap"><table class="tbl" id="riTbl"><tr><th>想法</th><th>觸及</th><th>影響</th><th>信心 %</th><th>投入（人月）</th><th style="text-align:right">RICE</th></tr></table></div>
@@ -3720,6 +3806,445 @@ print('平均：', round(sum(scores.values()) / len(scores), 1))</pre>
           <div class="box ${flat ? 'memo' : 'tip'}"><b class="t">${flat ? '留存曲線趨於平穩' : longest.v.length < 4 ? '資料期數較少，還無法判斷曲線是否變平' : '留存曲線仍在下降'}</b>${flat ? `最早的群組（${esc(longest.name)}）最後三期維持在 ${Math.round(last3[2] * 100)}%～${Math.round(last3[0] * 100)}%，代表有一群使用者持續得到價值，這是產品市場契合的正面訊號。` : '持續追蹤，找出留下來的使用者有什麼共同行為（啟用指標）。'}${Math.abs(trend) >= 0.03 ? `較新的群組第 1 期留存${trend > 0 ? '提升' : '下降'}了 ${Math.round(Math.abs(trend) * 100)} 個百分點（${esc(k1[0][0])} → ${esc(k1[k1.length - 1][0])}），${trend > 0 ? '近期的產品改善可能有效。' : '要找出原因。'}` : ''}</div>`;
       };
       $('#coIn', root).addEventListener('input', run); run();
+    }
+    if (id === 'restsim') {
+      const SEED = () => ({ next: 11, todos: [
+        { id: 4, userId: 2, title: '完成登入 API', done: true, dueDate: '2026-10-15' },
+        { id: 5, userId: 2, title: '撰寫待辦事項測試', done: false, dueDate: '2026-11-01' },
+        { id: 6, userId: 2, title: '修正分頁的錯誤', done: false, dueDate: '2026-10-28' },
+        { id: 7, userId: 2, title: '更新套件版本', done: false, dueDate: null },
+        { id: 1, userId: 1, title: '審核新版 API 文件', done: true, dueDate: '2026-10-20' },
+        { id: 2, userId: 1, title: '設定正式環境的環境變數', done: false, dueDate: '2026-11-05' }] });
+      let DB = SEED();
+      const problem = (status, title, extra = {}) => ({ status, headers: { 'Content-Type': 'application/problem+json' }, body: { title, status, ...extra } });
+      const ok = (status, body, headers = {}) => ({ status, headers: body === undefined ? headers : { 'Content-Type': 'application/json', ...headers }, body });
+      const pub = t => ({ id: t.id, title: t.title, done: t.done, dueDate: t.dueDate });
+      const validate = (b, partial) => {
+        const errs = [];
+        if (typeof b !== 'object' || b === null || Array.isArray(b)) return [{ field: '(body)', message: '必須是 JSON 物件' }];
+        for (const k of Object.keys(b)) if (!['title', 'done', 'dueDate'].includes(k)) errs.push({ field: k, message: '不允許的欄位' });
+        if (!partial || b.title !== undefined) { if (typeof b.title !== 'string' || !b.title.trim()) errs.push({ field: 'title', message: '標題不可為空' }); else if (b.title.length > 100) errs.push({ field: 'title', message: '標題最多 100 字' }); }
+        if (b.done !== undefined && typeof b.done !== 'boolean') errs.push({ field: 'done', message: '必須是 true 或 false' });
+        if (b.dueDate !== undefined && b.dueDate !== null && !/^\d{4}-\d{2}-\d{2}$/.test(b.dueDate)) errs.push({ field: 'dueDate', message: '日期格式須為 YYYY-MM-DD' });
+        return errs;
+      };
+      const handle = (method, rawPath, auth, bodyText) => {
+        let url;
+        try { url = new URL(rawPath, 'http://api.local'); } catch { return problem(400, '網址格式錯誤'); }
+        const p = url.pathname.replace(/\/+$/, '');
+        if (p === '/health' && method === 'GET') return ok(200, { status: 'ok' });
+        if (!p.startsWith('/api/todos')) return problem(404, '找不到這個路由');
+        if (!auth) return problem(401, '請先登入');
+        if (auth === 'bad') return problem(401, '登入已失效，請重新登入');
+        const uid = Number(auth);
+        let body;
+        if (method === 'POST' || method === 'PATCH') {
+          try { body = JSON.parse(bodyText || 'null'); } catch { return problem(400, 'JSON 格式錯誤', { detail: '請求主體無法解析為 JSON' }); }
+        }
+        const m = p.match(/^\/api\/todos(?:\/([^/]+))?$/);
+        if (!m) return problem(404, '找不到這個路由');
+        if (!m[1]) {
+          if (method === 'GET') {
+            const q = url.searchParams, page = Number(q.get('page') ?? 1), limit = Number(q.get('limit') ?? 10), done = q.get('done');
+            const errs = [];
+            if (!Number.isInteger(page) || page < 1) errs.push({ field: 'page', message: '必須是 1 以上的整數' });
+            if (!Number.isInteger(limit) || limit < 1 || limit > 100) errs.push({ field: 'limit', message: '必須是 1～100 的整數' });
+            if (done !== null && !['true', 'false'].includes(done)) errs.push({ field: 'done', message: '只能是 true 或 false' });
+            if (errs.length) return problem(400, '查詢參數有誤', { errors: errs });
+            let list = DB.todos.filter(t => t.userId === uid);
+            if (done !== null) list = list.filter(t => t.done === (done === 'true'));
+            list.sort((a, b) => b.id - a.id);
+            return ok(200, { data: list.slice((page - 1) * limit, page * limit).map(pub), pagination: { page, limit, total: list.length, totalPages: Math.ceil(list.length / limit) } });
+          }
+          if (method === 'POST') {
+            const errs = validate(body, false);
+            if (errs.length) return problem(400, '輸入資料有誤', { errors: errs });
+            const t = { id: DB.next++, userId: uid, title: body.title.trim(), done: body.done ?? false, dueDate: body.dueDate ?? null };
+            DB.todos.push(t);
+            return ok(201, pub(t), { Location: '/api/todos/' + t.id });
+          }
+          return problem(405, '這個路徑不支援 ' + method);
+        }
+        if (!/^\d+$/.test(m[1])) return problem(400, '查詢參數有誤', { errors: [{ field: 'id', message: '必須是正整數' }] });
+        const t = DB.todos.find(x => x.id === Number(m[1]) && x.userId === uid);
+        if (method === 'POST') return problem(405, '這個路徑不支援 POST');
+        if (!t) return problem(404, '找不到待辦事項');
+        if (method === 'GET') return ok(200, pub(t));
+        if (method === 'PATCH') {
+          const errs = validate(body, true);
+          if (errs.length) return problem(400, '輸入資料有誤', { errors: errs });
+          if (body.title !== undefined) t.title = body.title.trim();
+          if (body.done !== undefined) t.done = body.done;
+          if (body.dueDate !== undefined) t.dueDate = body.dueDate;
+          return ok(200, pub(t));
+        }
+        if (method === 'DELETE') { DB.todos = DB.todos.filter(x => x !== t); return ok(204, undefined); }
+        return problem(405, '不支援的方法');
+      };
+      const NOTE = {
+        200: '成功。', 201: '新增成功，Location 標頭指向新資源。', 204: '刪除成功，沒有回應內容。',
+        400: '請求格式或資料驗證失敗，錯誤格式依 Problem Details。', 401: '沒有登入或 Token 無效。',
+        404: '找不到資源。查詢別人的待辦事項也回 404，不透露資料是否存在。', 405: '路徑存在，但不支援這個方法。'
+      };
+      const PRESETS = [
+        ['列表第 1 頁', 'GET', '/api/todos?page=1&limit=3', '2', ''],
+        ['只看未完成', 'GET', '/api/todos?done=false', '2', ''],
+        ['limit 太大', 'GET', '/api/todos?limit=5000', '2', ''],
+        ['新增', 'POST', '/api/todos', '2', '{ "title": "寫 API 文件", "dueDate": "2026-11-20" }'],
+        ['標題空白', 'POST', '/api/todos', '2', '{ "title": "  ", "done": "yes" }'],
+        ['偷加 role', 'POST', '/api/todos', '2', '{ "title": "升級權限", "role": "admin" }'],
+        ['標記完成', 'PATCH', '/api/todos/5', '2', '{ "done": true }'],
+        ['改別人的', 'PATCH', '/api/todos/1', '2', '{ "done": true }'],
+        ['刪除', 'DELETE', '/api/todos/7', '2', ''],
+        ['未登入', 'GET', '/api/todos', '', '']
+      ];
+      $('#rsPresets', root).innerHTML = '<span class="muted">快速範例：</span>' + PRESETS.map((p, i) => `<button type="button" class="chip" data-i="${i}" style="padding:2px 10px">${esc(p[0])}</button>`).join('');
+      $('#rsPresets', root).addEventListener('click', e => {
+        const b = e.target.closest('[data-i]'); if (!b) return;
+        const [, m, path, auth, body] = PRESETS[+b.dataset.i];
+        $('#rsMethod', root).value = m; $('#rsPath', root).value = path; $('#rsAuth', root).value = auth; $('#rsBody', root).value = body;
+        send();
+      });
+      const send = () => {
+        const method = $('#rsMethod', root).value, path = $('#rsPath', root).value.trim(), auth = $('#rsAuth', root).value;
+        const r = handle(method, path, auth, $('#rsBody', root).value);
+        const cls = r.status < 300 ? 'ok' : r.status < 500 ? 'warn' : 'bad';
+        const reqHead = `${method} ${path} HTTP/1.1\n${auth ? 'Authorization: Bearer ' + (auth === 'bad' ? 'eyJ…（無效）' : 'eyJ…（使用者 ' + auth + '）') + '\n' : ''}${['POST', 'PATCH'].includes(method) ? 'Content-Type: application/json\n\n' + $('#rsBody', root).value.trim() : ''}`;
+        const resHead = `HTTP/1.1 ${r.status}\n${Object.entries(r.headers).map(([k, v]) => k + ': ' + v).join('\n')}${r.body !== undefined ? '\n\n' + JSON.stringify(r.body, null, 2) : ''}`;
+        $('#rsOut', root).innerHTML = `<div class="small muted" style="margin:6px 0 2px">請求</div><pre class="out" style="margin:0;white-space:pre-wrap">${esc(reqHead)}</pre>
+          <div class="small muted" style="margin:10px 0 2px">回應 <span class="tag ${cls}">${r.status}</span></div><pre class="out" style="margin:0;white-space:pre-wrap">${esc(resHead)}</pre>
+          <p class="small" style="margin:6px 0 0">${NOTE[r.status] || ''}</p>`;
+      };
+      $('#rsSend', root).addEventListener('click', send);
+      $('#rsReset', root).addEventListener('click', () => { DB = SEED(); $('#rsOut', root).innerHTML = '<p class="small muted">資料已重設。</p>'; });
+      send();
+    }
+    if (id === 'statuscode') {
+      const CODES = ['200', '201', '204', '400', '401', '403', '404', '409', '429', '500', '503', '301'];
+      const Q = [
+        ['POST /api/todos 新增成功，回傳新建立的待辦事項。', '201', '新增資源成功用 201，並在 Location 標頭放新資源的網址。', '200 也是成功，但 201 更精確地表示「建立了新資源」。'],
+        ['DELETE /api/todos/7 刪除成功，不需要回傳任何內容。', '204', '成功但沒有回應主體。', '200 搭配內容也可以，但沒有內容時用 204。'],
+        ['GET /api/todos 成功取得第 2 頁的資料。', '200', '一般的成功讀取。', ''],
+        ['請求沒有帶 Authorization 標頭就呼叫需要登入的 API。', '401', '沒有或無效的身分憑證。名稱雖然叫 Unauthorized，實際意思是「未驗證身分」。', '403 是已知身分但沒有權限。'],
+        ['一般使用者呼叫 DELETE /api/admin/users/5（只有管理員可以）。', '403', '已經登入，但沒有權限。', '401 是沒登入；有些 API 會回 404 隱藏管理功能的存在。'],
+        ['註冊時填寫的 Email 已經有人使用。', '409', '和現有資料衝突。', '400 也常見，但 409 能讓前端明確知道是重複。'],
+        ['POST /api/todos 的 title 是空字串。', '400', '請求資料驗證失敗。也有 API 使用 422 Unprocessable Content。', '409 是和現有資料衝突，不是格式錯誤。'],
+        ['GET /api/todos/9999，這筆資料不存在。', '404', '資源不存在。', ''],
+        ['使用者 A 想讀取屬於使用者 B 的待辦事項 /api/todos/3。', '404', '回 404 不透露這筆資料存在；回 403 也可以，但會洩漏資源存在。', '403 在這裡也說得通，題目選更安全的做法。'],
+        ['同一個 IP 在一分鐘內嘗試登入 50 次，超過速率限制。', '429', 'Too Many Requests，可加上 Retry-After 標頭告訴客戶端多久後再試。', '403 不會告訴客戶端稍後可以再試。'],
+        ['程式碼中讀取 undefined 的屬性，丟出未預期的錯誤。', '500', '伺服器端未預期的錯誤；回應中不要包含堆疊追蹤。', '400 是客戶端的錯，這裡是伺服器的 bug。'],
+        ['伺服器正在維護，暫時無法處理請求。', '503', 'Service Unavailable，可搭配 Retry-After。', '500 是程式錯誤，503 是暫時無法服務。'],
+        ['請求主體不是合法的 JSON（少了右大括號）。', '400', '格式錯誤，伺服器無法解析。', '500 是伺服器的錯，這裡是客戶端送錯。'],
+        ['API 網址從 /v1/todos 永久搬到 /v2/todos。', '301', '永久重新導向，客戶端應更新網址。', '302 是暫時重新導向。'],
+        ['PATCH /api/todos/5 把 done 改成 true，回傳更新後的資料。', '200', '更新成功並回傳內容用 200。', '201 只用於新建立資源。']
+      ];
+      let order = [], k = 0, score = 0, answered = false;
+      const start = () => { order = Q.map((_, i) => i).sort(() => Math.random() - 0.5).slice(0, 10); k = 0; score = 0; show(); };
+      const show = () => {
+        if (k >= order.length) {
+          $('#scQ', root).textContent = `完成！答對 ${score} / ${order.length} 題。`;
+          $('#scOpts', root).innerHTML = ''; $('#scFb', root).innerHTML = '';
+          $('#scNext', root).hidden = false; $('#scNext', root).textContent = '再玩一次'; return;
+        }
+        const q = Q[order[k]]; answered = false;
+        $('#scProg', root).textContent = `第 ${k + 1} / ${order.length} 題`;
+        $('#scScore', root).textContent = `答對 ${score}`;
+        $('#scQ', root).textContent = q[0];
+        $('#scOpts', root).innerHTML = CODES.map(c => `<button type="button" class="btn outline" data-c="${c}" style="font-family:var(--mono)">${c}</button>`).join('');
+        $('#scFb', root).innerHTML = ''; $('#scNext', root).hidden = true; $('#scNext', root).textContent = '下一題';
+      };
+      $('#scOpts', root).addEventListener('click', e => {
+        const b = e.target.closest('[data-c]'); if (!b || answered) return;
+        answered = true;
+        const q = Q[order[k]], right = b.dataset.c === q[1];
+        if (right) score++;
+        root.querySelectorAll('[data-c]').forEach(x => { if (x.dataset.c === q[1]) { x.classList.remove('outline'); x.classList.add('accent'); } });
+        if (!right) b.style.borderColor = 'var(--bad)';
+        $('#scFb', root).innerHTML = `<div class="box ${right ? 'memo' : 'warn'}"><b class="t">${right ? '答對了' : `正確答案是 ${q[1]}`}</b>${esc(q[2])}${q[3] ? '<br><span class="small">' + esc(q[3]) + '</span>' : ''}</div>`;
+        $('#scScore', root).textContent = `答對 ${score}`;
+        $('#scNext', root).hidden = false;
+      });
+      $('#scNext', root).addEventListener('click', () => { if (k >= order.length) start(); else { k++; show(); } });
+      start();
+    }
+    if (id === 'mwflow') {
+      const MW = [
+        { id: 'log', name: '記錄請求（logger）', on: true },
+        { id: 'json', name: 'express.json()', on: true },
+        { id: 'auth', name: 'requireAuth（檢查 Token）', on: true },
+        { id: 'validate', name: 'validate(createTodoSchema)', on: true },
+        { id: 'route', name: '路由處理函式', on: true, fixed: true },
+        { id: 'notfound', name: '404 處理', on: true },
+        { id: 'error', name: '錯誤處理 (err, req, res, next)', on: true }
+      ];
+      const REQ = [
+        { method: 'GET', path: '/api/todos', token: true },
+        { method: 'GET', path: '/api/todos', token: false },
+        { method: 'POST', path: '/api/todos', token: true, body: '{"title":""}' },
+        { method: 'POST', path: '/api/todos', token: true, body: '{"title":"寫測試"}' },
+        { method: 'GET', path: '/api/todos/999', token: true, dbFail: true },
+        { method: 'GET', path: '/api/unknown', token: true }
+      ];
+      const draw = () => {
+        $('#mfList', root).innerHTML = MW.map((m, i) => `<li class="row small" style="gap:8px;align-items:center;padding:6px 8px;margin:4px 0;border:1px solid var(--line);border-radius:6px;background:var(--surface)">
+          <span class="mono" style="width:18px;color:var(--muted)">${i + 1}</span>
+          <label style="flex:1;display:flex;gap:6px;align-items:center;cursor:pointer"><input type="checkbox" data-t="${i}" ${m.on ? 'checked' : ''} ${m.fixed ? 'disabled' : ''}><span class="mono">${esc(m.name)}</span></label>
+          <button type="button" class="btn outline sm" data-u="${i}" ${i === 0 ? 'disabled' : ''}>↑</button><button type="button" class="btn outline sm" data-d="${i}" ${i === MW.length - 1 ? 'disabled' : ''}>↓</button></li>`).join('');
+        run();
+      };
+      const run = () => {
+        const r = REQ[+$('#mfReq', root).value];
+        const st = { body: undefined, user: null, sent: null, err: null };
+        const trace = [];
+        const isRoute = r.path === '/api/todos' || r.path.startsWith('/api/todos/');
+        for (const m of MW) {
+          if (!m.on) continue;
+          if (st.sent) break;
+          const errMode = !!st.err;
+          if (m.id === 'error') {
+            if (errMode) { st.sent = [500, '{"title":"伺服器發生錯誤"}']; trace.push([m.name, 'bad', '收到錯誤：' + st.err + '，回應 500（細節只寫進日誌）']); }
+            else trace.push([m.name, 'skip', '沒有錯誤，略過']);
+            continue;
+          }
+          if (errMode) { trace.push([m.name, 'skip', '有錯誤時一般中介軟體會被略過']); continue; }
+          if (m.id === 'log') { trace.push([m.name, 'ok', `記錄 ${r.method} ${r.path}，呼叫 next()`]); continue; }
+          if (m.id === 'json') { if (r.body) st.body = JSON.parse(r.body); trace.push([m.name, 'ok', r.body ? '解析主體 → req.body = ' + r.body : '沒有主體，呼叫 next()']); continue; }
+          if (m.id === 'auth') {
+            if (!isRoute) { trace.push([m.name, 'skip', '只掛在 /api/todos 路由上，這個路徑不經過']); continue; }
+            if (!r.token) { st.sent = [401, '{"title":"請先登入"}']; trace.push([m.name, 'bad', '沒有 Token → 回應 401，請求在這裡結束']); }
+            else { st.user = 2; trace.push([m.name, 'ok', 'Token 有效 → req.user = { id: 2 }，呼叫 next()']); }
+            continue;
+          }
+          if (m.id === 'validate') {
+            if (r.method !== 'POST' || !isRoute) { trace.push([m.name, 'skip', '只用在 POST /api/todos']); continue; }
+            if (st.body === undefined) { st.err = "Cannot read properties of undefined (reading 'title')"; trace.push([m.name, 'bad', 'req.body 是 undefined（express.json() 不在前面）→ 丟出錯誤']); continue; }
+            if (!st.body.title) { st.sent = [400, '{"title":"輸入資料有誤","errors":[{"field":"title","message":"標題不可為空"}]}']; trace.push([m.name, 'bad', '驗證失敗 → 回應 400']); }
+            else trace.push([m.name, 'ok', '驗證通過 → req.valid，呼叫 next()']);
+            continue;
+          }
+          if (m.id === 'route') {
+            if (!isRoute) { trace.push([m.name, 'skip', '沒有符合的路由']); continue; }
+            if (!st.user && MW.find(x => x.id === 'auth').on === false) trace.push([m.name, 'warn', '⚠ requireAuth 被移除，未登入也能進入路由！']);
+            if (r.dbFail) { st.err = 'SQLITE_ERROR: no such table: todo'; trace.push([m.name, 'bad', 'await 資料庫查詢失敗 → Express 5 自動交給錯誤處理']); continue; }
+            if (r.method === 'POST') { st.sent = [201, '{"id":11,"title":"寫測試","done":false}']; trace.push([m.name, 'ok', '新增成功 → 回應 201']); }
+            else { st.sent = [200, '{"data":[…],"pagination":{…}}']; trace.push([m.name, 'ok', '查詢成功 → 回應 200']); }
+            continue;
+          }
+          if (m.id === 'notfound') { st.sent = [404, '{"title":"Not Found"}']; trace.push([m.name, 'warn', '前面都沒有回應 → 回應 404']); continue; }
+        }
+        const final = st.sent || (st.err ? [500, '（沒有錯誤處理中介軟體：Express 用預設的 HTML 錯誤頁回應）'] : [0, '（沒有任何回應，請求會一直等到逾時）']);
+        const ix = MW.map(m => m.id);
+        const warn = [];
+        if (MW.find(m => m.id === 'error').on && ix.indexOf('error') < ix.indexOf('route')) warn.push('錯誤處理放在路由之前，路由丟出的錯誤不會被它處理。');
+        if (ix.indexOf('notfound') < ix.indexOf('route') && MW.find(m => m.id === 'notfound').on) warn.push('404 處理放在路由之前，所有請求都會變成 404。');
+        if (ix.indexOf('json') > ix.indexOf('validate') && MW.find(m => m.id === 'json').on) warn.push('express.json() 在驗證之後，驗證時 req.body 還沒有被解析。');
+        if (!MW.find(m => m.id === 'auth').on) warn.push('移除了 requireAuth，任何人都能存取待辦事項。');
+        $('#mfOut', root).innerHTML = `<ol style="padding-left:20px;margin:0">${trace.map(([n, c, t]) => `<li class="small" style="margin:4px 0;${c === 'skip' ? 'color:var(--muted)' : ''}"><span class="mono">${esc(n)}</span>　<span class="tag ${c === 'ok' ? 'ok' : c === 'bad' ? 'bad' : c === 'warn' ? 'warn' : ''}">${c === 'skip' ? '略過' : c === 'ok' ? '通過' : c === 'bad' ? '攔下' : '注意'}</span>　${esc(t)}</li>`).join('')}</ol>
+          <div class="box ${final[0] && final[0] < 300 ? 'memo' : 'warn'}"><b class="t">最終回應：${final[0] || '無'}</b><span class="mono small">${esc(final[1])}</span></div>
+          ${warn.length ? `<div class="box warn"><b class="t">順序問題</b>${warn.map(esc).join('<br>')}</div>` : ''}`;
+      };
+      root.addEventListener('click', e => {
+        const u = e.target.closest('[data-u]'), d = e.target.closest('[data-d]');
+        if (u) { const i = +u.dataset.u; [MW[i - 1], MW[i]] = [MW[i], MW[i - 1]]; draw(); }
+        if (d) { const i = +d.dataset.d; [MW[i + 1], MW[i]] = [MW[i], MW[i + 1]]; draw(); }
+      });
+      root.addEventListener('change', e => { const t = e.target.closest('[data-t]'); if (t) { MW[+t.dataset.t].on = t.checked; draw(); } else if (e.target.id === 'mfReq') run(); });
+      draw();
+    }
+    if (id === 'jwt') {
+      const enc = new TextEncoder();
+      const b64u = bytes => btoa(String.fromCharCode(...new Uint8Array(bytes))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      const b64uJson = o => b64u(enc.encode(JSON.stringify(o)));
+      const dec = s => { const t = s.replace(/-/g, '+').replace(/_/g, '/'); return new TextDecoder().decode(Uint8Array.from(atob(t + '==='.slice((t.length + 3) % 4)), c => c.charCodeAt(0))); };
+      const hmac = async (key, data) => {
+        if (!crypto.subtle) return null;
+        const k = await crypto.subtle.importKey('raw', enc.encode(key), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+        return b64u(await crypto.subtle.sign('HMAC', k, enc.encode(data)));
+      };
+      const make = async (payload) => { const h = b64uJson({ alg: 'HS256', typ: 'JWT' }), b = b64uJson(payload); return `${h}.${b}.${await hmac($('#jwKey', root).value, h + '.' + b)}`; };
+      const nowS = () => Math.floor(Date.now() / 1000);
+      const fmt = s => new Date(s * 1000).toLocaleString('zh-TW', { hour12: false });
+      const run = async () => {
+        const tok = $('#jwTok', root).value.trim().replace(/^Bearer\s+/i, '');
+        const parts = tok.split('.');
+        if (parts.length !== 3) { $('#jwOut', root).innerHTML = '<p class="small muted">JWT 由三段組成：標頭.內容.簽章，以點分隔。</p>'; return; }
+        let head, body;
+        try { head = JSON.parse(dec(parts[0])); body = JSON.parse(dec(parts[1])); } catch { $('#jwOut', root).innerHTML = '<div class="box warn"><b class="t">無法解碼</b>標頭或內容不是有效的 Base64URL JSON。</div>'; return; }
+        const notes = [];
+        let verdict;
+        if (head.alg === 'none') verdict = ['bad', '演算法是 none：沒有簽章，伺服器絕對不能接受這種 Token'];
+        else if (head.alg !== 'HS256') verdict = ['warn', `演算法是 ${esc(head.alg)}，這個工具只驗證 HS256`];
+        else {
+          const sig = await hmac($('#jwKey', root).value, parts[0] + '.' + parts[1]);
+          verdict = sig === null ? ['warn', '這個環境不支援 Web Crypto，無法驗證簽章'] : sig === parts[2] ? ['ok', '簽章正確：內容沒有被竄改，而且是用這把金鑰簽發的'] : ['bad', '簽章不符：內容被竄改，或使用了不同的金鑰'];
+        }
+        if (verdict[0] === 'ok' && body.exp !== undefined && body.exp < nowS()) verdict = ['bad', '簽章正確，但 Token 已經過期，伺服器應該拒絕並要求重新登入'];
+        if (body.exp !== undefined) notes.push(body.exp < nowS() ? `<span class="tag bad">已過期</span> ${fmt(body.exp)}` : `<span class="tag ok">有效</span> 到期時間 ${fmt(body.exp)}（還有 ${Math.round((body.exp - nowS()) / 60)} 分鐘）`);
+        else notes.push('<span class="tag warn">沒有 exp</span> Token 永不過期，應該設定效期');
+        if (body.iat !== undefined) notes.push('簽發時間 ' + fmt(body.iat));
+        if (/pass|secret|card|身分證/i.test(JSON.stringify(body))) notes.push('<span class="tag bad">注意</span> 內容似乎包含機密資料，JWT 內容任何人都能解碼');
+        $('#jwOut', root).innerHTML = `<div class="grid g2" style="gap:10px">
+            <div><div class="small muted">標頭（Header）</div><pre class="out" style="margin:2px 0 0;white-space:pre-wrap">${esc(JSON.stringify(head, null, 2))}</pre></div>
+            <div><div class="small muted">內容（Payload）</div><pre class="out" style="margin:2px 0 0;white-space:pre-wrap">${esc(JSON.stringify(body, null, 2))}</pre></div>
+          </div>
+          <div class="box ${verdict[0] === 'ok' ? 'memo' : verdict[0] === 'bad' ? 'warn' : 'tip'}"><b class="t">${verdict[0] === 'ok' ? '驗證通過' : verdict[0] === 'bad' ? '驗證失敗' : '無法驗證'}</b>${verdict[1]}</div>
+          <p class="small" style="margin:6px 0 0">${notes.join('<br>')}</p>
+          <p class="tiny muted" style="margin:6px 0 0">內容只是 Base64URL 編碼，不是加密：任何人都能讀取，但沒有金鑰就無法產生正確的簽章。</p>`;
+      };
+      $('#jwGen', root).addEventListener('click', async () => { $('#jwTok', root).value = await make({ sub: 2, name: '陳大文', role: 'user', iat: nowS(), exp: nowS() + 3600 }); run(); });
+      $('#jwExpire', root).addEventListener('click', async () => { $('#jwTok', root).value = await make({ sub: 2, role: 'user', iat: nowS() - 7200, exp: nowS() - 3600 }); run(); });
+      $('#jwTamper', root).addEventListener('click', () => {
+        const p = $('#jwTok', root).value.trim().split('.');
+        if (p.length !== 3) return;
+        try { const b = JSON.parse(dec(p[1])); b.role = 'admin'; $('#jwTok', root).value = `${p[0]}.${b64uJson(b)}.${p[2]}`; run(); } catch { /* 內容無法解碼時不處理 */ }
+      });
+      root.addEventListener('input', run);
+      $('#jwGen', root).click();
+    }
+    if (id === 'reconcile') {
+      let seq, ver, pods, log, desiredVer;
+      const name = v => `v${v}-${(++seq).toString(36).padStart(3, '0')}`;
+      const reset = () => { seq = 0; ver = 1; desiredVer = 1; log = []; pods = Array.from({ length: +$('#rcRep', root).value }, () => ({ n: name(1), v: 1, s: 'ready' })); draw(); };
+      const cfg = () => ({ rep: +$('#rcRep', root).value, surge: +$('#rcSurge', root).value, unav: +$('#rcUnav', root).value });
+      const step = () => {
+        const { rep, surge, unav } = cfg();
+        const acts = [];
+        pods.forEach(p => { if (p.s === 'starting') { p.s = 'ready'; acts.push(`${p.n} 通過 readiness`); } });
+        const failed = pods.filter(p => p.s === 'failed');
+        if (failed.length) { pods = pods.filter(p => p.s !== 'failed'); acts.push('清除故障的 ' + failed.map(p => p.n).join('、')); }
+        const cur = pods.filter(p => p.v === desiredVer), old = pods.filter(p => p.v !== desiredVer);
+        if (!old.length) {
+          if (cur.length < rep) for (let i = cur.length; i < rep; i++) { const p = { n: name(desiredVer), v: desiredVer, s: 'starting' }; pods.push(p); acts.push('建立 ' + p.n); }
+          else if (cur.length > rep) pods.slice(rep).forEach(p => acts.push('刪除 ' + p.n)), pods = pods.slice(0, rep);
+        } else {
+          const readyAll = () => pods.filter(p => p.s === 'ready').length;
+          const canDel = Math.max(0, Math.min(old.length, readyAll() - (rep - unav)));
+          old.slice(0, canDel).forEach(p => { acts.push('刪除舊版 ' + p.n); pods = pods.filter(x => x !== p); });
+          const room = Math.max(0, rep + surge - pods.length), need = Math.max(0, rep - pods.filter(p => p.v === desiredVer).length);
+          for (let i = 0; i < Math.min(room, need); i++) { const p = { n: name(desiredVer), v: desiredVer, s: 'starting' }; pods.push(p); acts.push('建立新版 ' + p.n); }
+          if (surge === 0 && unav === 0) acts.push('⚠ maxSurge 與 maxUnavailable 不能同時為 0，更新無法進行');
+        }
+        log.push(acts.length ? acts.join('；') : '期望與實際相同，不需要動作');
+        draw();
+        return acts.length > 0 && !(surge === 0 && unav === 0 && old.length);
+      };
+      const draw = () => {
+        const { rep, surge, unav } = cfg();
+        $('#rcRepV', root).textContent = rep; $('#rcSurgeV', root).textContent = surge; $('#rcUnavV', root).textContent = unav;
+        const col = { ready: 'var(--ok)', starting: 'var(--warn)', failed: 'var(--bad)' };
+        $('#rcPods', root).innerHTML = pods.map(p => `<div style="border:2px solid ${col[p.s]};border-radius:8px;padding:6px 8px;min-width:76px;text-align:center;background:var(--surface)"><div class="mono small"><b>${p.n}</b></div><div class="tiny" style="color:${col[p.s]}">${{ ready: 'Ready', starting: '啟動中', failed: '故障' }[p.s]}</div></div>`).join('') || '<span class="small muted">沒有 Pod</span>';
+        const ready = pods.filter(p => p.s === 'ready').length, cur = pods.filter(p => p.v === desiredVer).length;
+        const stable = pods.length === rep && ready === rep && cur === rep;
+        $('#rcInfo', root).innerHTML = `<div class="box ${stable ? 'memo' : 'tip'}"><b class="t">${stable ? '已穩定：實際狀態等於期望狀態' : '尚未穩定：控制器會繼續修正'}</b>期望 ${rep} 個 v${desiredVer}；目前 ${pods.length} 個 Pod（Ready ${ready}、新版 ${cur}）。滾動更新期間 Pod 總數不超過 ${rep + surge}，Ready 不少於 ${Math.max(0, rep - unav)}。</div>`;
+        $('#rcLog', root).innerHTML = log.map(l => `<li>${esc(l)}</li>`).join('');
+        $('#rcLog', root).scrollTop = 1e6;
+      };
+      $('#rcStep', root).addEventListener('click', step);
+      $('#rcAuto', root).addEventListener('click', () => { for (let i = 0; i < 30 && step(); i++); });
+      $('#rcKill', root).addEventListener('click', () => { const p = pods.find(x => x.s === 'ready'); if (p) { p.s = 'failed'; log.push(`${p.n} 故障（例如節點當機）`); draw(); } });
+      $('#rcUpdate', root).addEventListener('click', () => { desiredVer = ++ver; log.push(`kubectl set image：期望版本改為 v${desiredVer}`); draw(); });
+      $('#rcReset', root).addEventListener('click', reset);
+      ['#rcRep', '#rcSurge', '#rcUnav'].forEach(s => $(s, root).addEventListener('input', () => { if (s === '#rcRep') log.push('kubectl scale：期望副本數改為 ' + $('#rcRep', root).value); draw(); }));
+      reset();
+    }
+    if (id === 'scheduler') {
+      const kv = s => (s || '').split(/\s+/).filter(x => x.includes('=')).reduce((o, x) => { const [k, v] = x.split('='); o[k] = v; return o; }, {});
+      const run = () => {
+        const nodes = $('#skNodes', root).value.split('\n').map(l => l.split(',').map(x => x.trim())).filter(p => p[0] && +p[1] > 0 && +p[2] > 0)
+          .map(([n, c, m, labels, taint]) => ({ n, cpu: +c, mem: +m, labels: kv(labels), taint: (taint || '').trim(), uc: 0, um: 0, pods: [] }));
+        const pods = $('#skPods', root).value.split('\n').map(l => l.split(',').map(x => x.trim())).filter(p => p[0] && +p[1] >= 0 && +p[2] >= 0)
+          .map(([n, c, m, sel, tol]) => ({ n, cpu: +c, mem: +m, sel: kv(sel), tol: (tol || '').trim() }));
+        if (!nodes.length) { $('#skOut', root).innerHTML = '<p class="small muted">請至少輸入一個節點。</p>'; return; }
+        const rows = pods.map(p => {
+          const why = [];
+          const fit = nodes.filter(nd => {
+            if (nd.taint && nd.taint !== p.tol) return why.push(`${nd.n} 有 taint ${nd.taint}`), false;
+            for (const [k, v] of Object.entries(p.sel)) if (nd.labels[k] !== v) return why.push(`${nd.n} 沒有 ${k}=${v}`), false;
+            if (nd.cpu - nd.uc < p.cpu) return why.push(`${nd.n} CPU 剩 ${nd.cpu - nd.uc}m`), false;
+            if (nd.mem - nd.um < p.mem) return why.push(`${nd.n} 記憶體剩 ${nd.mem - nd.um}Mi`), false;
+            return true;
+          });
+          if (!fit.length) return { p, node: null, why };
+          const score = nd => ((nd.cpu - nd.uc - p.cpu) / nd.cpu + (nd.mem - nd.um - p.mem) / nd.mem) / 2;
+          const best = fit.sort((a, b) => score(b) - score(a))[0];
+          best.uc += p.cpu; best.um += p.mem; best.pods.push(p.n);
+          return { p, node: best.n, why, others: fit.length - 1 };
+        });
+        const bar = (u, t) => `<div style="height:10px;background:var(--surface-2);border-radius:5px;overflow:hidden"><div style="height:100%;width:${Math.min(100, u / t * 100)}%;background:${u / t > 0.85 ? 'var(--bad)' : 'var(--accent)'}"></div></div>`;
+        const pending = rows.filter(r => !r.node);
+        $('#skOut', root).innerHTML = `<div class="table-wrap"><table class="tbl"><tr><th>Pod</th><th>requests</th><th>結果</th><th>說明</th></tr>
+          ${rows.map(r => `<tr><td class="mono">${esc(r.p.n)}</td><td class="small mono">${r.p.cpu}m／${r.p.mem}Mi</td><td>${r.node ? `<span class="tag ok">${esc(r.node)}</span>` : '<span class="tag bad">Pending</span>'}</td><td class="small">${r.node ? (r.why.length ? '排除：' + esc(r.why.join('；')) : '') + (r.others ? `（另有 ${r.others} 個節點可放，選剩餘比例最高者）` : '') : esc(r.why.join('；'))}</td></tr>`).join('')}</table></div>
+          <div class="grid g2" style="gap:10px;margin-top:10px">${nodes.map(nd => `<div style="border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--surface)">
+            <div class="row small" style="justify-content:space-between"><b class="mono">${esc(nd.n)}</b><span class="muted">${esc(Object.entries(nd.labels).map(([k, v]) => k + '=' + v).join(' '))}${nd.taint ? ' ・taint ' + esc(nd.taint) : ''}</span></div>
+            <div class="tiny muted" style="margin:6px 0 2px">CPU ${nd.uc}／${nd.cpu}m</div>${bar(nd.uc, nd.cpu)}
+            <div class="tiny muted" style="margin:6px 0 2px">記憶體 ${nd.um}／${nd.mem}Mi</div>${bar(nd.um, nd.mem)}
+            <div class="small" style="margin-top:6px">${nd.pods.length ? nd.pods.map(x => `<span class="tag">${esc(x)}</span>`).join(' ') : '<span class="muted">沒有 Pod</span>'}</div></div>`).join('')}</div>
+          <div class="box ${pending.length ? 'warn' : 'memo'}"><b class="t">${pending.length ? `${pending.length} 個 Pod 停在 Pending` : '所有 Pod 都已排程'}</b>${pending.length ? 'kubectl describe pod 的 Events 會顯示類似原因。可以增加節點（或讓叢集自動擴展器加節點）、降低 requests，或調整 nodeSelector／toleration。' : '排程只看 requests，不看實際使用量；requests 設太大會浪費資源，太小則節點可能實際過載。'}</div>`;
+      };
+      root.addEventListener('input', run); run();
+    }
+    if (id === 'hpa') {
+      const run = () => {
+        const g = k => +$('#hp' + k, root).value || 0;
+        const target = Math.max(1, g('Target')), cap = Math.max(1, g('Cap')), min = Math.max(1, g('Min')), max = Math.max(min, g('Max'));
+        const load = $('#hpLoad', root).value.split(/[\s,，]+/).filter(Boolean).map(Number).filter(Number.isFinite).slice(0, 48);
+        if (!load.length) { $('#hpOut', root).innerHTML = '<p class="small muted">請輸入流量。</p>'; return; }
+        let cur = min, history = [];
+        const rows = load.map((rps, h) => {
+          const util = rps / (cur * cap) * 100;                        // 目前副本數下的平均使用率
+          const ratio = util / target;
+          let want = Math.abs(ratio - 1) <= 0.1 ? cur : Math.ceil(cur * ratio);
+          want = Math.min(max, Math.max(min, want));
+          history.push(want);
+          // 縮減穩定視窗：取最近 5 分鐘（這裡以前一個時段近似）建議值的最大值，避免忽上忽下
+          const next = want < cur ? Math.max(want, ...history.slice(-2)) : want;
+          const row = { h, rps, cur, util, want: next, capped: Math.ceil(cur * ratio) > max };
+          cur = next;
+          return row;
+        });
+        const W = 520, H = 200, L = 34, R = 34, T = 12, B = 26, n = rows.length;
+        const x = i => L + (i + 0.5) / n * (W - L - R);
+        const maxR = Math.max(max, ...rows.map(r => r.want)), maxL = Math.max(...load) || 1;
+        const yR = v => T + (1 - v / maxR) * (H - T - B), yL = v => T + (1 - v / maxL) * (H - T - B);
+        const bw = (W - L - R) / n * 0.7;
+        $('#hpChart', root).innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:${W}px;font-size:10px;margin-top:6px" role="img" aria-label="HPA 副本數變化">
+          ${rows.map((r, i) => `<rect x="${x(i) - bw / 2}" y="${yR(r.want)}" width="${bw}" height="${H - B - yR(r.want)}" fill="var(--accent)" opacity=".75"/>`).join('')}
+          <polyline fill="none" stroke="var(--bad)" stroke-width="2" points="${rows.map((r, i) => `${x(i).toFixed(1)},${yL(r.rps).toFixed(1)}`).join(' ')}"/>
+          <line x1="${L}" x2="${W - R}" y1="${yR(max)}" y2="${yR(max)}" stroke="var(--muted)" stroke-dasharray="4 3"/>
+          <text x="${L - 4}" y="${yR(max) + 3}" text-anchor="end" fill="var(--muted)">${max}</text><text x="${L - 4}" y="${H - B}" text-anchor="end" fill="var(--muted)">0</text>
+          <text x="${W - R + 4}" y="${yL(maxL) + 3}" fill="var(--bad)">${maxL}</text>
+          ${rows.map((r, i) => i % 3 === 0 ? `<text x="${x(i)}" y="${H - 10}" text-anchor="middle" fill="var(--muted)">${i}</text>` : '').join('')}
+          <text x="${L}" y="${T}" fill="var(--accent)">■ 副本數</text><text x="${L + 60}" y="${T}" fill="var(--bad)">— 流量</text><text x="${L + 112}" y="${T}" fill="var(--muted)">- - maxReplicas</text>
+        </svg>`;
+        const peak = rows.reduce((a, r) => r.want > a.want ? r : a, rows[0]);
+        const over = rows.filter(r => r.capped);
+        const podHours = rows.reduce((s, r) => s + r.want, 0);
+        $('#hpOut', root).innerHTML = `<div class="table-wrap"><table class="tbl"><tr><th>時段</th><th style="text-align:right">流量</th><th style="text-align:right">副本</th><th style="text-align:right">使用率</th><th style="text-align:right">調整為</th></tr>
+          ${rows.map(r => `<tr><td class="mono">${String(r.h).padStart(2, '0')}:00</td><td class="num" style="text-align:right">${r.rps}</td><td class="num" style="text-align:right">${r.cur}</td><td class="num" style="text-align:right;color:${r.util > 100 ? 'var(--bad)' : 'inherit'}">${Math.round(r.util)}%</td><td class="num" style="text-align:right">${r.want === r.cur ? '—' : (r.want > r.cur ? '↑ ' : '↓ ') + r.want}${r.capped ? ' <span class="tag warn">上限</span>' : ''}</td></tr>`).join('')}</table></div>
+          <div class="box ${over.length ? 'warn' : 'memo'}"><b class="t">尖峰 ${String(peak.h).padStart(2, '0')}:00 擴展到 ${peak.want} 個副本</b>全天共 ${podHours} Pod 小時（固定開 ${max} 個需要 ${max * rows.length} Pod 小時，自動擴展節省 ${Math.round((1 - podHours / (max * rows.length)) * 100)}%）。${over.length ? `有 ${over.length} 個時段計算值超過 maxReplicas，使用率可能長時間偏高，考慮提高上限或改善單一 Pod 的效能。` : ''}</div>
+          <p class="tiny muted" style="margin:6px 0 0">簡化模型：每小時計算一次，使用率 ＝ 流量 ÷（副本數 × 單一 Pod 容量）。實際的 HPA 預設每 15 秒評估、±10% 內不調整、縮減有 5 分鐘穩定視窗，新 Pod 也需要時間啟動。</p>`;
+      };
+      root.addEventListener('input', run); run();
+    }
+    if (id === 'podstatus') {
+      const D = {
+        pending: ['Pod 還沒有被排程到節點，或在等待資源', [['資源不足', 'Events：0/3 nodes are available: 3 Insufficient cpu', '降低 requests、增加節點，或啟用叢集自動擴展'], ['nodeSelector／親和性不符', "Events：didn't match Pod's node affinity/selector", '確認節點標籤：kubectl get nodes --show-labels'], ['節點有 taint', "Events：had untolerated taint", '加上 toleration，或使用其他節點'], ['PVC 無法綁定', 'Events：pod has unbound immediate PersistentVolumeClaims', 'kubectl get pvc 檢查 StorageClass 與容量']], ['kubectl describe pod POD', 'kubectl get events --sort-by=.lastTimestamp', 'kubectl describe nodes | grep -A5 "Allocated resources"']],
+        image: ['下載映像檔失敗，Kubernetes 等待越來越久後重試', [['名稱或標籤打錯', 'Events：manifest unknown／not found', '確認映像檔在倉庫中存在，標籤正確'], ['私有倉庫沒有權限', 'Events：pull access denied／unauthorized', '建立 dockerconfigjson Secret 並設定 imagePullSecrets'], ['節點無法連到倉庫', 'Events：i/o timeout', '檢查節點網路、防火牆與代理設定'], ['觸發倉庫的下載次數限制', 'Events：toomanyrequests', '登入倉庫或改用鏡像倉庫']], ['kubectl describe pod POD', 'docker pull IMAGE（在自己電腦確認映像檔存在）']],
+        crash: ['容器啟動後立刻結束，Kubernetes 反覆重啟並拉長等待時間', [['缺少環境變數或設定', '日誌：Error: 缺少 JWT_SECRET', '確認 ConfigMap、Secret 名稱與鍵正確並已建立'], ['連不到相依服務', '日誌：ECONNREFUSED postgres:5432', '確認 Service 名稱、Namespace 與相依服務狀態；可加 init 容器等待'], ['啟動指令錯誤', 'Last State：Exit Code 127（找不到指令）', '檢查 command、args 與映像檔的 ENTRYPOINT'], ['程式本身的錯誤', '日誌中的例外與堆疊', '在本機用相同映像檔與環境變數重現']], ['kubectl logs POD --previous', 'kubectl describe pod POD（看 Last State 與 Exit Code）', 'kubectl get pod POD -o yaml']],
+        oom: ['容器使用的記憶體超過 limits，被核心終止', [['limits 設太低', 'Last State：OOMKilled，Exit Code 137', '依實際使用量調高記憶體 limits'], ['記憶體洩漏', 'kubectl top pod 顯示記憶體持續上升', '用分析工具找出洩漏，或設定執行環境的記憶體上限（例如 Node.js 的 --max-old-space-size）'], ['一次處理太多資料', '處理大量請求或大檔案時才發生', '分批處理、使用串流']], ['kubectl describe pod POD', 'kubectl top pod POD --containers']],
+        notready: ['容器在執行，但 readiness 探針沒有通過，不會收到流量', [['探針路徑或連接埠錯誤', 'Events：Readiness probe failed: HTTP probe failed with statuscode: 404', '確認 path 與 port 和應用一致'], ['相依服務無法連線', '/ready 檢查資料庫失敗', '修復相依服務；確認探針只檢查必要的東西'], ['啟動時間比預期長', 'Events：connection refused（啟動中）', '加上 startupProbe 或調整 initialDelaySeconds']], ['kubectl describe pod POD', 'kubectl exec -it POD -- wget -qO- localhost:3000/ready']],
+        nosvc: ['Pod 正常，但透過 Service 無法連線', [['選擇器和 Pod 標籤不符', 'kubectl get endpointslices 顯示沒有後端', '讓 Service 的 selector 和 Pod 的 labels 一致'], ['targetPort 錯誤', '後端存在但連線被拒絕', 'targetPort 要等於容器實際監聽的連接埠'], ['Pod 沒有 Ready', 'EndpointSlice 中的端點不是 ready', '先解決 readiness 問題'], ['NetworkPolicy 擋住', '同 Namespace 其他 Pod 也連不到', '檢查 NetworkPolicy 是否允許來源'], ['Namespace 或 DNS 名稱錯誤', 'nslookup 失敗', '跨 Namespace 用 服務名稱.Namespace']], ['kubectl get endpointslices -l kubernetes.io/service-name=SVC', 'kubectl describe svc SVC', 'kubectl run tmp --rm -it --image=busybox -- wget -qO- http://SVC.NS/health']],
+        restart: ['容器偶爾被重啟，RESTARTS 欄位持續增加', [['liveness 探針太嚴格', 'Events：Liveness probe failed', '放寬 timeoutSeconds、failureThreshold；liveness 不要檢查相依服務'], ['間歇性的 OOMKilled', 'Last State：OOMKilled', '調高記憶體 limits 或修正洩漏'], ['程式偶發崩潰', 'logs --previous 有例外', '修正程式錯誤並加強錯誤處理']], ['kubectl describe pod POD', 'kubectl logs POD --previous']],
+        term: ['刪除 Pod 後一直停在 Terminating', [['程式沒有處理 SIGTERM', '要等 terminationGracePeriodSeconds（預設 30 秒）才被強制終止', '在程式中處理 SIGTERM 並優雅關機'], ['節點失聯', 'kubectl get nodes 顯示 NotReady', '修復節點；必要時強制刪除'], ['finalizer 沒有完成', 'metadata.finalizers 仍有值', '確認負責的控制器正常；了解風險後才手動移除']], ['kubectl describe pod POD', 'kubectl get pod POD -o jsonpath="{.metadata.finalizers}"', 'kubectl delete pod POD --grace-period=0 --force（最後手段）']]
+      };
+      const show = v => {
+        const [desc, causes, cmds] = D[v];
+        $('#psOut', root).innerHTML = `<p class="small" style="margin:10px 0">${esc(desc)}</p>
+          <div class="table-wrap"><table class="tbl"><tr><th>可能原因</th><th>怎麼確認</th><th>修正方式</th></tr>${causes.map(c => `<tr><td><b>${esc(c[0])}</b></td><td class="small mono">${esc(c[1])}</td><td class="small">${esc(c[2])}</td></tr>`).join('')}</table></div>
+          <div class="small muted" style="margin:8px 0 2px">建議執行的指令</div><pre class="out" style="margin:0;white-space:pre-wrap">${esc(cmds.map(c => '$ ' + c).join('\n'))}</pre>`;
+      };
+      tabsSelect(root, (tabs, v) => show(v));
+      show('pending');
     }
   }
 

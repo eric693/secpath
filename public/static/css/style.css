@@ -1,4 +1,4 @@
-/* ============ SecPath 資安學堂 ============ */
+/* ============ SecPath 學堂 ============ */
 :root {
   --bg: #f7f7f5;
   --surface: #ffffff;
@@ -191,6 +191,11 @@ label.field > span { display: block; font-size: .84rem; color: var(--ink-2); mar
 .tbl td:first-child, .tbl th:first-child, .lesson-body td:first-child, .lesson-body th:first-child { padding-left: 0; }
 .table-wrap { overflow-x: auto; margin: 0 0 1.4em; -webkit-overflow-scrolling: touch; }
 .table-wrap > table { margin: 0; min-width: 540px; }
+.lesson-body .table-wrap > table:not(:has(tr > :nth-child(4))) { min-width: 0; }
+/* 表格可以橫向捲動時，在被截掉的一側淡出，提示可以滑動（由 tablefade.js 加上 class） */
+.table-wrap.fade-r { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 44px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 44px), transparent); }
+.table-wrap.fade-l { -webkit-mask-image: linear-gradient(to right, transparent, #000 44px); mask-image: linear-gradient(to right, transparent, #000 44px); }
+.table-wrap.fade-l.fade-r { -webkit-mask-image: linear-gradient(to right, transparent, #000 44px, #000 calc(100% - 44px), transparent); mask-image: linear-gradient(to right, transparent, #000 44px, #000 calc(100% - 44px), transparent); }
 td.mark { color: var(--accent); text-align: center; }
 
 /* ---------- 學習總覽 ---------- */

@@ -88,7 +88,7 @@ module.exports = function createSite({ ROOT, LEVELS }) {
     return `<a class="cw-card" href="/course/${c.id}" data-cat="${c.cat}" data-kind="${c.kind}" data-search="${esc(search)}">
       ${cover(c)}
       <div class="cw-body">
-        <div class="cw-tags"><span class="tag ${c.kind === 'cert' ? 's1' : 's2'}">${kindName(c.kind)}</span><span class="tag">${esc(c.level)}</span></div>
+        <div class="cw-tags"><span class="tag ${c.kind === 'cert' ? 's1' : 's2'}">${kindName(c.kind)}</span><span class="tag">${esc(c.level)}</span>${c.isNew ? '<span class="tag new">新課程</span>' : ''}</div>
         <h3>${esc(title(c))}</h3>
         <p>${esc(c.pitch)}</p>
         <div class="cw-meta">${metaLine(c.stats)}</div>
@@ -122,7 +122,14 @@ module.exports = function createSite({ ROOT, LEVELS }) {
       STATS: stats.map(([n, t]) => `<div><b>${n}</b><span>${t}</span></div>`).join(''),
       CHIPS: `<button type="button" class="chip on" data-cat="">全部 <span>${d.courses.length}</span></button>` +
         d.categories.map(c => `<button type="button" class="chip" data-cat="${c.id}" style="--h:${c.hue}">${esc(c.name)} <span>${d.courses.filter(x => x.cat === c.id).length}</span></button>`).join(''),
-      CARDS: d.courses.map(card).join(''),
+      // 依分類分區：「全部」時每區是一排可橫向捲動的卡片，篩選或搜尋時改為網格
+      CARDS: d.categories.map(c => {
+        const list = d.courses.filter(x => x.cat === c.id);
+        return `<section class="cw-group" data-cat="${c.id}" style="--h:${c.hue}">
+          <div class="cw-group-head"><h3>${esc(c.name)}<span>${list.length} 門</span></h3></div>
+          <div class="cw-row">${list.map(card).join('')}</div>
+        </section>`;
+      }).join(''),
       HERO_ART: ['secplus', 'aws-saa', 'py-basic', 'ai-apps'].filter(id => d.byId[id]).map(id => cover(d.byId[id])).join(''),
       PATHS: d.paths.map(p => pathBlock(p, d.byId)).join('')
     };

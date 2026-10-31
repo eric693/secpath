@@ -120,3 +120,40 @@ INSERT INTO employees VALUES
 (10,'鄭怡君',NULL,1,'特別助理',55000,'2024-05-02');
 `
 };
+
+/* Node.js 後端課程的範例資料庫：待辦事項 API 的使用者與待辦事項（password_hash 為示意字串，不是真的雜湊） */
+self.SQL_SEEDS.api = `
+PRAGMA foreign_keys = ON;
+CREATE TABLE users (
+  id INTEGER PRIMARY KEY,
+  email TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  password_hash TEXT NOT NULL,
+  role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin')),
+  created_at TEXT NOT NULL
+);
+CREATE TABLE todos (
+  id INTEGER PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  done INTEGER NOT NULL DEFAULT 0 CHECK (done IN (0, 1)),
+  due_date TEXT,
+  created_at TEXT NOT NULL
+);
+INSERT INTO users VALUES
+(1,'amy@example.com','林小美','scrypt$demo$1','admin','2026-01-05 09:12:00'),
+(2,'ben@example.com','陳大文','scrypt$demo$2','user','2026-02-14 20:30:00'),
+(3,'cara@example.com','王佳佳','scrypt$demo$3','user','2026-03-02 11:45:00'),
+(4,'dan@example.com','張志明','scrypt$demo$4','user','2026-04-18 08:05:00');
+INSERT INTO todos VALUES
+(1,1,'審核新版 API 文件',1,'2026-10-20','2026-10-01 10:00:00'),
+(2,1,'設定正式環境的環境變數',0,'2026-11-05','2026-10-03 14:20:00'),
+(3,1,'檢查錯誤日誌',0,NULL,'2026-10-10 09:00:00'),
+(4,2,'完成登入 API',1,'2026-10-15','2026-10-02 16:40:00'),
+(5,2,'撰寫待辦事項測試',0,'2026-11-01','2026-10-08 13:10:00'),
+(6,2,'修正分頁的錯誤',0,'2026-10-28','2026-10-12 17:55:00'),
+(7,2,'更新套件版本',0,NULL,'2026-10-20 11:30:00'),
+(8,3,'設計資料表結構',1,'2026-10-12','2026-10-05 10:25:00'),
+(9,3,'串接前端登入頁',0,'2026-11-10','2026-10-15 15:00:00'),
+(10,4,'學習 Express 中介軟體',0,NULL,'2026-10-22 21:15:00');
+`;

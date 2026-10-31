@@ -215,5 +215,19 @@
   "artist": "Nebulousflynn",
   "license": "CC BY 4.0",
   "licenseUrl": "https://creativecommons.org/licenses/by/4.0"
+ },
+ "node": {
+  "title": "File:Panduit Pan-Net Cable Management System detail 2.JPG",
+  "page": "https://commons.wikimedia.org/wiki/File:Panduit_Pan-Net_Cable_Management_System_detail_2.JPG",
+  "artist": "BrokenSphere",
+  "license": "CC BY-SA 3.0",
+  "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/"
+ },
+ "k8s": {
+  "title": "File:Zhangjiagang win hanverky container terminal port 2024-04.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Zhangjiagang_win_hanverky_container_terminal_port_2024-04.jpg",
+  "artist": "Pierre Marshall",
+  "license": "CC BY 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by/4.0"
  }
 }
