@@ -130,7 +130,7 @@ module.exports = function createSite({ ROOT, LEVELS }) {
           <div class="cw-row">${list.map(card).join('')}</div>
         </section>`;
       }).join(''),
-      HERO_ART: ['secplus', 'aws-saa', 'py-basic', 'ai-apps'].filter(id => d.byId[id]).map(id => cover(d.byId[id])).join(''),
+      HERO_ART: ['secplus', 'agent', 'k8s', 'finance'].filter(id => d.byId[id]).map(id => cover(d.byId[id])).join(''),
       PATHS: d.paths.map(p => pathBlock(p, d.byId)).join('')
     };
   }

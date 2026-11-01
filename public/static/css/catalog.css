@@ -33,7 +33,7 @@
 .hero-art .cover:nth-child(even) { transform: translateY(26px); }
 .hero-art .cover-code { font-size: 1.4rem; }
 .hero-art .cover-cat, .hero-art .cover-level { font-size: .62rem; }
-.hero h1 { font-size: 2.9rem; line-height: 1.25; font-weight: 900; margin-bottom: 18px; }
+.hero h1 { font-size: 2.9rem; line-height: 1.25; font-weight: 700; margin-bottom: 18px; }
 .hero .lead { max-width: 720px; }
 .hero-search { margin: 28px 0 0; max-width: 620px; }
 .hero-search input {

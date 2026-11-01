@@ -53,6 +53,8 @@ for (const [k, v] of Object.entries(LEVELS)) {
 }
 
 const site = require('./site')({ ROOT, LEVELS });
+const seo = require('./seo')({ ROOT, site });
+const assets = require('./assets')({ ROOT });
 
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'application/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.json': 'application/json', '.png': 'image/png', '.ico': 'image/x-icon', '.mp4': 'video/mp4', '.webm': 'video/webm', '.vtt': 'text/vtt', '.wasm': 'application/wasm', '.otf': 'font/otf', '.csv': 'text/csv; charset=utf-8' };
 const SESSION_DAYS = 30;
@@ -131,7 +133,8 @@ function view(name) {
   if (process.env.NODE_ENV === 'production' && views[name]) return views[name];
   return (views[name] = fs.readFileSync(path.join(ROOT, 'views', name), 'utf8'));
 }
-function render(name, vars) { return view(name).replace(/\{\{(\w+)\}\}/g, (_, k) => vars[k] ?? ''); }
+// 輸出前把 /static/… 加上內容雜湊版本號，讓靜態檔可以長期快取
+function render(name, vars) { return assets.versionHtml(view(name).replace(/\{\{(\w+)\}\}/g, (_, k) => vars[k] ?? '')); }
 function send(res, code, body, type = 'text/html; charset=utf-8', extra = {}) {
   res.writeHead(code, { 'Content-Type': type, 'Cache-Control': 'no-store', ...extra });
   res.end(body);
@@ -212,14 +215,16 @@ const server = http.createServer(async (req, res) => {
 
   if (p === '/sandbox.html') return serveFile(res, path.join(ROOT, 'public'), 'sandbox.html', 'public, max-age=3600');
   if (p === '/credits') return send(res, 200, creditsPage(req));
-  if (p === '/' || p === '/index.html') return send(res, 200, render('home.html', { ...site.home(), USER_NAV: members.userNav(members.user(req)) }));
+  if (p === '/robots.txt') return send(res, 200, seo.robots(), 'text/plain; charset=utf-8', { 'Cache-Control': 'public, max-age=86400' });
+  if (p === '/sitemap.xml') return send(res, 200, seo.sitemap(), 'application/xml; charset=utf-8', { 'Cache-Control': 'public, max-age=3600' });
+  if (p === '/' || p === '/index.html') return send(res, 200, render('home.html', { ...site.home(), META: seo.home(), USER_NAV: members.userNav(members.user(req)) }));
   const cm = p.match(/^\/course\/([\w-]+)(\/trial)?\/?$/);
   if (cm) {
     const vars = cm[2] ? site.trial(cm[1]) : site.course(cm[1]);
     if (!vars) return send(res, 404, render('notfound.html', {}));
     const u = members.user(req);
     const has = authed(req, cm[1]) || members.canAccess(u, cm[1]);
-    return send(res, 200, render(cm[2] ? 'trial.html' : 'course.html', { ...vars, USER_NAV: members.userNav(u), ENTER: has ? '進入課程，繼續學習' : u ? '輸入兌換碼開通課程' : '已有課程密碼，進入課程' }));
+    return send(res, 200, render(cm[2] ? 'trial.html' : 'course.html', { ...vars, META: seo.course(cm[1], !!cm[2]), USER_NAV: members.userNav(u), ENTER: has ? '進入課程，繼續學習' : u ? '輸入兌換碼開通課程' : '已有課程密碼，進入課程' }));
   }
   try {
     if (await members.handle(req, res, url, p)) return;
@@ -236,7 +241,8 @@ const server = http.createServer(async (req, res) => {
     if (!u.is_admin) return send(res, 403, render('notfound.html', {}));
     return serveFile(res, ADMIN_DIST, 'index.html', 'no-cache');
   }
-  if (p.startsWith('/static/')) return serveFile(res, path.join(ROOT, 'public', 'static'), p.slice(8), 'public, max-age=3600');
+  // 帶有 ?v= 版本號的網址內容不會變，可以快取一年；沒有版本號的仍維持一小時
+  if (p.startsWith('/static/')) return serveFile(res, path.join(ROOT, 'public', 'static'), p.slice(8), url.searchParams.has('v') ? 'public, max-age=31536000, immutable' : 'public, max-age=3600');
   if (p === '/favicon.ico') return serveFile(res, path.join(ROOT, 'public', 'static'), 'icon.svg', 'public, max-age=86400');
 
   const m = p.match(LEVEL_PATH);
@@ -278,6 +284,13 @@ const server = http.createServer(async (req, res) => {
       ERROR: msg ? `<p class="login-error" role="alert">${msg}</p>` : '',
       ...loginVars(user, level)
     }));
+  }
+  // 只送出這門課用到的互動練習，並用 ETag 讓瀏覽器重複使用
+  if (rest === '/data/tools.js') {
+    if (!ok) return send(res, 401, 'Unauthorized', 'text/plain');
+    const t = assets.toolsFor(level);
+    if (req.headers['if-none-match'] === t.etag) { res.writeHead(304, { ETag: t.etag, 'Cache-Control': 'private, no-cache' }); return res.end(); }
+    return send(res, 200, t.body, 'application/javascript; charset=utf-8', { ETag: t.etag, 'Cache-Control': 'private, no-cache' });
   }
   if (rest.startsWith('/data/')) {
     if (!ok) return send(res, 401, 'Unauthorized', 'text/plain');
